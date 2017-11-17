@@ -1,0 +1,28 @@
+{
+  "name": "duriel",
+  "version": "1.0.0",
+  "description": "Continuous Deployment and Integration for Andariel",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpusCapita/duriel.git"
+  },
+  "keywords": [
+    "andariel"
+  ],
+  "author": "gr4per",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/OpusCapita/duriel/issues"
+  },
+  "homepage": "https://github.com/OpusCapita/duriel#readme",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "mysql": "^2.15.0",
+    "socksv5": "0.0.6",
+    "ssh2": "^0.5.5"
+  }
+}
