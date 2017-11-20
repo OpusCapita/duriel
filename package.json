@@ -21,8 +21,8 @@
   "homepage": "https://github.com/OpusCapita/duriel#readme",
   "dependencies": {
     "axios": "^0.17.1",
+    "bluebird": "^3.5.1",
     "mysql": "^2.15.0",
-    "socksv5": "0.0.6",
     "ssh2": "^0.5.5"
   }
 }
