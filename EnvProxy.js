@@ -4,13 +4,7 @@ var net = require('net');
 var Client = require('ssh2').Client;
 var axios = require('axios');
 
-var ssh_config = {
-  host: 'bnp-admin-pr2.westeurope.cloudapp.azure.com',
-  port: 2200,
-  username: 'gr4per',
-  agentForward: true,
-  agent: process.env.SSH_AUTH_SOCK
-}
+var default_config = {};
 
 /** 
  * Should return a promise on an EnvProxy instance
@@ -21,17 +15,24 @@ module.exports = class EnvProxy {
     this.proxyServers = {};
   }
 
-  init(config){
-    
+  init(overrideconfig){
+    this.config = Object.assign({}, default_config, overrideconfig);
     this.sshconn = new Client();
     var initSsh = new Promise( (resolve, reject) => {
       this.sshconn.on('ready', (err) => {
-	console.log("ssh connection to " + ssh_config.host + " established");
+	console.log("ssh connection to " + this.config.admin_address + " established");
 	resolve(this.sshconn);
       });
       this.sshconn.on('error', function(err) {
 	reject(err);
       }); 
+      var ssh_config = {host: this.config.admin_address,
+                            port: this.config.admin_port,
+                            username: this.config.admin_user,
+                            agentForward: true,
+                            agent: process.env.SSH_AUTH_SOCK};
+
+      console.log("connecting to %o", ssh_config);
       this.sshconn.connect(ssh_config);
     });
 
