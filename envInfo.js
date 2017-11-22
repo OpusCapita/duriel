@@ -1,11 +1,11 @@
-var extend = require('extend');
+const extend = require('extend');
 
-var default_config = {
+let default_config = {
   public_port: 443,
   public_scheme: 'https',
   logstash_ip: '172.17.0.1',
   admin_port: 2200
-}
+};
  
 
 module.exports.develop = extend(true, {}, default_config, {
