@@ -33,5 +33,6 @@ module.exports.pr2 = extend(true, {}, default_config, {
   admin_user: 'dmm',
   public_ip: '13.80.124.58',
   admin_address: 'bnp-admin-pr2.westeurope.cloudapp.azure.com',
-  public_hostname: 'businessnetwork.opuscapita.com'
+  //public_hostname: 'businessnetwork.opuscapita.com'
+  public_hostname: 'inactive-bnp-prod2.westeurope.cloudapp.azure.com'
 });
