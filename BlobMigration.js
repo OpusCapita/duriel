@@ -68,13 +68,14 @@ function init() {
     console.log("srcEnvProxy created");
   })
   .then( () => {
-    return destEnvProxy = new EnvProxy().init(envInfo.pr2);
+    return new EnvProxy().init(envInfo.pr2);
   })
   .catch( (err) => {
     console.log("error connecting to " + destEnv + ": %o", err);
     process.exit(1);
   })
-  .then( () => {
+  .then( (proxy) => {
+    destEnvProxy = proxy;
     return srcApiHelper = new ApiHelper().init({clientSecret: process.env.oidc_secret});
   })
   .then( () => {
@@ -102,19 +103,4 @@ function init() {
     console.log("error: %o", err);
   });
 }
-
-init()
-.then( () => {
-  return srcDbSession.query('SELECT tenantId, id FROM blob.TenantContainerMapping;');
-})
-.then( (result) => {
-  var rows = result[0];
-  console.log("rows = " + JSON.stringify(rows));
-  for(var i = 0; i < rows.length; i++) {
-    console.log("row " + i + " %o", rows[i]);
-  }
-  console.log('yeah baby!');
-}).catch( (err) => {
-  console.log('Error: ' + err);
-});
 
