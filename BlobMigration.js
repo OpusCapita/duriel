@@ -71,7 +71,7 @@ init()
 })
 .then( (result) => {
   var rows = result[0];
-  console.log("rows = " + JSON.stringify(rows));
+  //console.log("rows = " + JSON.stringify(rows));
   //for(var i = 0; i < rows.length; i++) {
   //  console.log("row " + i + " %o", rows[i]);
   //}
@@ -92,17 +92,23 @@ init()
     if(i<srcRows.length) {
       let tenantId = srcRows[i].tenantId;
       let tenantInfo = srcContainerMap[tenantId] = {containerId:srcRows[i].id,
-                                   destContainerId:destContainerMap[tenantId]};
+                                   destContainerId:destContainerMap[tenantId],
+                                   tenantId: tenantId};
       console.log("tenant " + tenantId + ": \nsrcContainer " 
                   + srcContainerMap[tenantId].containerId 
                   + "\ndestContainer " + srcContainerMap[tenantId].destContainerId);
       return handleTenant(tenantInfo)
-      .then(loop(i+1));
+      .catch( (err) => {
+        console.log(err);
+        process.exit(1);
+      })
+      .then( () => { return loop(i+1); });
     }
+    return Promise.resolve(null);
   })(0);
 })
 .catch( (err) => {
-  console.log('Error: ' + err);
+  console.log('Error: ', err);
 });
 
 function handleTenant(tenantInfo) {
@@ -115,7 +121,8 @@ function handleTenant(tenantInfo) {
 }
 
 function syncDirectory(tenantInfo, path) {
-  return apiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
+  console.log("syncing directory " + path + " for tenant " + tenantInfo.tenantId);
+  return srcApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
   .then( (response) => {
     for(let i = 0; i < response.data.length; i++) {
       console.out('srcFile ' + reponse.data[i].path + ", size " + response.data[i].size + ", isDir = " + response.data[i].isDirectory);
@@ -126,21 +133,24 @@ function syncDirectory(tenantInfo, path) {
 
 function ensureTenantContainerExists(tenantInfo) {
   if(!tenantInfo.destContainerId) {
-    console.log("tenantId not present on dest blob, creating it");
-    return destApiHelper.put('blob/api/' + tenantInfo.tenantId + "/files/delete.me",
-                             'please delete me')
+    console.log("tenantId " + tenantInfo.tenantId + " not present on dest blob, creating it\ntenantInfo = %0", tenantInfo);
+    let path = 'blob/api/' + tenantInfo.tenantId + "/files/delete.me";
+    return destApiHelper.put(path, 'please delete me')
     .then( (response) => {
+      console.log("response for put " + path + ": %o", response);
       if(response.status == 202) {
         console.log("tenant " + tenantInfo.tenantId + ": container created on dest ");
         return destDbSession.query("SELECT id FROM blob.TenantContainerMapping where tenantId = '" + tenantInfo.tenantId + "';")
         .then( (result) => {
-          return result[0][0].id;
+          let containerId = result[0][0].id;
+          console.log("created container with id " + containerId);
+          return containerId;
         })
       }
-      else throw "Not able to create dest container for tenant " + tenantInfo.tenantId + ", error status is " + response.status;
+      else throw "Not able to create dest container for tenant " + tenantInfo.tenantId + ", error: status is " + response.status;
     })
   }
-  return tenantInfo.destContainerId;
+  return Promise.resolve(tenantInfo.destContainerId);
 }
 
 /**
@@ -161,12 +171,14 @@ function init() {
   })
   .then( (proxy) => {
     destEnvProxy = proxy;
-    return srcApiHelper = new ApiHelper().init({clientSecret: srcApiSecret, host: envInfo[srcEnv].public_hostname, password: srcApiPassword});
+    return new ApiHelper().init({instanceId: srcEnv, clientSecret: srcApiSecret, host: envInfo[srcEnv].public_hostname, password: srcApiPassword});
   })
-  .then( () => {
-    return destApiHelper = new ApiHelper().init({clientSecret: destApiSecret, host: envInfo[destEnv].public_hostname, password: destApiPassword, http: {httpsAgent: new https.Agent({rejectUnauthorized: false})}});
+  .then( (apiHelper) => {
+    srcApiHelper = apiHelper;
+    return new ApiHelper().init({instanceId: destEnv, clientSecret: destApiSecret, host: envInfo[destEnv].public_hostname, password: destApiPassword, http: {httpsAgent: new https.Agent({rejectUnauthorized: false})}});
   })
-  .then( () => {
+  .then( (apiHelper) => {
+    destApiHelper = apiHelper;
     return mysql.createConnection({
       host: 'localhost',
       port: srcEnvProxy.proxyServers['mysql'].port,

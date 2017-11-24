@@ -7,7 +7,8 @@ var defaultConfig = { username: 'ocadmin',
                scheme: 'https',
                host: 'develop.businessnetwork.opuscapita.com',
                port: '443',
-               clientId: 'oidcCLIENT'
+               clientId: 'oidcCLIENT',
+               instanceId: 'ApiHelper'
              }
 
 /** 
@@ -41,10 +42,11 @@ module.exports = class ApiHelper {
       this.tokenInfo = response.data; 
       this.tokenInfo.expires_at = new Date(this.tokenInfo.expires_in *1000 + new Date().getTime()).getTime();
       //console.log("response: %o", this.tokenInfo);
-      console.log("received access_token, valid until %o", new Date(this.tokenInfo.expires_at));
+      console.log(this.config.instanceId + " received access_token " + this.tokenInfo.access_token + "\nvalid until %o", new Date(this.tokenInfo.expires_at));
+      return this;
     })
     .catch( (err) => {
-      console.log("Error getting access token: %o", err);
+      console.log(this.config.instanceId + " Error getting access token: %o", err);
       throw err;
     });
   }
@@ -58,14 +60,14 @@ module.exports = class ApiHelper {
      return Promise.reject('ApiHelper not initialized! Call init(config) first...');
     }
     if(new Date().getTime() > this.tokenInfo.expires_at - 5000) {
-      console.log("refreshing token which is valid until %o", new Date(this.tokenInfo.expires_at));
+      console.log(this.config.instanceId + " refreshing token which is valid until %o", new Date(this.tokenInfo.expires_at));
       return this.init({});
     }
     return Promise.resolve(this.getAuthHeader());
   }
 
   getAuthHeader() {
-    return this.tokenInfo.token_type + ": " + this.tokenInfo.access_token;
+    return this.tokenInfo.token_type + " " + this.tokenInfo.access_token;
   }
 
   /**
@@ -75,8 +77,10 @@ module.exports = class ApiHelper {
    * returns a Promise on the response
    */
   put(uri, data, config) {
-    return ensureSession()
-    .then(this.http.put(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, data, config));
+    return this.ensureSession()
+    .then( (authHeader) => {
+      return this.http.put(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, data, extend(true, {}, config, {headers: {Authorization: authHeader}}));
+    });
   }
   
   /**
@@ -86,7 +90,9 @@ module.exports = class ApiHelper {
    * returns a Promise on the response
    */
   get(uri, config) {
-    return ensureSession()
-    .then(this.http.get(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, config));
+    return this.ensureSession()
+    .then( (authHeader) => {
+      return this.http.get(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, extend(true, {}, config, {headers: {Authorization: authHeader}}));
+    });
   }
 }  
