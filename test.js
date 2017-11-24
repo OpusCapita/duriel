@@ -1,5 +1,5 @@
 const dns = require('dns');
-const apiHelper = require('./ApiHelper.js');
+const ApiHelper = require('./ApiHelper.js');
 
 const ssh_config = {
   host: 'bnp-admin-pr2.westeurope.cloudapp.azure.com',
