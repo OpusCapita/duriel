@@ -136,25 +136,15 @@ function syncFile(tenantInfo, path) {
       process.exit(1);
     }
     fsObj = JSON.parse(fsObj);
-    console.log("fsObj: %o ", fsObj);
-    return fs_open( '/home/gr4per/test/' + fsObj.name, 'w')
-    .then( (fd) => {
-      let wstream = fs.createWriteStream( 'file:///home/gr4per/test/' + fsObj.name, {fd:fd});
-      response.data.pipe(wstream);
-      response.data.on('end', function() {console.log("piping done on " + fsObj.name);});
-      console.log("started piping");
-    })
-    //return destApiHelper.put('blob/api/' + tenantInfo.tenantId + '/files' + path + '?createMissing=true', response.data)
+    return destApiHelper.put('blob/api/' + tenantInfo.tenantId + '/files' + path + '?createMissing=true', response.data, {headers:{"Content-Type":"application/octet-stream"}})
   })
-
 }
 
 function syncDirectory(tenantInfo, path) {
   console.log("syncing directory " + path + " for tenant " + tenantInfo.tenantId);
   return srcApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
   .then( (response) => {
-    console.log("going to sync " + response.data.length + " files from src to dest: %o", response.data);
-//    process.exit(1);
+    console.log("going to sync " + response.data.length + " files from src to dest");
     return destApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
     .then( (destResponse) => {
       return [response.data, destResponse.data];
@@ -166,38 +156,31 @@ function syncDirectory(tenantInfo, path) {
   })
   .then( ([srcFileList, destFileList]) => {
 
-    return (function fileloop(i) {
-    console.log("called file loop(" + i + ")");
-    if(i<srcFileList.length) {
-      console.log('srcFile ' + srcFileList[i].path + ", size " + srcFileList[i].size + ", isDir = " + srcFileList[i].isDirectory);
-      let srcDirEntry = srcFileList[i];
-      let filePath = srcDirEntry.path;
-      let destDirEntry = null;
-      if(destFileList) destDirEntry = destFileList.find(function(elem){ return elem.path == filePath });
-      let p = null;
-      if( srcDirEntry.isDirectory ) {
-        if(!filePath.endsWith('/')) filePath += '/';
-        p = syncDirectory(tenantInfo, filePath);
+      return (function fileloop(i) {
+      console.log("called file loop(" + i + ")");
+      if(i<srcFileList.length) {
+	console.log('srcFile ' + srcFileList[i].path + ", size " + srcFileList[i].size + ", isDir = " + srcFileList[i].isDirectory);
+	let srcDirEntry = srcFileList[i];
+	let filePath = srcDirEntry.path;
+	let destDirEntry = null;
+	if(destFileList) destDirEntry = destFileList.find(function(elem){ return elem.path == filePath });
+	let p = null;
+	if( srcDirEntry.isDirectory ) {
+	  if(!filePath.endsWith('/')) filePath += '/';
+	  p = syncDirectory(tenantInfo, filePath);
+	}
+	else if ( destDirEntry && srcDirEntry.checksum == destDirEntry.checksum ) {
+	  console.log("src and dest have same checksum, skipping file sync for " + filePath);
+	  p = Promise.resolve(null);
+	}
+	else 
+	  p = syncFile(tenantInfo, filePath);
+	 
+	return p
+	.then( () => { return fileloop(i+1); });
       }
-      else if ( destDirEntry && srcDirEntry.checksum == destDirEntry.checksum ) {
-        console.log("src and dest have same checksum, skipping file sync for " + filePath);
-        p = Promise.resolve(null);
-      }
-      else 
-        p = syncFile(tenantInfo, filePath);
-       
-      return p
-      .then( () => { return fileloop(i+1); });
-    }
-    return Promise.resolve(null);
-  })(0);
-
-    for(let i = 0; i < srcFileList.length; i++) {
-      console.log('srcFile ' + srcFileList[i].path + ", size " + srcFileList[i].size + ", isDir = " + srcFileList[i].isDirectory);
-      let filePath = srcFileList[i].path;
-      let destDirEntry = destFileList.find(function(elem){ return elem.path == filePath });
-
-    }
+      return Promise.resolve(null);
+    })(0);
   });
 }
 
