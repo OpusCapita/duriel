@@ -3,8 +3,13 @@ const dns = require('dns');
 const net = require('net');
 const Client = require('ssh2').Client;
 const axios = require('axios');
+const fs = require('fs');
+
+const EpicLogger = require('./EpicLogger');
+const log = new EpicLogger();
 
 let default_config = {};
+
 
 /**
  * Should return a promise on an EnvProxy instance
@@ -40,23 +45,64 @@ module.exports = class EnvProxy {
 
         return initSsh
             .then(() => {
-                    return this.createProxiedTunnel('consul', 'localhost', 8500)
-                }
-            )
+                return this.createProxiedTunnel('consul', 'localhost', 8500)
+            })
             .then(() => {
-                    return this.lookupService('mysql');
-                }
-            )
+                return this.lookupService('mysql');
+            })
             .then(([ip, port]) => {
-                    return this.createProxiedTunnel('mysql', ip, port)
-                }
-            )
+                return this.createProxiedTunnel('mysql', ip, port)
+            })
             .then(() => {
                 return this;
             })
             .catch((err) => {
                 console.log("init error: %o", err);
             });
+    };
+
+    transmitFile(inputPath, inputFileName, targetPath, targetFileName) {
+        if (!targetFileName)
+            targetFileName = inputFileName;
+        const input = fs.readFileSync(`${inputPath}/${inputFileName}`);
+        console.log("fileContent: %s", input);
+        return this.createDir(targetPath)
+            .then(_ => this.executeCommand(`echo '${input}' > ${targetPath}/${targetFileName}`));
+    }
+
+    getDockerContainers() {
+        const splitter = /\s*;\s*/; // split and trim in one regex <3
+        return this.executeCommand(" docker ps --format '{{.Names}};{{.Image}};{{.Command}}' --no-trunc")
+            .then(response => {
+                return response.split('\n').map(
+                    row => {
+                        return row.split(splitter);
+                    }
+                );
+            })
+    };
+
+    executeCommand(command) {
+        log.info(`command ${command}`);
+        let response = "";
+        return new Promise((resolve, reject) => {
+            this.sshconn.exec(command, function (err, stream) {
+                if (err) {
+                    console.log('SECOND :: exec error: ' + err);
+                    return reject(err);
+                }
+                stream.on('end', () => {
+                    //console.log(response);
+                    return resolve(response);
+                }).on('data', function (data) {
+                    response += data.toString();
+                });
+            });
+        });
+    };
+
+    createDir(dir) {
+        return this.executeCommand(`mkdir -p '${dir}'`);
     }
 
     /**
@@ -66,7 +112,7 @@ module.exports = class EnvProxy {
     lookupService(serviceName) {
         console.log("looking up service " + serviceName + "...");
         return this.queryConsul('/v1/catalog/service/' + serviceName)
-            .then((data) => {
+            .then(data => {
                 console.log(serviceName + ' looked up: ' + data[0].Address);
                 return Promise.resolve([data[0].Address, data[0].ServicePort]);
             })
@@ -89,7 +135,7 @@ module.exports = class EnvProxy {
             })
             .catch(error => {
                 console.log("error making http call to tunneled consul");
-                return Promise.reject(error);
+                return Promise.reject(this.sshconn.e);
             });
     }
 
@@ -126,8 +172,7 @@ module.exports = class EnvProxy {
                     if (err) {
                         console.log("forwarding failed: " + err);
                         this.sshconn.end();
-                    }
-                    else {
+                    } else {
                         console.log("proxy forwarding via ssh, piping stream to socket");
                         stream.on('end', function (msg) {
                             console.log('stream end event on proxyStream ' + msg);
