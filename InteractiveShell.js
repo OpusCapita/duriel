@@ -6,7 +6,9 @@ const EnvProxy = require('./EnvProxy.js');
 
 let srcEnvProxy;
 
-const environment = envInfo.tubbest1;
+// const environment = envInfo.develop;
+ const environment = envInfo.tubbest1;
+
 const init = function () {
     return Promise.resolve(new EnvProxy().init(environment))
         .catch(error => console.log(error))
@@ -17,30 +19,12 @@ const init = function () {
 };
 
 init()
-    .then( () => srcEnvProxy.transmitFile("./", "sendme.secret", "/home/tubbest1/insertme", "newName.secret"))
-    .then( () => srcEnvProxy.getDockerContainers())
-    .then((containers) => console.log(containers))
-    .catch(error => console.log(error));
-
-
-// let conn = new Client();
-// conn.on('ready', function() {
-//     console.log('Client :: ready');
-//     conn.shell(function(err, stream) {
-//         if (err) throw err;
-//         stream.on('close', function() {
-//             console.log('Stream :: close');
-//             conn.end();
-//         }).on('data', function(data) {
-//             console.log('STDOUT: ' + data);
-//         }).stderr.on('data', function(data) {
-//             console.log('STDERR: ' + data);
-//         });
-//         stream.end('ls -l\nexit\n');
-//     });
-// }).connect({
-//     host: '13.80.25.111',
-//     port: 22,
-//     username: 'tubbest1',
-//     privateKey: require('fs').readFileSync('/home/tubbest1/.ssh/RsaPrivKeyST.ppk')
-// });
+    // .then(() => srcEnvProxy.transmitFile("./", "sendme.secret", "/home/tubbest1/insertme", "newName.secret"))
+    // .then(() => srcEnvProxy.getAllDockerContainers())
+    // .then(containers => console.log(containers))
+    // .then(() => srcEnvProxy.executeCommand("docker exec -it andarielmonitoring_consul_1 sh"))
+    // .then(response => console.log(response))
+    // .then(() => srcEnvProxy.executeCommand("ls -la"))
+    // .then(response => console.log(response))
+    // .catch(error => console.log(error))
+    .then(() => Promise.resolve());

@@ -61,31 +61,85 @@ module.exports = class EnvProxy {
             });
     };
 
+    transmitData2Container(targetPath, targetFileName, input, containerName) {
+        return this.executeCommand(`docker exec -it ${containerName} sh`)   // das gute alte
+            .then(response => console.log(response))
+            .then(this.transmitData2File(targetPath, targetFileName, input))
+            .then(response => console.log(response))
+            .then(() => this.executeCommand("exit"));                       // rein und raus spiel
+    }
+
+    transmitFile2Container(inputPath, inputFileName, targetPath, targetFileName, containerName) {
+        return this.executeCommand(`docker exec -it ${containerName} sh`)   // das gute alte
+            .then(response => console.log(response))
+            .then(this.transmitFile(inputPath, inputFileName, targetPath, targetFileName))
+            .then(response => console.log(response))
+            .then(() => this.executeCommand("exit"));                       // rein und raus spiel
+    }
+
     transmitFile(inputPath, inputFileName, targetPath, targetFileName) {
         if (!targetFileName)
             targetFileName = inputFileName;
         const input = fs.readFileSync(`${inputPath}/${inputFileName}`);
         console.log("fileContent: %s", input);
-        return this.createDir(targetPath)
-            .then(_ => this.executeCommand(`echo '${input}' > ${targetPath}/${targetFileName}`));
+        return this.transmitData2File(targetPath, targetFileName, input);
     }
 
-    getDockerContainers() {
-        const splitter = /\s*;\s*/; // split and trim in one regex <3
-        return this.executeCommand(" docker ps --format '{{.Names}};{{.Image}};{{.Command}}' --no-trunc")
+    transmitData2File(targetPath, targetFileName, input) {
+        return this.createDir(targetPath)
+            .then(() => this.executeCommand(`echo '${input}' > ${targetPath}/${targetFileName}`));
+    }
+
+    readFile(filePath, fileName) {
+        return this.executeCommand(`cat ${[filePath, fileName].join('/')}`)
+    }
+
+    /**
+     * Returns an array of objects.
+     * Every object represents a Docker-Container.
+     * fields of the object: name, image, command, status, ports
+     * the port field is an array containing every port-mapping of the container
+     */
+    getAllDockerContainers() {
+        const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
+        const comma_splitter = /\s*,\s*/;
+        return this.executeCommand(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
             .then(response => {
+                console.log(response);
                 return response.split('\n').map(
                     row => {
-                        return row.split(splitter);
+                        let split = row.split(semicolon_splitter);
+                        if (split.length === 5) {
+                            return {
+                                name: split[0],
+                                image: split[1],
+                                command: split[2],
+                                status: split[3],
+                                ports: split[4].split(comma_splitter)
+                            };
+                        }
                     }
                 );
             })
     };
 
+    getDockerContainersOfImage(image, exactMatch = false) {
+        return this.getAllDockerContainers()
+            .then(containers => containers.filter(it => it && it.image))
+            .then(nonEmptyContainers =>
+                nonEmptyContainers.filter(it => {
+                        if (exactMatch)
+                            return it.image === image;
+                        else
+                            return it.image.toLowerCase().includes(image.toLowerCase());
+                    }
+                ))
+    }
+
     executeCommand(command) {
         log.info(`command ${command}`);
-        let response = "";
         return new Promise((resolve, reject) => {
+            let response = "";
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
                     console.log('SECOND :: exec error: ' + err);
@@ -99,7 +153,7 @@ module.exports = class EnvProxy {
                 });
             });
         });
-    };
+    }    ;
 
     createDir(dir) {
         return this.executeCommand(`mkdir -p '${dir}'`);
@@ -134,7 +188,7 @@ module.exports = class EnvProxy {
                 return Promise.resolve(response.data);
             })
             .catch(error => {
-                console.log("error making http call to tunneled consul");
+                console.log("error making http call to tunneled consul, %o", error);
                 return Promise.reject(this.sshconn.e);
             });
     }
@@ -204,4 +258,5 @@ module.exports = class EnvProxy {
             });
         });
     }
-};
+}
+;
