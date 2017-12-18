@@ -25,6 +25,7 @@ const target = {
     }
 };
 
+let bestServiceEver = 'servicenow-integration'
 
 const init = function () {
     return Promise.resolve(new NewEnvProxy().init(environment))
@@ -35,8 +36,54 @@ const init = function () {
         })
 };
 
-init().then(() => env.getNodesOfServices_E('servicenow-integration', true))
-    .then(result => console.log(result));
+/**
+ * CopyMopy
+ */
+// init()
+//     .then(() => env.copyFileContent_2E('ich bin neu hier :)))', target.path, target.file))
+//                 .then(result => logAndReturn(result));
+
+/*
+    On Nodes
+ */
+init()
+    .then(() => env.getNodesOfServices_E(bestServiceEver, true))
+    .then(result => logAndReturn(result))
+    .then(result => Promise.all(
+        result.map(node =>
+            //env.getContainers_N(node.node)
+            //   .then(it => logAndReturn(it))
+            //  .then(node =>
+            env.getContainersOfService_N(node.node, bestServiceEver)
+        )
+        )
+    ).then(result => logAndReturn(result))
+    .then(() => env.suicide())
+
+/*
+    File-copy
+ */
+// init()
+//     .then(() => env.copyFile_H2E(input.path, input.file, target.path, target.file))
+//     .then(() => env.readFile_E(target.path, target.file))
+//     .then(result => console.log(result))
+
+function logAndReturn(it) {
+    console.log(JSON.stringify(it, null, 2));
+    return it;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
