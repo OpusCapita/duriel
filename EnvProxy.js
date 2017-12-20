@@ -4,6 +4,7 @@ const net = require('net');
 const Client = require('ssh2').Client;
 const axios = require('axios');
 const fs = require('fs');
+const exec = require('child_process');
 
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
@@ -12,6 +13,7 @@ let default_config = {};
 
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
 const comma_splitter = /\s*,\s*/;
+const linebreak_splitter = /(\r\n|\n|\r)/gm;
 /**
  * Should return a promise on an EnvProxy instance
  */
@@ -45,34 +47,170 @@ module.exports = class EnvProxy {
         });
 
         return initSsh
-            .then(() => {
-                return this.createProxiedTunnel('consul', 'localhost', 8500)
-            })
-            .then(() => {
-                return this.lookupService('mysql');
-            })
-            .then(([ip, port]) => {
-                return this.createProxiedTunnel('mysql', ip, port)
-            })
-            .then(() => {
-                return this;
-            })
-            .catch((err) => {
-                console.log("init error: %o", err);
-            });
+            .then(() => this.createProxiedTunnel('consul', 'localhost', 8500))
+            .then(() => this.lookupService('mysql'))
+            .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
+            .then(() => this)
+            .catch((err) => console.log("init error: %o", err));
     };
 
-    createFolderInsideContainerInNode(node, container, folderPath){
-        return this.dockerExecInNode(node, container, `mkdir -p ${folderPath}`);
+    /**
+     * copy file from ENV to NODE
+     * @param node
+     * @param inputPath
+     * @param inputFileName
+     * @param targetPath
+     * @param targetFileName [optional: default=inputFileName]
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    copyFile_E2N(node, inputPath, inputFileName, targetPath, targetFileName) {
+        if (!node)
+            throw new Error('node missing');
+        if (!targetFileName)
+            targetFileName = inputFileName;
+        return this.createFolder_N(node, targetPath)
+            .then(() => this.executeCommand_E(`scp '${[inputPath, inputFileName].join('/')}' ${node}:${targetPath}/${targetFileName}`));
     }
 
-    dockerExecInNode(node, container, command) {
-        console.log(`${node} ${container} ${command}`);
-        return this.executeCommandOnDockerNode(node, `docker exec ${container} ${command}`, true);
+    /**
+     * copy a input-file from host to target-file on node
+     * @param node
+     * @param inputPath
+     * @param inputFileName
+     * @param targetPath
+     * @param targetFileName
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    copyFile_H2N(node, inputPath, inputFileName, targetPath, targetFileName) {
+        if (!node)
+            throw new Error('node missing');
+        if (!targetFileName)
+            targetFileName = inputFileName;
+
+        this.copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName)
+            .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName))
+
+        const input = fs.readFileSync(`${inputPath}/${inputFileName}`);
+        // return this.copyFileContent_2N(node, targetPath, targetFileName, input);
     }
 
-    getContainersInNode(node, onlyRunning = false) {
-        return this.executeCommandOnDockerNode(node, `docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`)
+    /**
+     * copy the input into a targetfile on the node
+     * @param node
+     * @param input
+     * @param targetPath
+     * @param targetFileName
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    copyFileContent_2N(node, input, targetPath, targetFileName) {
+        if (!node)
+            throw new Error('node missing');
+        return this.createFolder_N(node, targetPath)
+            .then(() => this.copyFileContent_2E(input, targetPath, targetFileName))
+            .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName))
+            .then(() => this.executeCommand_E(`rm ${[targetPath, targetFileName].join('/')}`, true));
+    }
+
+    /**
+     * read a file on a node
+     * @param node
+     * @param filePath
+     * @param fileNameName
+     * @returns {*}
+     */
+    readFile_N(node, filePath, fileNameName) {
+        if (!node)
+            throw new Error('node missing');
+        return this.executeCommand_N(node, `cat ${[filePath, fileNameName].join('/')}`)
+    }
+
+    /**
+     * change permission on targetpath
+     * permission can be number ( 777, 755, etc.) or +-operation (+x, +r)
+     * @param node
+     * @param targetPath
+     * @param permission
+     * @param sudo
+     * @returns {*}
+     */
+    changePermission_N(node, targetPath, permission, sudo = false) {
+        return this.executeCommand_N(node, `chmod ${permission} ${targetPath}`, sudo)
+    }
+
+    /**
+     * creates a dir on the Node
+     * @param node
+     * @param dir
+     * @param permission (775 as default)
+     * @returns
+     */
+    createFolder_N(node, dir, permission = '775') {
+        if (!node)
+            throw new Error('node missing');
+        return this.executeCommand_N(node, `mkdir -p -m ${permission} ${dir}`)
+    }
+
+    /**
+     * executes command on node
+     * @param node
+     * @param cmd
+     * @param surroundWithQuotes
+     * @param sudo
+     * @returns {*}
+     */
+    executeCommand_N(node, cmd, surroundWithQuotes = false, sudo = false) {
+        if (!node)
+            throw new Error('node missing');
+        if (!cmd)
+            throw new Error('command missing');
+
+        let command = `ssh ${node}`;
+            command += ` ${sudo ? 'sudo' : ''}`;
+
+        if (surroundWithQuotes)
+            command += `'${cmd}'`;
+        else
+            command += `${cmd}`;
+
+        return this.executeCommand_E(command, sudo);
+    }
+
+    /**
+     * reads a file on env
+     * @param filePath
+     * @param fileName
+     * @returns {*}
+     */
+    readFile_E(filePath, fileName) {
+        return this.executeCommand_E(`cat ${[filePath, fileName].join('/')}`)
+    }
+
+    /**
+     *
+     * @param node
+     * @param service
+     * @param onlyRunning
+     * @returns {PromiseLike<T>}
+     */
+    getContainersOfService_N(node, service, onlyRunning = false) {
+        if (!node)
+            throw new Error('node missing');
+        if (!service)
+            throw new Error('service missing');
+        return this.getContainers_N(node, onlyRunning)
+            .then(nodes => nodes.filter(it => it.name.startsWith(service)))
+    }
+
+    /**
+     * returns a list of all containers on a node
+     * @param node
+     * @param onlyRunning
+     * @returns {PromiseLike<T>}
+     */
+    getContainers_N(node, onlyRunning = false) {
+        if (!node)
+            throw new Error('node missing');
+        return this.executeCommand_N(node, `docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`, true) // quotes needed
             .then(response => response.split('\n').map(
                 row => {
                     let split = row.split(semicolon_splitter);
@@ -92,86 +230,20 @@ module.exports = class EnvProxy {
             ).then(result => result.filter(it => it !== undefined))
     }
 
-    getContainerOfServiceInNode(node, service, onlyRunning = false) {
-        return this.getContainersInNode(node, onlyRunning)
-            .then(nodes => nodes.filter(it => it.name.startsWith(service)))
-    };
-
-    createFolderInDockerNode(node, folderPath) {
-        return this.executeCommandOnDockerNode(node, `mkdir -p ${folderPath}`)
-    }
-
-    copyFileFromHostIntoNode(node, inputPathOnHost, targetPathInNode, targetFileInNode) {
-        return this.createFolderInDockerNode(node, targetPathInNode)
-            .then(() => this.executeCommand(`scp '${inputPathOnHost}' ${node}:${targetPathInNode}/${targetFileInNode}`))
-    }
-
-    executeCommandOnDockerNode(node, command, removeQuotes = false) {
-        if (removeQuotes)
-            return this.executeCommand(`ssh ${node} ${command}`);
-        else
-            return this.executeCommand(`ssh ${node} '${command}'`)
-    }
-
-    transmitFile(inputPath, inputFileName, targetPath, targetFileName) {
-        if (!targetFileName)
-            targetFileName = inputFileName;
-        const input = fs.readFileSync(`${inputPath}/${inputFileName}`);
-        return this.transmitData2File(targetPath, targetFileName, input);
-    }
-
-    transmitData2File(targetPath, targetFileName, input) {
-        return this.createFolder(targetPath)
-            .then(() => this.executeCommand(`echo '${input}' > ${targetPath}/${targetFileName}`));
-    }
-
-    readFile(filePath, fileName) {
-        return this.executeCommand(`cat ${[filePath, fileName].join('/')}`)
-    }
-
-    getDockerServices() {
-        return this.executeCommand("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
-            .then(response => response.split('\n').map(
-                row => {
-                    const split = row.split(semicolon_splitter);
-                    return {
-                        id: split[0],
-                        name: split[1],
-                        replicas: split[2],
-                        image: split[3],
-                        ports: split[4]
-                    }
-                })
-            ).then(nodes => nodes.filter(it => it !== undefined))
-    }
-
-    getAllSwarmNodes() {
-        return this.executeCommand("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
+    /**
+     * returns a list containing all nodes running the service
+     * @param service
+     * @param onlyRunning
+     * @returns {PromiseLike<T>}
+     */
+    getNodesOfServices_E(service, onlyRunning = false) {
+        if (!service)
+            throw new Error('service missing');
+        return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
             .then(response => {
                 return response.split('\n').map(
                     row => {
                         let split = row.split(semicolon_splitter);
-                        if (split.length === 5) {
-                            return {
-                                id: split[0],
-                                name: split[1],
-                                replicas: split[2],
-                                image: split[3],
-                                ports: split[4].split(comma_splitter)
-                            };
-                        }
-                    }
-                );
-            }).then(nodes => nodes.filter(it => it !== undefined))
-    }
-
-    getNodesOfService(serviceName, onlyRunning = false) {
-        return this.executeCommand(`docker service ps ${serviceName} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
-            .then(response => {
-                return response.split('\n').map(
-                    row => {
-                        let split = row.split(semicolon_splitter);
-                        console.log(split.length);
                         if (split.length === 8) {
                             return {
                                 id: split[0],
@@ -190,13 +262,38 @@ module.exports = class EnvProxy {
     }
 
     /**
-     * Returns an array of objects.
-     * Every object represents a Docker-Container.
-     * fields of the object: name, image, command, status, ports
-     * the port field is an array containing every port-mapping of the container
+     * returns a list of all services on ENV-swarm
+     * service-object looks like: {id, name, instances_up, instances_target, image, ports: ['port':'port']}
+     * @returns {PromiseLike<T>}
      */
-    getAllDockerContainers() {
-        return this.executeCommand(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
+    getServices_E() {
+        return this.executeCommand_E("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
+            .then(response => {
+                return response.split('\n').map(
+                    row => {
+                        let split = row.split(semicolon_splitter);
+                        if (split.length === 5) {
+                            const replicasSplit = split[2].split('/');
+                            return {
+                                id: split[0],
+                                name: split[1],
+                                instances_up: replicasSplit[0],
+                                instances_target: replicasSplit[1],
+                                image: split[3],
+                                ports: split[4].split(comma_splitter)
+                            };
+                        }
+                    }
+                );
+            }).then(nodes => nodes.filter(it => it !== undefined))
+    }
+
+    /**
+     * returns a list of all containers on ENV
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    getContainers_E() {
+        return this.executeCommand_E(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
             .then(response => {
                 console.log(response);
                 return response.split('\n').map(
@@ -214,9 +311,85 @@ module.exports = class EnvProxy {
                     }
                 );
             })
-    };
+    }
 
-    executeCommand(command) {
+    /**
+     * loads the inputfile and saves it on ENV at target-position
+     * @param inputPath
+     * @param inputFileName
+     * @param targetPath
+     * @param targetFileName
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName) {
+        if (!targetFileName)
+            targetFileName = inputFileName;
+        return this.createFolder_E(targetPath)
+            .then(() => this.executeCommand_H(`scp -P ${this.config.admin_port} ${inputPath}/${inputFileName} ${this.config.admin_address}:${targetPath}/${targetFileName}`));
+    }
+
+    /**
+     * saves the input-data into targetPath/targetFileName
+     * @param targetPath
+     * @param targetFileName
+     * @param input
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    copyFileContent_2E(input, targetPath, targetFileName) {
+        const tempFile = `cp_${this.getFileTimeStamp()}.temp`;
+        let tempDir;
+        return this.executeCommand_H('pwd')
+            .then(dir => tempDir = `${dir.replace(linebreak_splitter, "")}/temp`)
+            .then(() => this.createFolder_H(tempDir))
+            .then(() => this.executeCommand_H(`echo '${input}' > ${tempDir}/${tempFile}`))
+            .then(() => this.copyFile_H2E(tempDir, tempFile, targetPath, targetFileName))
+            .then(() => this.executeCommand_H(`rm -rf ${tempDir}`))
+    }
+
+    /**
+     * changes permission of targetPath
+     * @param targetPath
+     * @param permission
+     * @param sudo
+     * @returns {*}
+     */
+    changePermission_E(targetPath, permission, sudo = false) {
+        return this.executeCommand_E(`chmod ${permission} ${targetPath}`, sudo)
+    }
+
+    /**
+     * creates a dir on the ENV
+     * @param dir
+     * @param permission (775 as default)
+     * @returns
+     */
+    createFolder_E(dir, permission = '775') {
+        return this.executeCommand_E(`mkdir -p -m ${permission} '${dir}'`)
+    }
+
+    changePermission_H(targetPath, permission, sudo = false) {
+        return this.executeCommand_H(`chmod ${permission} ${targetPath}`, sudo)
+    }
+
+    /**
+     * creates a dir on the HOST
+     * @param dir
+     * @param permission
+     * @returns {*}
+     */
+    createFolder_H(dir, permission = '775') {
+        return this.executeCommand_H(`mkdir -p -m ${permission} '${dir}'`)
+    }
+
+    /**
+     * execute command on the ENV
+     * @param command
+     * @param sudo
+     */
+    executeCommand_E(command, sudo = false) {
+        if (sudo) {
+            command = 'sudo ' + command;
+        }
         log.info(`command ${command}`);
         return new Promise((resolve, reject) => {
             let response = "";
@@ -234,8 +407,25 @@ module.exports = class EnvProxy {
         });
     }    ;
 
-    createFolder(dir) {
-        return this.executeCommand(`mkdir -p '${dir}'`);
+    /**
+     * execute command on HOST
+     * @param command
+     */
+    executeCommand_H(command, sudo = false) {
+        if (sudo) {
+            command = 'sudo ' + command;
+        }
+        log.info(`command ${command}`);
+        return new Promise((resolve, reject) =>
+            exec.exec(command, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
+                if (error) {
+                    console.error(`stderr: ${stderr}`);
+                    console.error(`exec error: ${error}`);
+                    return reject(error);
+                }
+                return resolve(stdout);
+            })
+        );
     }
 
     /**
@@ -337,5 +527,30 @@ module.exports = class EnvProxy {
             });
         });
     }
-}
-;
+
+    // stupid util methods...
+
+    /**
+     * returns a string representing a timestamp yyyy_MM_dd_HH_hh_ss
+     * @returns {string}
+     */
+    getFileTimeStamp() {
+        const now = new Date();
+        return `${now.getFullYear()}_${now.getMonth()}_${now.getDay()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
+    }
+
+    suicide() {
+        console.log("i can't thake this any more :(");
+        console.log('closing proxies');
+        for (let pxy in this.proxyServers) {
+            console.log(`closing${pxy}...`);
+            let proxy = this.proxyServers[pxy];
+            proxy.server.close();
+            console.log(`... done.`)
+        }
+        console.log('closed all proxies');
+        console.log('commiting suicide now - bye bye sad world!');
+        this.sshconn.end();
+    }
+
+};
