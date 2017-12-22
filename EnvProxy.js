@@ -87,11 +87,8 @@ module.exports = class EnvProxy {
         if (!targetFileName)
             targetFileName = inputFileName;
 
-        this.copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName)
-            .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName))
-
-        const input = fs.readFileSync(`${inputPath}/${inputFileName}`);
-        // return this.copyFileContent_2N(node, targetPath, targetFileName, input);
+        return this.copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName)
+            .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName));
     }
 
     /**
@@ -336,7 +333,7 @@ module.exports = class EnvProxy {
      * @returns {*|PromiseLike<T>|Promise<T>}
      */
     copyFileContent_2E(input, targetPath, targetFileName) {
-        const tempFile = `cp_${this.getFileTimeStamp()}.temp`;
+        const tempFile = `cp_${EnvProxy.getFileTimeStamp()}.temp`;
         let tempDir;
         return this.executeCommand_H('pwd')
             .then(dir => tempDir = `${dir.replace(linebreak_splitter, "")}/temp`)
@@ -410,6 +407,7 @@ module.exports = class EnvProxy {
     /**
      * execute command on HOST
      * @param command
+     * @param sudo
      */
     executeCommand_H(command, sudo = false) {
         if (sudo) {
@@ -534,7 +532,7 @@ module.exports = class EnvProxy {
      * returns a string representing a timestamp yyyy_MM_dd_HH_hh_ss
      * @returns {string}
      */
-    getFileTimeStamp() {
+    static getFileTimeStamp() {
         const now = new Date();
         return `${now.getFullYear()}_${now.getMonth()}_${now.getDay()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
     }
