@@ -73,7 +73,7 @@ module.exports = class EnvProxy {
     }
 
     /**
-     * copy a input-file from host to target-file on node
+     * copy a input-file from local to target-file on node
      * @param node
      * @param inputPath
      * @param inputFileName
@@ -81,13 +81,13 @@ module.exports = class EnvProxy {
      * @param targetFileName
      * @returns {*|PromiseLike<T>|Promise<T>}
      */
-    copyFile_H2N(node, inputPath, inputFileName, targetPath, targetFileName) {
+    copyFile_L2N(node, inputPath, inputFileName, targetPath, targetFileName) {
         if (!node)
             throw new Error('node missing');
         if (!targetFileName)
             targetFileName = inputFileName;
 
-        return this.copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName)
+        return this.copyFile_L2E(inputPath, inputFileName, targetPath, targetFileName)
             .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName));
     }
 
@@ -162,7 +162,7 @@ module.exports = class EnvProxy {
             throw new Error('command missing');
 
         let command = `ssh ${node}`;
-            command += ` ${sudo ? 'sudo' : ''}`;
+        command += ` ${sudo ? 'sudo' : ''}`;
 
         if (surroundWithQuotes)
             command += `'${cmd}'`;
@@ -195,7 +195,7 @@ module.exports = class EnvProxy {
         if (!service)
             throw new Error('service missing');
         return this.getContainers_N(node, onlyRunning)
-            .then(nodes => nodes.filter(it => it.name.startsWith(service)))
+            .then(result => result.filter(it => it.name.startsWith(service)))
     }
 
     /**
@@ -228,12 +228,12 @@ module.exports = class EnvProxy {
     }
 
     /**
-     * returns a list containing all nodes running the service
+     * returns a list containing all tasks running the service
      * @param service
      * @param onlyRunning
-     * @returns {PromiseLike<T>}
+     * @returns {PromiseLike<{id, name, image, node, desiredState, currentState, error, [ports]}>}
      */
-    getNodesOfServices_E(service, onlyRunning = false) {
+    getTasksOfServices_E(service, onlyRunning = false) {
         if (!service)
             throw new Error('service missing');
         return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
@@ -261,7 +261,7 @@ module.exports = class EnvProxy {
     /**
      * returns a list of all services on ENV-swarm
      * service-object looks like: {id, name, instances_up, instances_target, image, ports: ['port':'port']}
-     * @returns {PromiseLike<T>}
+     * @returns {PromiseLike<{id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}>}
      */
     getServices_E() {
         return this.executeCommand_E("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
@@ -287,7 +287,7 @@ module.exports = class EnvProxy {
 
     /**
      * returns a list of all containers on ENV
-     * @returns {*|PromiseLike<T>|Promise<T>}
+     * @returns {Promise<[{name, image, command, status, [port:port]}]>}
      */
     getContainers_E() {
         return this.executeCommand_E(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
@@ -316,13 +316,13 @@ module.exports = class EnvProxy {
      * @param inputFileName
      * @param targetPath
      * @param targetFileName
-     * @returns {*|PromiseLike<T>|Promise<T>}
+     * @returns {Promise<>}
      */
-    copyFile_H2E(inputPath, inputFileName, targetPath, targetFileName) {
+    copyFile_L2E(inputPath, inputFileName, targetPath, targetFileName) {
         if (!targetFileName)
             targetFileName = inputFileName;
         return this.createFolder_E(targetPath)
-            .then(() => this.executeCommand_H(`scp -P ${this.config.admin_port} ${inputPath}/${inputFileName} ${this.config.admin_address}:${targetPath}/${targetFileName}`));
+            .then(() => this.executeCommand_L(`scp -P ${this.config.admin_port} ${inputPath}/${inputFileName} ${this.config.admin_address}:${targetPath}/${targetFileName}`));
     }
 
     /**
@@ -330,17 +330,17 @@ module.exports = class EnvProxy {
      * @param targetPath
      * @param targetFileName
      * @param input
-     * @returns {*|PromiseLike<T>|Promise<T>}
+     * @returns {PromiseLike<T>}
      */
     copyFileContent_2E(input, targetPath, targetFileName) {
         const tempFile = `cp_${EnvProxy.getFileTimeStamp()}.temp`;
         let tempDir;
-        return this.executeCommand_H('pwd')
+        return this.executeCommand_L('pwd')
             .then(dir => tempDir = `${dir.replace(linebreak_splitter, "")}/temp`)
-            .then(() => this.createFolder_H(tempDir))
-            .then(() => this.executeCommand_H(`echo '${input}' > ${tempDir}/${tempFile}`))
-            .then(() => this.copyFile_H2E(tempDir, tempFile, targetPath, targetFileName))
-            .then(() => this.executeCommand_H(`rm -rf ${tempDir}`))
+            .then(() => this.createFolder_L(tempDir))
+            .then(() => this.executeCommand_L(`echo '${input}' > ${tempDir}/${tempFile}`))
+            .then(() => this.copyFile_L2E(tempDir, tempFile, targetPath, targetFileName))
+            .then(() => this.executeCommand_L(`rm -rf ${tempDir}`))
     }
 
     /**
@@ -358,14 +358,21 @@ module.exports = class EnvProxy {
      * creates a dir on the ENV
      * @param dir
      * @param permission (775 as default)
-     * @returns
+     * @returns Promise<>
      */
     createFolder_E(dir, permission = '775') {
         return this.executeCommand_E(`mkdir -p -m ${permission} '${dir}'`)
     }
 
-    changePermission_H(targetPath, permission, sudo = false) {
-        return this.executeCommand_H(`chmod ${permission} ${targetPath}`, sudo)
+    /**
+     * changes the file permission on targetpath on local machine
+     * @param targetPath
+     * @param permission - e.g. '+x', '770'
+     * @param sudo[optional] - use sudo for command or not
+     * @returns Promise<>
+     */
+    changePermission_L(targetPath, permission, sudo = false) {
+        return this.executeCommand_L(`chmod ${permission} ${targetPath}`, sudo)
     }
 
     /**
@@ -374,8 +381,8 @@ module.exports = class EnvProxy {
      * @param permission
      * @returns {*}
      */
-    createFolder_H(dir, permission = '775') {
-        return this.executeCommand_H(`mkdir -p -m ${permission} '${dir}'`)
+    createFolder_L(dir, permission = '775') {
+        return this.executeCommand_L(`mkdir -p -m ${permission} '${dir}'`)
     }
 
     /**
@@ -402,14 +409,14 @@ module.exports = class EnvProxy {
                 });
             });
         });
-    }    ;
+    };
 
     /**
-     * execute command on HOST
+     * execute command on local machine
      * @param command
      * @param sudo
      */
-    executeCommand_H(command, sudo = false) {
+    executeCommand_L(command, sudo = false) {
         if (sudo) {
             command = 'sudo ' + command;
         }
@@ -424,6 +431,19 @@ module.exports = class EnvProxy {
                 return resolve(stdout);
             })
         );
+    }
+
+    changeCommandDir_L(dir) {
+        if (!dir)
+            throw new Error('dir not found');
+        return new Promise((resolve, reject) => {
+                try {
+                    resolve(process.chdir(dir))
+                } catch (error) {
+                    reject(error)
+                }
+            }
+        )
     }
 
     /**
@@ -537,18 +557,20 @@ module.exports = class EnvProxy {
         return `${now.getFullYear()}_${now.getMonth()}_${now.getDay()}_${now.getHours()}_${now.getMinutes()}_${now.getSeconds()}`
     }
 
-    suicide() {
-        console.log("i can't thake this any more :(");
-        console.log('closing proxies');
+    close() {
+        console.log('closing... ');
+        console.log('closing proxies... ');
         for (let pxy in this.proxyServers) {
-            console.log(`closing${pxy}...`);
+            console.log(`closing ${pxy}...`);
             let proxy = this.proxyServers[pxy];
             proxy.server.close();
             console.log(`... done.`)
         }
         console.log('closed all proxies');
-        console.log('commiting suicide now - bye bye sad world!');
+        console.log('closing client itself.');
         this.sshconn.end();
+        console.log('... bye bye');
+        return Promise.resolve();
     }
 
 };
