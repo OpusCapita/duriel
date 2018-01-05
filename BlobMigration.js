@@ -1,10 +1,13 @@
-const ApiHelper = require('./ApiHelper.js');
-const EnvProxy = require('./EnvProxy.js');
-const mysql = require('mysql2/promise');
-const envInfo = require('./envInfo.js');
-const https = require('https');
+let ApiHelper = require('./ApiHelper.js');
+let EnvProxy = require('./EnvProxy.js');
+let mysql = require('mysql2/promise');
+let envInfo = require('./envInfo.js');
+let https = require('https');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
+const fs_open = Promise.promisify(require('fs').open);
 
-if (process.argv.length < 4) {
+if(process.argv.length < 4) {
     console.log("missing command line args");
     printUsage();
 }
@@ -14,185 +17,242 @@ function printUsage() {
     process.exit(1);
 }
 
-const srcEnv = process.argv[2];
-const destEnv = process.argv[3];
+var srcEnv = process.argv[2];
+var destEnv = process.argv[3];
 
 let srcApiSecretEnv = 'SECRET_' + srcEnv + '_oidcCLIENT';
 let destApiSecretEnv = 'SECRET_' + destEnv + '_oidcCLIENT';
-if (!process.env[srcApiSecretEnv]) {
+if(!process.env[srcApiSecretEnv]) {
     console.log("env var " + srcApiSecretEnv + " not set!");
     process.exit(1);
 }
-if (!process.env[destApiSecretEnv]) {
+if(!process.env[destApiSecretEnv]) {
     console.log("env var " + destApiSecretEnv + " not set!");
     process.exit(1);
 }
 
 let srcApiPasswordEnv = 'SECRET_' + srcEnv + '_USERPASS';
 let destApiPasswordEnv = 'SECRET_' + destEnv + '_USERPASS';
-if (!process.env[srcApiPasswordEnv]) {
+if(!process.env[srcApiPasswordEnv]) {
     console.log("env var " + srcApiPasswordEnv + " not set!");
     process.exit(1);
 }
-if (!process.env[destApiPasswordEnv]) {
+if(!process.env[destApiPasswordEnv]) {
     console.log("env var " + destApiPasswordEnv + " not set!");
     process.exit(1);
 }
 
-let srcApiSecret = process.env[srcApiSecretEnv];
-let destApiSecret = process.env[destApiSecretEnv];
-let srcApiPassword = process.env[srcApiPasswordEnv];
-let destApiPassword = process.env[destApiPasswordEnv];
+let srcApiSecret=process.env[srcApiSecretEnv];
+let destApiSecret=process.env[destApiSecretEnv];
+let srcApiPassword=process.env[srcApiPasswordEnv];
+let destApiPassword=process.env[destApiPasswordEnv];
 
-let srcApiHelper;
-let destApiHelper;
+var srcApiHelper;
+var destApiHelper;
 
-let destEnvProxy;
-let srcEnvProxy;
+var destEnvProxy;
+var srcEnvProxy;
 
-let srcDbSession;
-let destDbSession;
-const srcDbSecretEnv = 'SECRET_' + srcEnv + '_MYSQL';
-const srcDbPassword = process.env[srcDbSecretEnv];
-
-console.log('srcDbPassword = "' + srcDbPassword + '"');
-if (!srcDbPassword) {
+var srcDbSession;
+var destDbSession;
+var srcDbSecretEnv = 'SECRET_' + srcEnv + '_MYSQL';
+var srcDbPassword = process.env[srcDbSecretEnv];
+if(!srcDbPassword) {
     console.log("required env %s is not set!", srcDbSecretEnv);
     process.exit(1);
 }
-let destDbSecretEnv = 'SECRET_' + destEnv + '_MYSQL';
-let destDbPassword = process.env[destDbSecretEnv];
-if (!destDbPassword) {
+var destDbSecretEnv = 'SECRET_' + destEnv + '_MYSQL';
+var destDbPassword = process.env[destDbSecretEnv];
+if(!destDbPassword) {
     console.log("required env %s is not set!", destDbSecretEnv);
     process.exit(1);
 }
 
 init()
-    .then(() => {
+    .then( () => {
         return srcDbSession.query('SELECT tenantId, id FROM blob.TenantContainerMapping;');
     })
-    .then((result) => {
-        const rows = result[0];
-        //console.log("rows = " + JSON.stringify(rows));
-        //for(var i = 0; i < rows.length; i++) {
-        //  console.log("row " + i + " %o", rows[i]);
-        //}
+    .then( (result) => {
+        let rows = result[0];
         console.log('srcDbPassword = "' + srcDbPassword + '"');
         return Promise.all([rows, destDbSession.query('SELECT tenantId, id FROM blob.TenantContainerMapping;')]);
     })
-    .then(([srcRows, result]) => {
+    .then( ([srcRows, result]) => {
         let destRows = result[0];
         let srcContainerMap = {};
         let destContainerMap = {};
 
         // now we need to iterate and compare the two sets
-        for (let i = 0; i < destRows.length; i++) {
+        for(let i = 0; i < destRows.length; i++) {
             destContainerMap[destRows[i].tenantId] = destRows[i].id;
         }
+
         return (function loop(i) {
             console.log("called loop(" + i + ")");
-            if (i < srcRows.length) {
+            if(i<srcRows.length) {
                 let tenantId = srcRows[i].tenantId;
-                let tenantInfo = srcContainerMap[tenantId] = {
-                    containerId: srcRows[i].id,
-                    destContainerId: destContainerMap[tenantId],
-                    tenantId: tenantId
-                };
+                let tenantInfo = srcContainerMap[tenantId] = {containerId:srcRows[i].id,
+                    destContainerId:destContainerMap[tenantId],
+                    tenantId: tenantId};
                 console.log("tenant " + tenantId + ": \nsrcContainer "
                     + srcContainerMap[tenantId].containerId
                     + "\ndestContainer " + srcContainerMap[tenantId].destContainerId);
                 return handleTenant(tenantInfo)
-                    .catch((err) => {
+                    .catch( (err) => {
                         console.log(err);
                         process.exit(1);
                     })
-                    .then(() => {
-                        return loop(i + 1);
-                    });
+                    .then( () => { return loop(i+1); });
             }
             return Promise.resolve(null);
         })(0);
     })
-    .catch((err) => {
+    .catch( (err) => {
         console.log('Error: ', err);
     });
 
 function handleTenant(tenantInfo) {
-    return ensureTenantContainerExists(tenantInfo)
-        .then((destContainerId) => {
+    return ensureTenantContainerExists(tenantInfo, 'dest')
+        .then( (destContainerId) => {
             // now synch the files
             tenantInfo.destContainerId = destContainerId;
-            return syncDirectory(tenantInfo, '/');
+            return ensureTenantContainerExists(tenantInfo, 'src');
+        })
+        .then( () => {
+            return syncDirectory(tenantInfo, '/public/');
+        })
+        .then( () => {
+            return syncDirectory(tenantInfo, '/private/');
+        })
+}
+
+function syncFile(tenantInfo, path) {
+    console.log("syncing directory " + path + " for tenant " + tenantInfo.tenantId);
+    return srcApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path, {responseType:'stream'})
+        .then( (response) => {
+            let fsObj = response.headers['x-file-info'];
+            if(!fsObj) {
+                console.log("no fileObj in response\nresponse data: %o", response.headers);
+                process.exit(1);
+            }
+            fsObj = JSON.parse(fsObj);
+            return destApiHelper.put('blob/api/' + tenantInfo.tenantId + '/files' + path + '?createMissing=true', response.data, {headers:{"Content-Type":"application/octet-stream"}})
         })
 }
 
 function syncDirectory(tenantInfo, path) {
     console.log("syncing directory " + path + " for tenant " + tenantInfo.tenantId);
     return srcApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
-        .then((response) => {
-            for (let i = 0; i < response.data.length; i++) {
-                console.out('srcFile ' + reponse.data[i].path + ", size " + response.data[i].size + ", isDir = " + response.data[i].isDirectory);
-            }
-            process.exit(1);
+        .then( (response) => {
+            console.log("going to sync " + response.data.length + " files from src to dest");
+            return destApiHelper.get('blob/api/' + tenantInfo.tenantId + '/files' + path)
+                .then( (destResponse) => {
+                    return [response.data, destResponse.data];
+                })
+                .catch( (err) => {
+                    console.log("error reading dest dir: ", err);
+                    return [response.data, null];
+                })
+        })
+        .then( ([srcFileList, destFileList]) => {
+
+            return (function fileloop(i) {
+                console.log("called file loop(" + i + ")");
+                if(i<srcFileList.length) {
+                    console.log('srcFile ' + srcFileList[i].path + ", size " + srcFileList[i].size + ", isDir = " + srcFileList[i].isDirectory);
+                    let srcDirEntry = srcFileList[i];
+                    let filePath = srcDirEntry.path;
+                    let destDirEntry = null;
+                    if(destFileList) destDirEntry = destFileList.find(function(elem){ return elem.path == filePath });
+                    let p = null;
+                    if( srcDirEntry.isDirectory ) {
+                        if(!filePath.endsWith('/')) filePath += '/';
+                        p = syncDirectory(tenantInfo, filePath);
+                    }
+                    else if ( destDirEntry && srcDirEntry.checksum == destDirEntry.checksum ) {
+                        console.log("src and dest have same checksum, skipping file sync for " + filePath);
+                        p = Promise.resolve(null);
+                    }
+                    else
+                        p = syncFile(tenantInfo, filePath);
+
+                    return p
+                        .then( () => { return fileloop(i+1); });
+                }
+                return Promise.resolve(null);
+            })(0);
         });
 }
 
-function ensureTenantContainerExists(tenantInfo) {
-    if (!tenantInfo.destContainerId) {
-        console.log("tenantId " + tenantInfo.tenantId + " not present on dest blob, creating it\ntenantInfo = %0", tenantInfo);
-        let path = 'blob/api/' + tenantInfo.tenantId + "/files/delete.me";
-        return destApiHelper.put(path, 'please delete me')
-            .then((response) => {
-                console.log("response for put " + path + ": %o", response);
-                if (response.status === 202) {
-                    console.log("tenant " + tenantInfo.tenantId + ": container created on dest ");
-                    return destDbSession.query("SELECT id FROM blob.TenantContainerMapping where tenantId = '" + tenantInfo.tenantId + "';")
-                        .then((result) => {
-                            let containerId = result[0][0].id;
-                            console.log("created container with id " + containerId);
-                            return containerId;
-                        })
-                }
-                else throw "Not able to create dest container for tenant " + tenantInfo.tenantId + ", error: status is " + response.status;
-            })
-    }
-    return Promise.resolve(tenantInfo.destContainerId);
+function ensureTenantContainerExists(tenantInfo, env) {
+    console.log("ensuring " + env + " container really exists...");
+    return containerReallyExists(tenantInfo, env)
+        .then( (exists) => {
+            let containerId = tenantInfo.destContainerId;
+            let apiHelper = destApiHelper;
+            let dbSession = destDbSession;
+            if(env == 'src') { containerId = tenantInfo.containerId; apiHelper = srcApiHelper; dbSession = srcDbSession;}
+            console.log("exists: %o, containerId: %o", exists, containerId);
+            if(!exists || !containerId) {
+                console.log("tenantId " + tenantInfo.tenantId + " not present on " + env + " dest blob, creating it\ntenantInfo = %o", tenantInfo);
+                let path = 'blob/api/' + tenantInfo.tenantId + "/files/delete.me?createMissing=true";
+                return apiHelper.put(path, '{please: "delete me"}',{headers:{'Content-Type':'application/octet-stream'}})
+                    .then( (response) => {
+                        //console.log("response for put " + path + ": %o", response);
+                        if(response.status == 202) {
+                            console.log("tenant " + tenantInfo.tenantId + ": container created on " + env);
+                            return dbSession.query("SELECT id FROM blob.TenantContainerMapping where tenantId = '" + tenantInfo.tenantId + "';")
+                                .then( (result) => {
+                                    let newContainerId = result[0][0].id;
+                                    console.log("created container with id " + newContainerId);
+                                    return newContainerId;
+                                })
+                        }
+                        else throw "Not able to create " + env + " container for tenant " + tenantInfo.tenantId + ", error: status is " + response.status;
+                    })
+            }
+            return Promise.resolve(containerId);
+        });
+}
+
+function containerReallyExists(tenantInfo, env) {
+    let apiHelper = destApiHelper;
+    if(env == 'src') { apiHelper = srcApiHelper;}
+
+    return apiHelper.get('blob/api/' + tenantInfo.tenantId + '/files/')
+        .then( (response) => {
+            console.log("container is there!");
+            return true;
+        })
+        .catch( (err) => {
+            console.log("container does not exist");
+            return false;
+        });
 }
 
 /**
  * initialize connection to target and src env
  */
 function init() {
-    return new EnvProxy().init(envInfo.develop)
-        .then((proxy) => {
+    return new EnvProxy().init(envInfo[srcEnv])
+        .then( (proxy) => {
             srcEnvProxy = proxy;
             console.log("srcEnvProxy created");
         })
-        .then(() => {
-            return new EnvProxy().init(envInfo.pr2);
+        .then( () => {
+            return new EnvProxy().init(envInfo[destEnv]);
         })
-        .catch((err) => {
+        .catch( (err) => {
             console.log("error connecting to " + destEnv + ": %o", err);
             process.exit(1);
         })
         .then( (proxy) => {
             destEnvProxy = proxy;
-            return new ApiHelper().init({
-                instanceId: srcEnv,
-                clientSecret: srcApiSecret,
-                host: envInfo[srcEnv].public_hostname,
-                password: srcApiPassword
-            });
+            return new ApiHelper().init({instanceId: srcEnv, clientSecret: srcApiSecret, host: envInfo[srcEnv].public_hostname, password: srcApiPassword});
         })
         .then( (apiHelper) => {
             srcApiHelper = apiHelper;
-            return new ApiHelper().init({
-                instanceId: destEnv,
-                clientSecret: destApiSecret,
-                host: envInfo[destEnv].public_hostname,
-                password: destApiPassword,
-                http: {httpsAgent: new https.Agent({rejectUnauthorized: false})}
-            });
+            return new ApiHelper().init({instanceId: destEnv, clientSecret: destApiSecret, host: envInfo[destEnv].public_hostname, password: destApiPassword, http: {httpsAgent: new https.Agent({rejectUnauthorized: false})}});
         })
         .then( (apiHelper) => {
             destApiHelper = apiHelper;
