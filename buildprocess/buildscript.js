@@ -2,14 +2,16 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 
-const calculateVersionAction = require('./actions/calculateVersion');
+const gatherEnvVariables = require('./actions/gatherEnvVariables');
 const calculateRepoPathAction = require('./actions/calculateRepoPath');
 const calculateTargetEnvAction = require('./actions/calculateTargetEnv');
-const gatherEnvVariables = require('./actions/gatherEnvVariables');
+const calculateVersionAction = require('./actions/calculateVersion');
 const buildDockerImageAction = require('./actions/buildDockerImage');
+const getComposeCommandAction = require('./actions/getComposeCommand');
 const dockerComposeUpAction = require('./actions/dockerComposeUp');
 const monitorDockerContainerAction = require('./actions/monitorDockerContainer');
 const outputContainerLogsAction = require('./actions/outputContainerLogs');
+const runUnitTestsAction = require('./actions/runUnitTests');
 
 
 const execute = async () => {
@@ -19,12 +21,15 @@ const execute = async () => {
     config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     config["VERSION"] = calculateVersionAction(config);
     await buildDockerImageAction(config);
-    await dockerComposeUpAction();
+
+    const composeCommand = getComposeCommandAction();
+    await dockerComposeUpAction(composeCommand);
     try {
-        await monitorDockerContainerAction(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 120 attempts with 5 sec intervals
+        await monitorDockerContainerAction(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
     } catch (error){
         await outputContainerLogsAction();
     }
+    await runUnitTestsAction(composeCommand);
 };
 execute();
 

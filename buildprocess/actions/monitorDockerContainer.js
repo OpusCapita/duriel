@@ -39,7 +39,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 } else if (service.status === "starting") {
                     result.message = `service is still starting. attempt: ${attempt}`;
                 } else {
-                    result.message = `status is not in a known state: '${service.status}'`
+                    result.message = `status is not in a known: '${service.status}'`
                 }
                 log.info(`current-result: ${JSON.stringify(result)} \n waiting ${interval}ms...`);
             });
