@@ -14,6 +14,14 @@ let default_config = {};
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
 const comma_splitter = /\s*,\s*/;
 const linebreak_splitter = /(\r\n|\n|\r)/gm;
+
+const dataSizes = {
+    KB: 1024,
+    MB: 1048576,
+    GB: 1073741824
+};
+
+
 /**
  * Should return a promise on an EnvProxy instance
  */
@@ -23,7 +31,7 @@ module.exports = class EnvProxy {
         this.proxyServers = {};
     }
 
-    init(overrideconfig) {
+    async init(overrideconfig) {
         this.config = Object.assign({}, default_config, overrideconfig);
         this.sshconn = new Client();
         let initSsh = new Promise((resolve, reject) => {
@@ -217,7 +225,7 @@ module.exports = class EnvProxy {
                             name: split[1],
                             image: split[2],
                             command: split[3],
-                            status: split[4],
+                            status: this.parseContainerStatus(split[4]),
                             ports: split[5].split(comma_splitter),
                             node: node
                         };
@@ -301,7 +309,7 @@ module.exports = class EnvProxy {
                                 name: split[0],
                                 image: split[1],
                                 command: split[2],
-                                status: split[3],
+                                status: this.parseContainerStatus(split[3]),
                                 ports: split[4].split(comma_splitter)
                             };
                         }
@@ -365,6 +373,33 @@ module.exports = class EnvProxy {
     }
 
     /**
+     * returns a list of all containers on a node
+     * @param node
+     * @param onlyRunning
+     * @returns {PromiseLike<T>}
+     */
+    getContainers_L(onlyRunning = false) {
+        return this.executeCommand_L(`docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`, true) // quotes needed
+            .then(response => response.split('\n').map(
+                row => {
+                    let split = row.split(semicolon_splitter);
+                    if (split.length > 5) {
+                        return {
+                            containerId: split[0],
+                            name: split[1],
+                            image: split[2],
+                            command: split[3],
+                            status: this.parseContainerStatus(split[4]),
+                            ports: split[5].split(comma_splitter)
+                        };
+                    }
+                })
+                // ).then(result => new Promise((resolve, reject) => resolve(result.filter(it => it !== undefined))))  // needed for async await?
+            ).then(result => result.filter(it => it !== undefined))  // needed for async await?
+    }
+
+
+    /**
      * changes the file permission on targetpath on local machine
      * @param targetPath
      * @param permission - e.g. '+x', '770'
@@ -411,18 +446,30 @@ module.exports = class EnvProxy {
         });
     };
 
+    readFile_L(filePath, fileName, encoding = 'utf8') {
+        const path = `${filePath}/${fileName}`;
+        return new Promise((resolve, reject) => {
+            if (!fs.existsSync(path)) {
+                reject("no such file found");
+            } else {
+                fs.readFileSync(path, encoding);
+            }
+        });
+    }
+
     /**
      * execute command on local machine
      * @param command
      * @param sudo
+     * @param bufferSize    bufferSize of stdout in Bytes - default is 500MB
      */
-    executeCommand_L(command, sudo = false) {
+    executeCommand_L(command, sudo = false, bufferSize = 500 * dataSizes.MB) {
         if (sudo) {
             command = 'sudo ' + command;
         }
         log.info(`command ${command}`);
         return new Promise((resolve, reject) =>
-            exec.exec(command, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
+            exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
                 if (error) {
                     console.error(`stderr: ${stderr}`);
                     console.error(`exec error: ${error}`);
@@ -573,4 +620,45 @@ module.exports = class EnvProxy {
         return Promise.resolve();
     }
 
+    parseContainerStatus(status) {
+        const statusLowerCase = status.toLowerCase();
+        let result = 'unknown';
+        if (statusLowerCase.includes('(unhealthy)')) {
+            result = 'unhealthy';
+        } else if (statusLowerCase.includes('(healthy)')) {
+            result = 'healthy';
+        } else if (statusLowerCase.includes('starting')) {
+            result = 'starting';
+        }
+        return result;
+    };
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

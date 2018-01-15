@@ -25,7 +25,7 @@ const target = {
     }
 };
 
-let bestServiceEver = 'servicenow-integration'
+let bestServiceEver = 'servicenow-integration';
 
 const init = function () {
     return Promise.resolve(new EnvProxy().init(environment))
@@ -49,7 +49,7 @@ const consil_script_file = 'disc_check';
 //     .then(() => env.changePermission_E([consul_script_path, consil_script_file].join('/'), '+x', true))
 //     .then(() => env.changePermission_E(consul_data_path, '755', true))
 //     .then(response => logAndReturn(response))
-//     .then(() => env.suicide());
+//     .then(() => env.close());
 
 
 /**
@@ -59,26 +59,32 @@ const consil_script_file = 'disc_check';
 //     .then(() => env.copyFileContent_2E('ich bin neu hier :)))', target.path, target.file))
 //                 .then(result => logAndReturn(result));
 
+//
+init()
+    .then(() => env.getContainers_L())
+    .then(it => logAndReturn(it))
+    .then(() => env.close());
+
 /*
     On Nodes
  */
-init()
-    .then(() => env.getNodesOfServices_E(bestServiceEver, true))
-    .then(result => logAndReturn(result))
-    .then(result => Promise.all(
-        result.map(node => {
-            return env.copyFileContent_2N(node.node, 'copy mich', target.path, target.file)
-                .then(() => env.changePermission_N(node.node, target.fullPath(), '+x', true))
-        })
-        )
-    ).then(result => logAndReturn(result))
-    .then(() => env.suicide());
+// init()
+//     .then(() => env.getTasksOfServices_E(bestServiceEver, true))
+//     .then(result => logAndReturn(result))
+//     .then(result => Promise.all(
+//         result.map(task => {
+//             return env.copyFile_L2N(task.node,input.path, input.file, target.path, target.file)
+//                 .then(() => env.changePermission_N(task.node, target.fullPath(), '+x', true))
+//         })
+//         )
+//     ).then(result => logAndReturn(result))
+//     .then(() => env.close());
 
 /*
     File-copy
  */
 // init()
-//     .then(() => env.copyFile_H2E(input.path, input.file, target.path, target.file))
+//     .then(() => env.copyFile_L2E(input.path, input.file, target.path, target.file))
 //     .then(() => env.readFile_E(target.path, target.file))
 //     .then(result => console.log(result))
 
