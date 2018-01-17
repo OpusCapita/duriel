@@ -3,7 +3,7 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
-const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'andariel_branch', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM'];
+const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'andariel_branch', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1'];
 
 /**
  * CIRCLE_PROJECT_REPONAME === serviceName

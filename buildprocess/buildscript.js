@@ -2,7 +2,7 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 
-const gatherEnvVariables = require('./actions/gatherEnvVariables');
+const gatherEnvVariablesAction = require('./actions/gatherEnvVariables');
 const calculateRepoPathAction = require('./actions/calculateRepoPath');
 const calculateTargetEnvAction = require('./actions/calculateTargetEnv');
 const calculateVersionAction = require('./actions/calculateVersion');
@@ -12,16 +12,21 @@ const dockerComposeUpAction = require('./actions/dockerComposeUp');
 const monitorDockerContainerAction = require('./actions/monitorDockerContainer');
 const outputContainerLogsAction = require('./actions/outputContainerLogs');
 const runUnitTestsAction = require('./actions/runUnitTests');
+const setGitCredentialsAction = require('./actions/setGitCredentials');
+const tagGitCommitAction = require('./actions/tagGitCommit');
 
 
 const execute = async () => {
-    const config = gatherEnvVariables();
+    // Preparing
+    const config = gatherEnvVariablesAction();
     config['REPO_PATH'] = calculateRepoPathAction(config);
     config['TARGET_ENV'] = calculateTargetEnvAction(config);
     config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     config["VERSION"] = calculateVersionAction(config);
-    await buildDockerImageAction(config);
 
+    //Building, Starting, Testing locally
+
+    await buildDockerImageAction(config);
     const composeCommand = getComposeCommandAction();
     await dockerComposeUpAction(composeCommand);
     try {
@@ -30,6 +35,20 @@ const execute = async () => {
         await outputContainerLogsAction();
     }
     await runUnitTestsAction(composeCommand);
+
+    await setGitCredentialsAction(config);
+    await tagGitCommitAction(config['VERSION'], config['CIRCLE_SHA1']);
+
+    // Starting Deployment
+
+    if(config['TARGET_ENV'] === 'none'){
+        log.info("not target-environment associated with the branch \n no deployment is going to happen. \n exiting.")
+        process.exit(0);
+    } else {
+
+    }
+
+
 };
 execute();
 
