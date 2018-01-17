@@ -19,18 +19,18 @@ module.exports = function () {
         config["HUB_REPO"] = process.argv[2];  // params start at 2 because 0 = node, 1 = js-script
     }
 
-    let env_var_complete = true;
+    let all_required_vars_set = true;
     for (let env_var of REQUIRED_ENV_VARS) {
         if (!process.env[env_var]) {
             log.error(`env_var '${env_var}' not set but necessary for the buildprocess!`);
-            env_var_complete = false;
+            all_required_vars_set = false;
         } else {
             config[`${env_var}`] = process.env[env_var];
             log.debug(`env_var ${env_var} set successfully.`);
         }
     }
 
-    if (!env_var_complete) {
+    if (!all_required_vars_set) {
         log.error("env vars are missing! exiting!");
         throw new Error("env vars are missing! exiting!");
     }
@@ -45,3 +45,15 @@ module.exports = function () {
     }
     return config;
 };
+
+
+
+
+
+
+
+
+
+
+
+

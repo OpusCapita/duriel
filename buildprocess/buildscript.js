@@ -1,54 +1,60 @@
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
-
-const gatherEnvVariablesAction = require('./actions/gatherEnvVariables');
-const calculateRepoPathAction = require('./actions/calculateRepoPath');
-const calculateTargetEnvAction = require('./actions/calculateTargetEnv');
-const calculateVersionAction = require('./actions/calculateVersion');
-const buildDockerImageAction = require('./actions/buildDockerImage');
-const getComposeCommandAction = require('./actions/getComposeCommand');
-const dockerComposeUpAction = require('./actions/dockerComposeUp');
-const monitorDockerContainerAction = require('./actions/monitorDockerContainer');
-const outputContainerLogsAction = require('./actions/outputContainerLogs');
-const runUnitTestsAction = require('./actions/runUnitTests');
-const setGitCredentialsAction = require('./actions/setGitCredentials');
-const tagGitCommitAction = require('./actions/tagGitCommit');
+const EnvProxy = require('../EnvProxy');
+// Preparing
+const gatherEnvVariables = require('./actions/gatherEnvVariables');
+const calculateRepoPath = require('./actions/calculateRepoPath');
+const calculateTargetEnv = require('./actions/calculateTargetEnv');
+const calculateVersion = require('./actions/calculateVersion');
+// Building, Starting, Testing locally
+const buildDockerImage = require('./actions/buildDockerImage');
+const getComposeCommand = require('./actions/getComposeCommand');
+const dockerLogin = require('./actions/dockerLogin');
+const dockerComposePull = require('./actions/dockerComposePull');
+const dockerComposeUp = require('./actions/dockerComposeUp');
+const monitorDockerContainer = require('./actions/monitorDockerContainer');
+const outputContainerLogs = require('./actions/outputContainerLogs');
+const runUnitTests = require('./actions/runUnitTests');
+const setGitCredentials = require('./actions/setGitCredentials');
+const tagGitCommit = require('./actions/tagGitCommit');
+// Deploying
+const getPublicIpForTargetEnvAction = require('./actions/getPublicIpForTargetEnv');
+const pushDockerImageAction = require('./actions/pushDockerImage');
 
 
 const execute = async () => {
     // Preparing
-    const config = gatherEnvVariablesAction();
-    config['REPO_PATH'] = calculateRepoPathAction(config);
-    config['TARGET_ENV'] = calculateTargetEnvAction(config);
+    const config = gatherEnvVariables();
+    config['REPO_PATH'] = calculateRepoPath(config);
+    config['TARGET_ENV'] = calculateTargetEnv(config);
     config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
-    config["VERSION"] = calculateVersionAction(config);
+    config["VERSION"] = calculateVersion(config);
 
     //Building, Starting, Testing locally
-
-    await buildDockerImageAction(config);
-    const composeCommand = getComposeCommandAction();
-    await dockerComposeUpAction(composeCommand);
+    await dockerLogin(config);
+    await dockerComposePull(config);
+    await buildDockerImage(config);
+    const composeCommand = getComposeCommand();
+    await dockerComposeUp(composeCommand);
     try {
-        await monitorDockerContainerAction(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
+        await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
     } catch (error){
-        await outputContainerLogsAction();
+        await outputContainerLogs();
     }
-    await runUnitTestsAction(composeCommand);
+    await runUnitTests(composeCommand);
 
-    await setGitCredentialsAction(config);
-    await tagGitCommitAction(config['VERSION'], config['CIRCLE_SHA1']);
+    await setGitCredentials(config);
+    await tagGitCommit(config['VERSION'], config['CIRCLE_SHA1']);
 
     // Starting Deployment
-
     if(config['TARGET_ENV'] === 'none'){
-        log.info("not target-environment associated with the branch \n no deployment is going to happen. \n exiting.")
+        log.info("not target-environment associated with the branch \n no deployment is going to happen. \n exiting.");
         process.exit(0);
-    } else {
-
     }
 
-
+    const connectionData = getPublicIpForTargetEnvAction(config);
+    await pushDockerImageAction(config);
 };
 execute();
 
