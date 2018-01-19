@@ -1,7 +1,6 @@
 'use strict';
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
-const EnvProxy = require('../../EnvProxy');
 const https = require('https');
 const fs = require('fs');
 
@@ -11,18 +10,19 @@ module.exports = async function (url, targetFile) {
 
         const file = fs.createWriteStream(targetFile);
         const req = https.request(url, (res) => {
-            console.log('statusCode:', res.statusCode);
-            console.log('headers:', res.headers);
+            log.debug('statusCode:', res.statusCode);
+            log.debug('headers:', res.headers);
 
             res.pipe(file);
             res.on('finish', () => {
                 file.close();
+                log.info("finished downloading file");
                 return resolve();
             });
         });
 
         req.on('error', (e) => {
-            console.error(e);
+            log.error("error while downloading file", e);
             fs.unlink(targetFile);
             return reject(e);
         });

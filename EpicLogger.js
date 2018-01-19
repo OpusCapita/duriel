@@ -1,13 +1,16 @@
 class EpicLogger {
     constructor() {
-        this.info = msg => this.log('info', msg);
-        this.error = msg => this.log('error', msg);
-        this.debug = msg => this.log('debug', msg);
-        this.warn = msg => this.log('warn', msg);
+        this.info = msg => EpicLogger.log('info', msg);
+        this.error = (msg, error) => EpicLogger.log('error', msg, error);
+        this.debug = msg => EpicLogger.log('debug', msg);
+        this.warn = msg => EpicLogger.log('warn', msg);
     }
 
-    log(level, message) {
+    static log(level, message, error) {
         console.log("%d - %s - %s", new Date(), level, message);
+        if(error){
+            console.error(error);
+        }
     }
 }
 

@@ -1,16 +1,22 @@
 'use strict';
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
-const EnvProxy = require('../../EnvProxy');
-const downloadFileAction = require('./downloadFile');
+const downloadFile = require('./downloadFile');
 
 
 module.exports = async function (config) {
     const proxy = new EnvProxy();
     const public_ip_file = "public_ip.sh";  // TODO: das komplett ersetzen durch eine JSON?
-    const connectionData = {};
+    const url_base = `https://raw.githubusercontent.com/${config['REPO_PATH']}/public_ip.sh`;
+    const url_params = `?token=${config['GIT_TOKEN']}`;
 
-    downloadFileAction(`https://raw.githubusercontent.com/${config['REPO_PATH']}/public_ip.sh?token=${config['GIT_TOKEN']}`, public_ip_file);
+    try {
+        downloadFile(url_base + url_params, public_ip_file);
+    } catch (error) {
+        log.error(`could not load 'public_ip.sh' from ${url_base}`);
+        throw error;
+    }
+    const connectionData = {};
     await proxy.changePermission_L(public_ip_file, "+x");
     await proxy.executeCommand_L(`${public_ip_file} ${config['TARGET_ENV']}`);  // TODO replace me??
 
@@ -20,10 +26,9 @@ module.exports = async function (config) {
         if (process.env[key]) {
             log.info(`${key} is set`);
             connectionData[key] = process.env[key];
-        }else {
+        } else {
             log.warn(`${key} is not set`);
         }
     }
-
     return connectionData;
 };
