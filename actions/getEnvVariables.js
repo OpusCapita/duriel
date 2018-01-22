@@ -1,5 +1,5 @@
 'use strict';
-const EpicLogger = require('../../EpicLogger');
+const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
@@ -43,6 +43,9 @@ module.exports = function () {
             log.debug(`skipping ${env_var} - no environment value set`);
         }
     }
+
+    // TODO: unify later
+    config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     return config;
 };
 

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const EpicLogger = require('../../EpicLogger');
+const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
 module.exports = function (config) {
@@ -11,5 +11,5 @@ module.exports = function (config) {
     } else {
         versionFileContent = fs.readFileSync("./VERSION", "utf8");
     }
-    return `${versionFileContent}-${config['CIRCLE_BRANCH'] === 'master' ? 'rc' : 'dev'}-${config['CIRCLE_BRANCH_NUM']}`;
+    return `${versionFileContent}-${config['CIRCLE_BRANCH'] === 'master' ? 'rc' : 'dev'}-${config['CIRCLE_BUILD_NUM']}`;
 };

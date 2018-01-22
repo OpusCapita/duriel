@@ -1,10 +1,10 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('./EpicLogger');
 const log = new Logger();
-const EnvProxy = require('../EnvProxy');
+const EnvProxy = require('./EnvProxy');
 
 // Preparing
-const gatherEnvVariables = require('./actions/getEnvVariables');
+const getEnvVariables = require('./actions/getEnvVariables');
 const calculateRepoPath = require('./actions/calculateRepoPath');
 const calculateTargetEnv = require('./actions/calculateTargetEnv');
 const calculateVersion = require('./actions/calculateVersion');
@@ -25,15 +25,14 @@ const getPublicIpForTargetEnvAction = require('./actions/getPublicIpForTargetEnv
 const pushDockerImageAction = require('./actions/pushDockerImage');
 const deploy = require('./deploy');
 
-
-
 const execute = async () => {
     // Preparing
-    const config = gatherEnvVariables();
+    const config = getEnvVariables();
     config['REPO_PATH'] = calculateRepoPath(config);
     config['TARGET_ENV'] = calculateTargetEnv(config);
     config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     config["VERSION"] = calculateVersion(config);
+    log.info(JSON.stringify(config));
 
     //Building, Starting, Testing locally
     await dockerLogin(config);
@@ -41,6 +40,7 @@ const execute = async () => {
     await dockerCompose(compose_base, "pull");
     await buildDockerImage(config);
     await dockerCompose(compose_base, "up -d");
+
     try {
         await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
     } catch (error){
@@ -48,7 +48,6 @@ const execute = async () => {
         process.exit(1);
     }
     await runUnitTests(compose_base);
-
     await setGitCredentials(config);
     await tagGitCommit(config['VERSION'], config['CIRCLE_SHA1']);
 
@@ -67,7 +66,7 @@ const execute = async () => {
         log.error("error while loading connectionData", error);
     }
     await pushDockerImageAction(config);
-    deploy(config);
+    // deploy(config);
 
 };
 execute();

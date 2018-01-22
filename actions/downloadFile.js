@@ -1,5 +1,5 @@
 'use strict';
-const EpicLogger = require('../../EpicLogger');
+const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const https = require('https');
 const fs = require('fs');
