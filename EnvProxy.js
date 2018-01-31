@@ -31,7 +31,7 @@ module.exports = class EnvProxy {
         this.proxyServers = {};
     }
 
-    async init(overrideconfig) {
+    init(overrideconfig) {
         this.config = Object.assign({}, default_config, overrideconfig);
         this.sshconn = new Client();
         let initSsh = new Promise((resolve, reject) => {

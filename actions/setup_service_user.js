@@ -6,7 +6,6 @@ const fs = require('fs');
 module.exports = function (config, proxy) {
 getExistingUsers(config, proxy)
 
-    proxy.
 };
 
 

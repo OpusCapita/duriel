@@ -8,7 +8,7 @@ module.exports = function () {
         throw new Error("could not find package.json");
     }
     const packageJson = fs.readFileSync('./package.json', {encoding: 'utf8'});
-    log.info("loaded package.json successfully: \n" + JSON.stringify(packageJson, null, 2));
+    log.info("loaded package.json successfully.");
     const parsedPackageJson = JSON.parse(packageJson);
 
     let result = true;
