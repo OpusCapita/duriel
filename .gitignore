@@ -1,2 +1,4 @@
 node_modules
 
+/test/run_deployscript.sh
+/test/run_buildscript.sh

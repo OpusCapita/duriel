@@ -1,1 +1,0 @@
-node ../duriel/deploy.js
