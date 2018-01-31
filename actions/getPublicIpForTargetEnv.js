@@ -1,27 +1,36 @@
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
-const downloadFile = require('./downloadFile');
+const EnvProxy = require('../EnvProxy');
+const fs = require('fs');
+const request = require('superagent');
+const loadFileFromPrivateGit = require('./loadFileFromPrivateGit');
 
 
 module.exports = async function (config) {
     const proxy = new EnvProxy();
-    const public_ip_file = "public_ip.sh";  // TODO: das komplett ersetzen durch eine JSON?
-    const url_base = `https://raw.githubusercontent.com/${config['REPO_PATH']}/public_ip.sh`;
-    const url_params = `?token=${config['GIT_TOKEN']}`;
+    const fileName = "public_ip.sh";
+    const url = `https://raw.githubusercontent.com/${config['REPO_PATH']}/public_ip.sh`;
 
     try {
-        downloadFile(url_base + url_params, public_ip_file);
+        log.info(`trying to download: ${url}`);
+        await loadFileFromPrivateGit(url, fileName, config);
     } catch (error) {
-        log.error(`could not load 'public_ip.sh' from ${url_base}`);
+        log.error(`could not load 'public_ip.sh' from ${url}`, error);
         throw error;
     }
     const connectionData = {};
-    await proxy.changePermission_L(public_ip_file, "+x");
-    await proxy.executeCommand_L(`${public_ip_file} ${config['TARGET_ENV']}`);  // TODO replace me??
+    log.info(`making publish_ip.sh runnable.`);
+    await proxy.changePermission_L(fileName, "+x");
+    log.info(`runnung public_ip.sh`);
+    try {
+        await proxy.executeCommand_L(`./${fileName} ${config['TARGET_ENV']}`);
+    }catch (error){
+        log.error("", error);
+    }
 
     const dataKeys = ['public_hostname', 'public_ip', 'admin_address', 'target_user', 'logstash_ip', 'public_scheme', 'public_port'];
-
+    log.info(`gathering new dataKeys... `);
     for (const key of dataKeys) {
         if (process.env[key]) {
             log.info(`${key} is set`);
@@ -30,5 +39,36 @@ module.exports = async function (config) {
             log.warn(`${key} is not set`);
         }
     }
+    log.info(`... finished gathering dataKeys`);
     return connectionData;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

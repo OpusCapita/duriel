@@ -17,13 +17,14 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 return reject(result);
             }
             let containers = await proxy.getContainers_L();
-            containers = containers.filter((service) => service.name.includes(serviceName));
+            containers = containers.filter((service) => service.image.includes(serviceName));
             if (containers.length === 0) {
                 result.success = false;
                 result.message = `no container found for service ${serviceName}`;
                 clearTimeout(intervalId);
                 return reject(result);
             }
+            log.debug("current-container-state: " + JSON.stringify(containers, null, 2));
             containers.forEach(service => {
                 if (service.status === "healthy") {
                     result.message = `service is healthy after ${attempt} attempts`;

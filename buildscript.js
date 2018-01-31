@@ -19,11 +19,10 @@ const outputContainerLogs = require('./actions/outputContainerLogs');
 const runUnitTests = require('./actions/runUnitTests');
 const setGitCredentials = require('./actions/setGitCredentials');
 const tagGitCommit = require('./actions/tagGitCommit');
+const pushDockerImage = require('./actions/pushDockerImage');
 
 // Deploying
-const getPublicIpForTargetEnvAction = require('./actions/getPublicIpForTargetEnv');
-const pushDockerImageAction = require('./actions/pushDockerImage');
-const deploy = require('./deploy');
+const saveObject2File = require('./actions/saveObject2File');
 
 const execute = async () => {
     // Preparing
@@ -44,6 +43,7 @@ const execute = async () => {
     try {
         await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
     } catch (error){
+        log.error(JSON.stringify(error));
         await outputContainerLogs();
         process.exit(1);
     }
@@ -56,18 +56,10 @@ const execute = async () => {
         log.info("no target-environment associated with the branch \n no deployment is going to happen. \n exiting.");
         process.exit(1);
     }
-    try {
-        const connectionData = getPublicIpForTargetEnvAction(config);
-        for(const key in connectionData){
-            log.info('copying connectionData into config');
-            config[key] =  connectionData[key];
-        }
-    } catch (error){
-        log.error("error while loading connectionData", error);
-    }
-    await pushDockerImageAction(config);
-    // deploy(config);
 
+    await pushDockerImage(config);
+    log.info("saving config for later buildprocess-steps");
+    saveObject2File(config, "bp-config.json", true);
 };
 execute();
 
