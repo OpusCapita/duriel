@@ -526,6 +526,19 @@ module.exports = class EnvProxy {
             });
     }
 
+    addKeyValueToConsul(key, value) {
+        const proxy = this.proxyServers['consul'];
+        if (!proxy) return Promise.reject('no proxy for consul found!');
+        return axios.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
+            .then((response) => {
+                return Promise.resolve(response.data);
+            })
+            .catch(error => {
+                console.log("error making http call to tunneled consul, %o", error);
+                return Promise.reject(this.sshconn.e);
+            });
+    }
+
     /**
      * Creates a local server socket on any free port and tunnels it to requested target host / port
      * The proxy info is stored in proxyServers under proxyKeyKey and has members

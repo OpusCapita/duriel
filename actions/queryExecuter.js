@@ -2,7 +2,7 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
-let mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 
 module.exports = function (config, proxy, query) {
     let result;

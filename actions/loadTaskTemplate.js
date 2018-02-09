@@ -10,7 +10,7 @@ module.exports = async function (config) {
         throw new Error("could not find task_template.json");
     }
     const taskTemplate = fs.readFileSync('./task_template.json', {encoding: 'utf8'});
-    log.info("loaded task_template successfully: \n" + JSON.stringify(taskTemplate, null, 2));
+    log.info("loaded task_template successfully.");
 
     log.info("Injecting values into task_template.json");
     const injectorResult = variableInjector(JSON.stringify(taskTemplate), config);
@@ -20,9 +20,9 @@ module.exports = async function (config) {
 
     log.debug("Parsing edited data back to JSON");
     const parsedJSON = JSON.parse(injectorResult.result);
-
+    console.log(injectorResult.result);
     log.info("Writing mapped task_template.json");
     console.log(parsedJSON);
-    fs.writeFileSync("./task_template_mapped.json", JSON.stringify(parsedJSON, null, 2));
+    fs.writeFileSync("./task_template_mapped.json", JSON.stringify(parsedJSON), {encoding: 'utf8'});
     return injectorResult.result;
 };
