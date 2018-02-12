@@ -8,7 +8,7 @@ class EpicLogger {
 
     static log(level, message, error) {
         console.log("%d - %s - %s", new Date(), level, message);
-        if(error){
+        if (error) {
             console.error(error);
         }
     }

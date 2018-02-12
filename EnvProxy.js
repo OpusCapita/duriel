@@ -176,7 +176,6 @@ module.exports = class EnvProxy {
             command += `'${cmd}'`;
         else
             command += `${cmd}`;
-
         return this.executeCommand_E(command, sudo);
     }
 
@@ -300,7 +299,6 @@ module.exports = class EnvProxy {
     getContainers_E() {
         return this.executeCommand_E(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
             .then(response => {
-                console.log(response);
                 return response.split('\n').map(
                     row => {
                         let split = row.split(semicolon_splitter);
@@ -433,7 +431,7 @@ module.exports = class EnvProxy {
             let response = "";
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
-                    console.log('SECOND :: exec error: ' + err);
+                    console.error('SECOND :: exec error: ', err);
                     return reject(err);
                 }
                 stream.on('end', () => {
@@ -537,6 +535,10 @@ module.exports = class EnvProxy {
                 console.log("error making http call to tunneled consul, %o", error);
                 return Promise.reject(this.sshconn.e);
             });
+    }
+
+    getKeyValue(key) {
+        return this.queryConsul(`/v1/kv/${config['serviceName']}`)
     }
 
     /**

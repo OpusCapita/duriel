@@ -29,10 +29,9 @@ module.exports = async function (config, proxy, checkOnly = true) {
             injectUser = true;
         }
     }
-
     if (checkOnly) {
         console.log(injectUser ? "user needs to be injected later!" : "user already in place, no injection");
-        return !injectUser;
+        return injectUser;
     }
 
     if (injectUser) {
@@ -49,6 +48,5 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
         return true;
     }
-
     return false;
 };
