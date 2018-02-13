@@ -8,10 +8,17 @@ var default_config = {
 }
  
 
-module.exports.develop = extend(true, {}, default_config, {
+module.exports.dev1 = extend(true, {}, default_config, {
   admin_user: 'dm',
   public_ip: '104.40.214.31',
   admin_address: '13.80.22.170',
+  public_hostname: 'bnp-dev1.westeurope.cloudapp.azure.com'
+});
+
+module.exports.develop = extend(true, {}, default_config, {
+  admin_user: 'duriel-dev',
+  public_ip: '13.95.208.44',
+  admin_address: 'bnp-admin-develop.westeurope.cloudapp.azure.com',
   public_hostname: 'develop.businessnetwork.opuscapita.com'
 });
 
@@ -25,14 +32,13 @@ module.exports.stage = extend(true, {}, default_config, {
 module.exports.prod = extend(true, {}, default_config, {
   admin_user: 'dmm',
   public_ip: '13.81.203.28',
-  admin_address: this.public_ip,
-  public_hostname: 'businessnetwork.opuscapita.com'
+  admin_address: '13.81.203.28',
+  public_hostname: 'bnp-prod1-inactive.westeurope.cloudapp.azure.com'
 });
 
 module.exports.pr2 = extend(true, {}, default_config, {
   admin_user: 'dmm',
   public_ip: '13.80.124.58',
   admin_address: 'bnp-admin-pr2.westeurope.cloudapp.azure.com',
-  //public_hostname: 'businessnetwork.opuscapita.com'
   public_hostname: 'inactive-bnp-prod2.westeurope.cloudapp.azure.com'
 });
