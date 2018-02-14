@@ -11,7 +11,7 @@ let default_config = {
 module.exports.develop = extend(true, {}, default_config, {
     admin_user: 'tubbest1',
     public_ip: '104.40.214.31',
-    admin_address: '13.80.22.170',
+    admin_address: '23.97.194.167',
     public_hostname: 'develop.businessnetwork.opuscapita.com'
 });
 

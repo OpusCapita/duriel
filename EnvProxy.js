@@ -524,6 +524,12 @@ module.exports = class EnvProxy {
             });
     }
 
+    /**
+     * Add a kv-pair into consul
+     * @param key - no need to starting '/'
+     * @param value
+     * @returns http-response of consul | Promise.reject(error)
+     */
     addKeyValueToConsul(key, value) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
@@ -537,6 +543,11 @@ module.exports = class EnvProxy {
             });
     }
 
+    /**
+     * request keyValue in consul.
+     * @param key
+     * @returns value as String | Promise.reject
+     */
     getKeyValue(key) {
         return this.queryConsul(`/v1/kv/${config['serviceName']}`)
     }
@@ -546,7 +557,7 @@ module.exports = class EnvProxy {
      * The proxy info is stored in proxyServers under proxyKeyKey and has members
      * key = it's proxyKey
      * server = the net.server holding the socket and accept handler
-     * port = the proxy porti
+     * port = the proxy port
      * Returns a promise on a ready to use proxy instance
      */
     createProxiedTunnel(proxyKey, targetHostName, targetPort) {

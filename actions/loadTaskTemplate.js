@@ -19,10 +19,8 @@ module.exports = async function (config) {
     }
 
     log.debug("Parsing edited data back to JSON");
-    const parsedJSON = JSON.parse(injectorResult.result);
-    console.log(injectorResult.result);
+    JSON.parse(injectorResult.result);
     log.info("Writing mapped task_template.json");
-    console.log(parsedJSON);
-    fs.writeFileSync("./task_template_mapped.json", JSON.stringify(parsedJSON), {encoding: 'utf8'});
+    fs.writeFileSync("./task_template_mapped.json", injectorResult.result, {encoding: 'utf8'});
     return injectorResult.result;
 };

@@ -50,24 +50,28 @@ const exec = async function () {
         await loadTaskTemplate(config);
         log.info("...finished task template");
 
+        const field_defs_url = `https://raw.githubusercontent.com/${config['REPO_PATH']}/field_defs.json`;
+        const field_defs_file = './field_defs.json';
         try {
             log.info("loading field_defs.json");
-            const field_defs_url = `https://raw.githubusercontent.com/${config['REPO_PATH']}/field_defs.json`;
-            const field_defs_file = './field_defs.json';
-            await loadFileFromPrivateGit(field_defs_url, field_defs_file, config);
-            log.info("Adding field defs into config... ");
-            config['field_defs'] = JSON.parse(fs.readFileSync(field_defs_file));
-            log.info("... finished adding field_defs into config.");
-            log.info("finished loading field_defs.json");
+            loadFileFromPrivateGit(field_defs_url, field_defs_file, config)
+                .then(() => {
+                    log.info("finished loading field_defs.json");
+                });
+
         } catch (err) {
-            log.error("error while downloading file")
+            log.error(`error while downloading field_defs file`, err);
         }
+        log.info("Adding field defs into config... ");
+        const field_defs_content = fs.readFileSync(field_defs_file);
+        config['field_defs'] = JSON.parse(field_defs_content);
+        log.info("... finished adding field_defs into config.");
+        log.info("finished loading field_defs.json");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
 
         // build_docker_command ersetzt durch dockerCommandBuilder!
-
         const proxy = await new EnvProxy().init(config);
         log.info(`establishing proxy to enviroment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = require('./actions/dependsOnServiceClient')();
@@ -139,10 +143,8 @@ const exec = async function () {
                 log.info("no task_template_mapped found. using simple update mode (only updating to new image");
                 dockerCommand = "docker service update --force --image";
             } else {
-
+                dockerCommand = dockerCommandBuilder.dockerUpdate(config);
             }
-
-
         }
 
         require('./actions/saveObject2File')(config, config_file_name, true);

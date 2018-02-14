@@ -1,6 +1,8 @@
 'use strict';
 const request = require('superagent');
 const fs = require('fs');
+const Logger = require('../EpicLogger');
+const log = new Logger();
 
 module.exports = function (url, file, config) {
     return request.get(url)
@@ -11,7 +13,7 @@ module.exports = function (url, file, config) {
                     if (error) {
                         return reject(error);
                     } else {
-                        return resolve();
+                        return resolve(res.text);
                     }
                 }))
             })
