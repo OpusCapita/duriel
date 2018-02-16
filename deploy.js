@@ -76,14 +76,14 @@ const exec = async function () {
         log.info(`establishing proxy to enviroment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = require('./actions/dependsOnServiceClient')();
         if (!config['dependsOnServiceClient']) {   // TODO: remove me on production
-            log.info("project does not depend on service-client. skipping key injection");
+            log.info("project does not depend on service-client. skipping name injection");
         } else {
             config['svcUserName'] = `svc_${config['serviceName']}`;
             config['svcUserPassword'] = await proxy.executeCommand_L(`openssl rand -base64 32`);
             const setupServiceUserSuccess = await require('./actions/setupServiceUser')(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
             if (setupServiceUserSuccess) {
-                log.info("Service user does exist. checking for matching conssul key....");
+                log.info("Service user does exist. checking for matching conssul name....");
                 await injectServiceClientUser(config, proxy);
             }
         }

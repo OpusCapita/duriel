@@ -555,7 +555,7 @@ module.exports = class EnvProxy {
     /**
      * Creates a local server socket on any free port and tunnels it to requested target host / port
      * The proxy info is stored in proxyServers under proxyKeyKey and has members
-     * key = it's proxyKey
+     * name = it's proxyKey
      * server = the net.server holding the socket and accept handler
      * port = the proxy port
      * Returns a promise on a ready to use proxy instance
@@ -563,7 +563,7 @@ module.exports = class EnvProxy {
     createProxiedTunnel(proxyKey, targetHostName, targetPort) {
         console.log("creating proxy " + proxyKey + " pointing to " + targetHostName + ":" + targetPort + "...");
         const proxy = {};
-        proxy.key = proxyKey;
+        proxy.name = proxyKey;
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {

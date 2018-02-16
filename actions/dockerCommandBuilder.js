@@ -46,11 +46,11 @@ const buildDockerUpdate = function (config) {
             const desiredValue = getDesiredValue(taskTemplate, param, config);
             const collectedData = {
                 name: param,
-                sc: valueFromServiceConfig,
+                cv: valueFromServiceConfig,
                 dv: desiredValue,
                 fieldDef: fieldDefinition
             };
-            // log.info(type + " " + param);
+            log.info(`handling param '${param}'\n\n`);
             switch (type) {
                 case 'mart':
                     addedFields.push(updateMart(collectedData));
@@ -82,10 +82,78 @@ const buildDockerUpdate = function (config) {
 };
 
 const updateMart = function (param) {
-    log.info(param);
-    // wenn nicht mehr gebraucht aber vorhanden --> --NAME-rm ck
-    // sonst --NAME-rm ck + --Name --NAME-add dvof
 
+    // create map to translate name from task_template to field_defs
+
+    const a = param['fieldDef']['fieldMap'];
+    const tt2fdMap = {};
+    for (let key of Object.keys(a)) {
+        tt2fdMap[key.toLowerCase()] = a[key];
+    }
+    log.info("mapping from task_template to fieldmap with: ", tt2fdMap);
+
+    //if input is array --> take first entry
+
+    if (Array.isArray(param.cv)) {
+        param.cv = param.cv[0];
+    }
+
+    for (let desiredValue of param.dv) {
+        let isCommaSeperatedList = false;
+        if (param['fieldDef']['rmKeyType'] === 'srcKVCommaSeparated') {
+            log.info('value in task_template is an comma seperated list');
+            isCommaSeperatedList = true;
+        }
+        let pairs4command = [];
+        let dv_entries = desiredValue;
+
+        if (isCommaSeperatedList) {
+            dv_entries = desiredValue.split(',');      // not comma seperated zum array umformen? denglish ftw...
+        }
+
+        const dv_value_map = {};
+        for (let dv_entry of dv_entries) {
+            const dv_entry_split = dv_entry.split('=');
+            let dv_entry_key = dv_entry_split[0];
+            if (tt2fdMap[dv_entry_key]) {
+                dv_entry_key = tt2fdMap[dv_entry_key]
+            } else {    // it starts with uppercase...
+                dv_entry_key = dv_entry_key.charAt(0).toUpperCase() + dv_entry_key.slice(1)
+            }
+            dv_value_map[dv_entry_key] = dv_entry_split[1];
+        }
+        // collecting non required current values
+        Object.keys(param.cv)
+            .filter(it => !Object.keys(dv_value_map).includes(it))
+            .forEach(it => pairs4command.push({name: it, value: null, mode: 'delete'}));
+
+        for (let key in dv_value_map) {
+            const current = `${param.cv[key]}`;
+            const desired = `${dv_value_map[key]}`;
+            log.info(`current: ${current}, desired: ${desired}`);
+            if (current !== desired) {
+                log.info(`param '${key}' need to be updated`);
+                pairs4command.push({name: key, value: dv_value_map[key], mode: 'update'})
+            } else if (!current) {
+                log.info(`param '${key}' is new`);
+                pairs4command.push({name: key, value: dv_value_map[key], mode: 'create'})
+            } else {
+                log.info(`param '${key}' has not changed its value`);
+            }
+        }
+
+        log.info("going to create command params from: ", pairs4command);
+
+        let result = "";
+        for (let kv_pair of pairs4command) {
+            if (kv_pair.mode === 'update' || kv_pair.mode === 'delete') {
+                result += ` --${kv_pair.name}-rm ${kv_pair.value}`   // TODO: stimmt das?
+            }
+            if (kv_pair.mode === 'update' || kv_pair.mode === 'create') {
+                result += ` --${kv_pair.name}-add ${kv_pair.value}`
+            }
+        }
+    }
 };
 
 const getMultipleOptionsFromArray = function (param) {
