@@ -10,6 +10,7 @@ module.exports = function (config) {
         throw new Error('no VERSION-File found! exiting!');
     } else {
         versionFileContent = fs.readFileSync("./VERSION", "utf8");
+        versionFileContent = versionFileContent.replace(/(\r\n|\n|\r)/gm,"");
     }
     return `${versionFileContent}-${config['CIRCLE_BRANCH'] === 'master' ? 'rc' : 'dev'}-${config['CIRCLE_BUILD_NUM']}`;
 };

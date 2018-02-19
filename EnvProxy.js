@@ -464,7 +464,6 @@ module.exports = class EnvProxy {
         if (sudo) {
             command = 'sudo ' + command;
         }
-        log.info(`command ${command}`);
         return new Promise((resolve, reject) =>
             exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
                 if (error) {
