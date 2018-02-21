@@ -22,15 +22,16 @@ module.exports = function (input, config) {
     let i = 0;
     let missingConfigVars = [];
     let regexResult = regExp.exec(input);
-
     while (regexResult) {
+        log.info("replacing ", regexResult);
         const variableName = regexResult[0].substring(2, regexResult[0].length - 1);
-        if (!config[variableName]) {
+        const replacement = config[variableName] ? config[variableName] : (config.fromProcessEnv(variableName) ? `${config.fromProcessEnv(variableName)}` : '');
+        if (!replacement) {
             log.error(`${i++}: config variable ${variableName} is missing`);
             missingConfigVars.push(variableName);
         }
-        const replacement = config[variableName] ? config[variableName] : '###missing_config###';
-        input = input.replace(regexResult, replacement);
+        log.info("replacing with", replacement.trim());
+        input = input.replace(regexResult, replacement.trim());
         regexResult = regExp.exec(input);
     }
     return {

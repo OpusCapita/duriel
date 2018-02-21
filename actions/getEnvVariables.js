@@ -11,7 +11,7 @@ const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'andariel_branch', 'CIRC
  */
 
 module.exports = function () {
-    const config = {};
+    const config = getBaseConfigObject();
     if (process.argv.length < 3) {
         log.error(`too few parameters ${ process.argv}`);
         process.exit(1);
@@ -50,7 +50,20 @@ module.exports = function () {
 };
 
 
-
+const getBaseConfigObject = function () {
+    return {
+        fromProcessEnv: (name) => {
+            const result = process.env[name];
+            if (result) {
+                return result.trim();
+            }
+        },
+        get: (name) => {
+            return this['name'] ? this['name'] : this.fromProcessEnv(name);
+        }
+    }
+};
+module.exports.getBaseConfigObject = getBaseConfigObject;
 
 
 

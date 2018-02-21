@@ -50,28 +50,31 @@ const buildDockerUpdate = function (config) {
                 dv: desiredValue,
                 fieldDef: fieldDefinition
             };
-            log.info(`handling param '${param}'\n\n`);
-            switch (type) {
-                case 'mart':
-                    addedFields.push(updateMart(collectedData));
-                    break;
-                case 'mark':
-                    break;
-                case 'marh':
-                    break;
-                case 'mar':
-                    break;
+            log.info(`handling param '${param}'\n`);
+            switch (type) { // TODO reenter stuff on release!
                 case 'repl':
                     addedFields.push(getMultipleOptionsFromString(collectedData));
                     break;
                 case 'frepl':
                     addedFields.push(getMultipleOptionsFromArray(collectedData));
                     break;
+                case 'mart':
+                    addedFields.push(updateMart(collectedData));
+                    break;
+                case 'mark':
+                    addedFields.push(updateMark(collectedData));
+                    break;
+                case 'mar':
+                    addedFields.push(updateMar(collectedData));
+                    break;
+                case 'marh':
+                    addedFields.push(updateMarh(collectedData));
+                    break;
                 case 'update':
-                    log.info("ignoring update-type");
+                    log.info("ignoring update-type, skipping.");
                     break;
                 case 'create':
-                    log.info("ignoring create-type");
+                    log.info("ignoring create-type, skipping.");
                     break;
                 default:
                     log.info(`'${param}' --> type '${type}' is not supported`);
@@ -79,32 +82,126 @@ const buildDockerUpdate = function (config) {
         }
     }
     log.info("added fields: ", addedFields);
+    return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
+};
+
+const updateFields = function (result, mappedKV, delimiter, name) {
+    for (let key in mappedKV) {
+        const entry = mappedKV[key];
+        if (!entry.cv || entry.dv != entry.cv) {
+            log.info(`${key} is new or did change its value`);
+            result += ` --${name}-add ${key}${delimiter}${entry.dv}`;
+        } else {
+            log.info(`${key} did not change - skipping`);
+        }
+    }
+    log.info(result);
+    return result;
+};
+
+const updateMarh = function (param) {
+    const delimiter = ':';
+    log.info(param);
+    let result = "";
+    const mappedKV = {};
+    param.dv.forEach(
+        entry => {
+            const split = entry.split(delimiter);
+            const name = split[0];
+            const value = split[1];
+            mappedKV[name] = {dv: value};
+        }
+    );
+    param.cv.forEach(
+        entry => {
+            const split = entry.split(' ');
+            const key = split[1];
+            const value = split[0];
+            if (mappedKV[key]) {
+                mappedKV[key].cv = value
+            } else {
+                result += ` --${param.name}-rm ${name}`;
+            }
+        }
+    );
+    return updateFields(result, mappedKV, delimiter, param.name);
+};
+
+const updateMar = function (param) {
+    const delimiter = '==';
+    let result = "";
+    const mappedKV = {};
+    param.dv.forEach(entry => {
+            const name = entry.split(delimiter)[0];
+            const value = entry.split(delimiter)[1];
+            mappedKV[name] = {dv: value};
+        }
+    );
+    param.cv.forEach(
+        entry => {
+            const name = entry.split(delimiter)[0];
+            const value = entry.split(delimiter)[1];
+            if (mappedKV[name]) {
+                mappedKV[name].cv = value;
+            } else {
+                log.info(`${name} is not needed any more - removing`);
+                result += ` --${param.name}-rm ${name}`;
+            }
+        });
+    return updateFields(result, mappedKV, delimiter, param.name);
+};
+
+const updateMark = function (param) {
+    const delimiter = '=';
+    let result = "";
+    const mappedKV = {};
+    param.dv.forEach(entry => {
+            const name = entry.split(delimiter)[0];
+            const value = entry.split(delimiter)[1];
+            mappedKV[name] = {dv: value};
+        }
+    );
+    param.cv.forEach(
+        entry => {
+            const name = entry.split(delimiter)[0];
+            const value = entry.split(delimiter)[1];
+            if (mappedKV[name]) {
+                mappedKV[name].cv = value;
+            } else {
+                log.info(`${name} is not needed any more - removing`);
+                result += ` --${param.name}-rm ${name}`;
+            }
+        });
+    return updateFields(result, mappedKV, delimiter, param.name);
 };
 
 const updateMart = function (param) {
+    let result = "";
+    const fieldMap = param['fieldDef']['fieldMap'];
+    const isCommaSeperatedList = param['fieldDef']['rmKeyType'] === 'srcKVCommaSeparated';
 
     // create map to translate name from task_template to field_defs
-
-    const a = param['fieldDef']['fieldMap'];
     const tt2fdMap = {};
-    for (let key of Object.keys(a)) {
-        tt2fdMap[key.toLowerCase()] = a[key];
+    const fd2ttMap = {};
+    for (let key of Object.keys(fieldMap)) {
+        const tt_value = key.toLowerCase();
+        const fd_value = fieldMap[key];
+        tt2fdMap[tt_value] = fd_value;
+        fd2ttMap[fd_value] = tt_value;
     }
-    log.info("mapping from task_template to fieldmap with: ", tt2fdMap);
+    log.info(`creating task_template to field_definition mapping...`);
+    log.info("task_template 2 fieldMap --> ", tt2fdMap);
+    log.info("fieldMap 2 task_template --> ", fd2ttMap);
+    log.info('...finished.');
 
-    //if input is array --> take first entry
 
     if (Array.isArray(param.cv)) {
         param.cv = param.cv[0];
     }
 
+    let pairs4remove = [];
+    let pairs4insert = [];
     for (let desiredValue of param.dv) {
-        let isCommaSeperatedList = false;
-        if (param['fieldDef']['rmKeyType'] === 'srcKVCommaSeparated') {
-            log.info('value in task_template is an comma seperated list');
-            isCommaSeperatedList = true;
-        }
-        let pairs4command = [];
         let dv_entries = desiredValue;
 
         if (isCommaSeperatedList) {
@@ -115,45 +212,67 @@ const updateMart = function (param) {
         for (let dv_entry of dv_entries) {
             const dv_entry_split = dv_entry.split('=');
             let dv_entry_key = dv_entry_split[0];
-            if (tt2fdMap[dv_entry_key]) {
-                dv_entry_key = tt2fdMap[dv_entry_key]
-            } else {    // it starts with uppercase...
-                dv_entry_key = dv_entry_key.charAt(0).toUpperCase() + dv_entry_key.slice(1)
-            }
             dv_value_map[dv_entry_key] = dv_entry_split[1];
         }
-        // collecting non required current values
+        // // collecting non required current values
         Object.keys(param.cv)
-            .filter(it => !Object.keys(dv_value_map).includes(it))
-            .forEach(it => pairs4command.push({name: it, value: null, mode: 'delete'}));
+            .filter(it => fd2ttMap[it] && !Object.keys(dv_value_map).includes(fd2ttMap[it]))    // is there a mapping?
+            .forEach(it => pairs4remove.push({name: fd2ttMap[it], value: null}));
+
+        log.info(param);
 
         for (let key in dv_value_map) {
-            const current = `${param.cv[key]}`;
+            let current = param.cv[tt2fdMap[key]];
+            if (!current) { // value could be unmapped (e.g. protocol <-> Protocol)
+                log.debug("could not find value via tt2fd-mapping - trying to get value via lowerCaseComparison of keys");
+                for (let cv_key of Object.keys(param.cv)) {
+                    if (key.toLowerCase() === cv_key.toLowerCase()) {
+                        log.debug("found value!");
+                        current = param.cv[cv_key];
+                        break;
+                    }
+                }
+                if (!current) {
+                    log.warn("could not find value via lowerCaseComparison!")
+                }
+                current = `${current}`;
+            }
+
             const desired = `${dv_value_map[key]}`;
-            log.info(`current: ${current}, desired: ${desired}`);
-            if (current !== desired) {
+            log.info(`${key} --> current: '${current}', desired: '${desired}'`);
+            if (current == desired) {   // !== return idiotic non-valid results '3016' !== '3016' --> true
                 log.info(`param '${key}' need to be updated`);
-                pairs4command.push({name: key, value: dv_value_map[key], mode: 'update'})
+                pairs4remove.push({name: key, value: dv_value_map[key]});
+                pairs4insert.push({name: key, value: dv_value_map[key]});
             } else if (!current) {
                 log.info(`param '${key}' is new`);
-                pairs4command.push({name: key, value: dv_value_map[key], mode: 'create'})
+                pairs4insert.push({name: key, value: dv_value_map[key]})
             } else {
                 log.info(`param '${key}' has not changed its value`);
             }
         }
-
-        log.info("going to create command params from: ", pairs4command);
-
-        let result = "";
-        for (let kv_pair of pairs4command) {
-            if (kv_pair.mode === 'update' || kv_pair.mode === 'delete') {
-                result += ` --${kv_pair.name}-rm ${kv_pair.value}`   // TODO: stimmt das?
-            }
-            if (kv_pair.mode === 'update' || kv_pair.mode === 'create') {
-                result += ` --${kv_pair.name}-add ${kv_pair.value}`
-            }
-        }
     }
+    log.info("going to create command params from: ", pairs4insert);
+    log.info(pairs4insert);
+
+    pairs4insert = pairs4insert.map(entry => `${entry.name}=${entry.value}`);
+    pairs4remove = pairs4remove.map(entry => `${entry.name}=${entry.value}`);
+
+
+    if (isCommaSeperatedList) {
+        if (pairs4remove) {
+            result += ` --${param.name}-rm ${pairs4remove.join(',')}`;
+        }
+        if (pairs4insert) {
+            result += ` --${param.name}-add ${pairs4insert.join(',')}`
+        }
+    } else {
+        //
+    }
+    for (let entry of pairs4insert) {
+        log.info(entry);
+    }
+    return result;
 };
 
 const getMultipleOptionsFromArray = function (param) {

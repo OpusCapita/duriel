@@ -15,7 +15,7 @@ module.exports = async function (config) {
     log.info("Injecting values into task_template.json");
     const injectorResult = variableInjector(JSON.stringify(taskTemplate), config);
     if (!injectorResult.success) {
-        // throw new Error(`could not inject all variables into task_template. missing: ${injectorResult.missing}`) // TODO: READD me on shipping
+        // throw new Error(`could not inject all variables into task_template. missing: ${injectorResult.missing}`) // TODO: add me on shipping
     }
 
     log.debug("Parsing edited data back to JSON");

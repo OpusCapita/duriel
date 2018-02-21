@@ -14,11 +14,15 @@ const queryExecuter = require('./actions/queryExecuter');
 const handleServiceDB = require('./actions/handleServiceDB');
 const injectServiceClientUser = require('./actions/injectServiceClientUser');
 const dockerCommandBuilder = require('./actions/dockerCommandBuilder');
+const doConsulInjection = require('./actions/doConsulInjection');
+const loadConfigFile = require('./actions/loadConfigFile');
+const monitorDockerContainer = require('./actions/monitorDockerContainer_E');
 
 
 const exec = async function () {
     const config_file_name = "bp-config.json";
-    const config = loadFile2Object(config_file_name);
+    const config = loadConfigFile(config_file_name);
+    // const config = loadFile2Object(config_file_name);
     try {
         if (!config) {
             log.error(`no config passed info deploy.js! config: ${config === null}`);
@@ -54,7 +58,7 @@ const exec = async function () {
         const field_defs_file = './field_defs.json';
         try {
             log.info("loading field_defs.json");
-            loadFileFromPrivateGit(field_defs_url, field_defs_file, config)
+            await loadFileFromPrivateGit(field_defs_url, field_defs_file, config)
                 .then(() => {
                     log.info("finished loading field_defs.json");
                 });
@@ -62,10 +66,6 @@ const exec = async function () {
         } catch (err) {
             log.error(`error while downloading field_defs file`, err);
         }
-        log.info("Adding field defs into config... ");
-        const field_defs_content = fs.readFileSync(field_defs_file);
-        config['field_defs'] = JSON.parse(field_defs_content);
-        log.info("... finished adding field_defs into config.");
         log.info("finished loading field_defs.json");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
@@ -96,6 +96,7 @@ const exec = async function () {
         log.info("saved service information into 'service_config.json'");
 
         let dockerCommand;
+        let isCreateMode = false;
         if (serviceInformation.length === 0) {        // TODO: maybe check
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.fileExistsSync('./task_template_mapped.json')) {
@@ -104,7 +105,7 @@ const exec = async function () {
                 log.info("drop/creating the service secret");
                 const secrets = await generateSecret(false, config, proxy);
                 config['serviceSecret'] = secrets.serviceSecret;
-                config['serviceId'] = secrets.serviceId;
+                config['secretId'] = secrets.secretId;
                 // await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
                 // TODO: finish me!
@@ -135,17 +136,30 @@ const exec = async function () {
                 // config['serviceSecret'] = secrets.serviceSecret;
                 // config['serviceId'] = secrets.serviceId;
             } else {
-                log.info("service secret retrieved from running instance.")
+                log.info("service secret retrieved from running instance.");
                 config['serviceSecret'] = fetchedSecrets[0];
             }
-            let dockerCommand;
+
             if (!fs.existsSync('./task_template_mapped.json')) {
                 log.info("no task_template_mapped found. using simple update mode (only updating to new image");
                 dockerCommand = "docker service update --force --image";
             } else {
                 dockerCommand = dockerCommandBuilder.dockerUpdate(config);
+                log.info(dockerCommand);
             }
         }
+        log.info(`docker command is ${dockerCommand}`);
+        await doConsulInjection(config, proxy);
+
+        // prepare to execute docker command line 333 in old deploy.sh
+        const dockerLoginPart = `docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`;
+
+        dockerCommand = `${dockerLoginPart} & ${dockerCommand}`;
+        // TODO: add on rollout execute on env
+        // await proxy.executeCommand_E(dockerCommand);
+
+        //monitor
+        await monitorDockerContainer(config, proxy, isCreateMode, serviceInformation); // mark actions on ENV or LOCAL, etc.
 
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
