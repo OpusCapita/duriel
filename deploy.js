@@ -17,6 +17,7 @@ const dockerCommandBuilder = require('./actions/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/loadConfigFile');
 const monitorDockerContainer = require('./actions/monitorDockerContainer_E');
+const runE2ETests = require('./actions/runE2ETests');
 
 
 const exec = async function () {
@@ -159,7 +160,11 @@ const exec = async function () {
         // await proxy.executeCommand_E(dockerCommand);
 
         //monitor
-        await monitorDockerContainer(config, proxy, isCreateMode, serviceInformation); // mark actions on ENV or LOCAL, etc.
+        const monitorResult = await monitorDockerContainer(config, proxy, isCreateMode, serviceInformation); // mark actions on ENV or LOCAL, etc.
+        if (monitorResult === 'failure') {
+            throw new Error("service not healthy after deployment!")
+        }
+        await runE2ETests(config, proxy);   // TODO: after actual deployment --> line: 156?
 
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
