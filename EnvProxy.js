@@ -489,6 +489,10 @@ module.exports = class EnvProxy {
         )
     }
 
+    getConsulHealthCheck(serviceName){
+        return this.queryConsul(`/v1/health/service/${serviceName}`)
+    }
+
     /**
      * finds mysql ip on target env
      * returns promise on an array like [ip,port]
@@ -515,11 +519,11 @@ module.exports = class EnvProxy {
         if (!proxy) return Promise.reject('no proxy for consul found!');
         return axios.get('http://localhost:' + proxy.port + apiCall)
             .then((response) => {
-                return Promise.resolve(response.data);
+                return response.data;
             })
             .catch(error => {
                 console.log("error making http call to tunneled consul, %o", error);
-                return Promise.reject(this.sshconn.e);
+                return this.sshconn.e;
             });
     }
 

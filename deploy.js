@@ -16,8 +16,9 @@ const injectServiceClientUser = require('./actions/injectServiceClientUser');
 const dockerCommandBuilder = require('./actions/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/loadConfigFile');
-const monitorDockerContainer = require('./actions/monitorDockerContainer_E');
-const runE2ETests = require('./actions/runE2ETests');
+const monitorDockerContainer_E = require('./actions/monitorDockerContainer_E');
+const waitForTests = require('./actions/waitForRunningTests');
+const setupServiceUser = require('./actions/setupServiceUser');
 
 
 const exec = async function () {
@@ -81,7 +82,7 @@ const exec = async function () {
         } else {
             config['svcUserName'] = `svc_${config['serviceName']}`;
             config['svcUserPassword'] = await proxy.executeCommand_L(`openssl rand -base64 32`);
-            const setupServiceUserSuccess = await require('./actions/setupServiceUser')(config, proxy);
+            const setupServiceUserSuccess = await setupServiceUser(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
             if (setupServiceUserSuccess) {
                 log.info("Service user does exist. checking for matching conssul name....");
@@ -154,18 +155,23 @@ const exec = async function () {
 
         // prepare to execute docker command line 333 in old deploy.sh
         const dockerLoginPart = `docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`;
+        config['DS2'] = `${dockerLoginPart} & ${dockerCommand}`;    // stupid name...
+        // wait for e2e tests if necessary
+        const syncToken = await waitForTests(config, proxy);
 
-        dockerCommand = `${dockerLoginPart} & ${dockerCommand}`;
         // TODO: add on rollout execute on env
         // await proxy.executeCommand_E(dockerCommand);
 
-        //monitor
-        const monitorResult = await monitorDockerContainer(config, proxy, isCreateMode, serviceInformation); // mark actions on ENV or LOCAL, etc.
+        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode, serviceInformation[0].ID); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
             throw new Error("service not healthy after deployment!")
         }
-        await runE2ETests(config, proxy);   // TODO: after actual deployment --> line: 156?
+        if(syncToken) {
+            log.info("Removing syncToken from CircleCi");
+            await waitForTests.removeSyncToken(config, proxy, syncToken);
+        }
 
+        await setupServiceUser(config, proxy, false);
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
     } catch (error) {

@@ -1,0 +1,1 @@
+node ../duriel/afterDeploy.js

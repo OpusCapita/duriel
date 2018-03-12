@@ -20,7 +20,7 @@ module.exports = async function (config, proxy) {
     const syncToken = `build_${config['CIRCLE_BRANCH']}_${testStatus['nextTestNumber']}_${config['CIRCLE_PROJECT_REPONAME']}_${config['CIRCLE_BUILD_NUM']}`;
     watchedTestNumber = testStatus['nextTestNumber'];
     await addSyncToken(config, proxy, syncToken);
-
+    return syncToken;
 };
 
 const getTestStatus = async function (config, proxy) {
@@ -57,8 +57,6 @@ const addSyncToken = async function (config, proxy, tokenName) {
                 return resolve(res);
             }))
         );
-
-
 };
 
 const removeSyncToken = async function (config, proxy, syncToken) {
@@ -70,3 +68,4 @@ const removeSyncToken = async function (config, proxy, syncToken) {
             }))
         );
 };
+module.exports.removeSyncToken = removeSyncToken;

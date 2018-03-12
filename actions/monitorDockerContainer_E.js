@@ -3,11 +3,10 @@ const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
-module.exports = async function (config, proxy, isCreateMode, serviceInformation) {
+module.exports = async function (config, proxy, isCreateMode, serviceId, attempts = 30) {
     const interval = 5000;
-    const serviceId = serviceInformation[0].ID;
-    log.info(serviceId);
-    for (let i = 0; i <= 4; i++) {  // TODO: increase count on shipping
+    for (let i = 0; i <= attempts; i++) {
+        log.info(`Checking service-health ${i}/${attempts}`);
         let serviceHealth;
         if (isCreateMode || true) {
             serviceHealth = await checkCreateStatus(config, proxy)
@@ -20,6 +19,8 @@ module.exports = async function (config, proxy, isCreateMode, serviceInformation
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
             log.info("waiting a bit and checking again!");
             await snooze(interval)
+        } else if (['paused'].includes(serviceHealth.state)) {
+            return 'paused';
         } else {
             log.error(`${serviceHealth.state}`);
             return 'failure';
@@ -57,6 +58,8 @@ const checkUpdateStatus = async function (config, proxy, serviceId) {
         check.state = 'success'
     } else if (check.state) {
         check.state = 'failure';
+    } else if (check.state === 'paused') {
+        check.state = 'paused';
     }
     return check;
 };
