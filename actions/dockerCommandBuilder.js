@@ -5,24 +5,51 @@ const fs = require('fs');
 
 const buildDockerCreate = function (config) {
     const taskTemplate = JSON.parse(JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'})));
-    log.info(taskTemplate);
     const fieldDefs = JSON.parse(fs.readFileSync('./field_defs.json'));
-    log.info(fieldDefs);
     const wantedParams = getWantedParams(taskTemplate);
-    const commandBase = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
-    log.info(wantedParams);
-    for (let param of wantedParams) {
-        let value;
-        if (taskTemplate[`${config['TARGET_ENV']}`]) {
-            value = taskTemplate[`${config['TARGET_ENV'][param]}`];
-        }
-        if (!value) {
-            value = taskTemplate['default'][param];
-        }
-        console.log(value)
-    }
-    //TODO finish him!
+    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
 
+    const addedFields = [];
+
+    for (let param of wantedParams) {
+        const fieldDefinition = fieldDefs[`${param}`];
+        if (fieldDefinition) {
+            const type = fieldDefinition['type'];
+            const desiredValue = getDesiredValue(taskTemplate, param, config);
+            const collectedData = {
+                name: param,
+                dv: desiredValue,
+                fieldDefinition: fieldDefinition
+            };
+            switch (type) {
+                case 'mart':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
+                case 'mark':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
+                case 'mar':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
+                case 'marh':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
+                case 'repl':
+                    addedFields.push(getMultipleOptionsFromString(collectedData));
+                    break;
+                case 'frepl':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
+                case 'create':
+                    addedFields.push(getMultipleOptionsFromString(collectedData));
+                    break;
+                default:
+                    log.info(`'${param}' --> type '${type}' is not supported`);
+            }
+        }
+    }
+    log.info("added fields: ", addedFields);
+    return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 
 const buildDockerUpdate = function (config) {
@@ -42,7 +69,7 @@ const buildDockerUpdate = function (config) {
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
             const fieldPath = fieldDefinition['path'];
-            const valueFromServiceConfig = drillDown(serviceConfig, fieldPath);
+            const valueFromServiceConfig = drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
             const desiredValue = getDesiredValue(taskTemplate, param, config);
             const collectedData = {
                 name: param,
@@ -51,7 +78,7 @@ const buildDockerUpdate = function (config) {
                 fieldDef: fieldDefinition
             };
             log.info(`handling param '${param}'\n`);
-            switch (type) { // TODO reenter stuff on release!
+            switch (type) {
                 case 'repl':
                     addedFields.push(getMultipleOptionsFromString(collectedData));
                     break;
@@ -84,8 +111,75 @@ const buildDockerUpdate = function (config) {
     log.info("added fields: ", addedFields);
     return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
+/**
+ * Adds up params for 'production' and 'default'
+ * @param taskTemplate
+ * @returns {Array<fields for docker-command>}
+ */
+const getWantedParams = function (taskTemplate) {
+    log.info("gathering wanted params...");
+    let result = [];
+    if (taskTemplate['production']) {
+        log.info("... adding production keys ...");
+        result = result.concat(Object.keys(taskTemplate['production']));
+    }
+    if (taskTemplate["default"]) {
+        log.info("... adding default keys ...");
+        result = result.concat(Object.keys(taskTemplate["default"]));
+    }
+    log.info("... finished gathering finished params", result);
+    return result;
+};
 
-const updateFields = function (result, mappedKV, delimiter, name) {
+/**
+ * Method that drills down the service-config
+ * @param dataHolder
+ * @param path
+ * @returns {*}
+ */
+const drillDown = function (dataHolder, path) {
+    const pathEntries = path.split('/');
+    if (pathEntries.length === 1) {
+        return dataHolder[path];
+    }
+    const currentLocation = pathEntries.splice(0, 1);
+    if (!dataHolder[currentLocation]) {
+        log.error("path not found");
+        return null;
+    } else {
+        return drillDown(dataHolder[currentLocation], pathEntries.join('/'))
+    }
+
+};
+
+/**
+ * returns the value of a param from taskTemplate
+ * value = taskTemplate[env] ?: taskTemplate[default]
+ * @param taskTemplate
+ * @param param
+ * @param config
+ * @returns {*}
+ */
+const getDesiredValue = function (taskTemplate, param, config) {
+    const env = config['TARGET_ENV'];
+    if (taskTemplate[`${env}`]) {
+        if (taskTemplate[`${env}`][`${param}`]) {
+            return taskTemplate[`${env}`][`${param}`];
+        }
+    }
+    if (taskTemplate[`default`][`${param}`]) {
+        return taskTemplate[`default`][`${param}`];
+    }
+};
+/**
+ *
+ * @param result - string - changed by method
+ * @param mappedKV - Object that holds name and value of the param
+ * @param delimiter - delimiter between key and value
+ * @param name - param-name (env, publish, host, etc. )
+ * @returns result + mappedKV.map(toCommandParam)
+ */
+const addKeyValueParam = function (result, mappedKV, delimiter, name) {
     for (let key in mappedKV) {
         const entry = mappedKV[key];
         if (!entry.cv || entry.dv != entry.cv) {
@@ -124,7 +218,7 @@ const updateMarh = function (param) {
             }
         }
     );
-    return updateFields(result, mappedKV, delimiter, param.name);
+    return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
 const updateMar = function (param) {
@@ -148,7 +242,7 @@ const updateMar = function (param) {
                 result += ` --${param.name}-rm ${name}`;
             }
         });
-    return updateFields(result, mappedKV, delimiter, param.name);
+    return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
 const updateMark = function (param) {
@@ -172,7 +266,7 @@ const updateMark = function (param) {
                 result += ` --${param.name}-rm ${name}`;
             }
         });
-    return updateFields(result, mappedKV, delimiter, param.name);
+    return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
 const updateMart = function (param) {
@@ -275,70 +369,21 @@ const updateMart = function (param) {
     return result;
 };
 
-const getMultipleOptionsFromArray = function (param) {
+const getMultipleOptionsFromArray = function (collectedData) {
     let result = "";
-    for (let opt of param.dv) {
-        result += `--${param.name} ${opt} `
+    for (let opt of collectedData.dv) {
+        result += `--${collectedData.name} ${opt} `
     }
     return result;
 };
 
-const getMultipleOptionsFromString = function (param) {
-    if (param.dv) {
-        return `--${param.name} ${param.dv}`;
+const getMultipleOptionsFromString = function (collectedData) {
+    if (collectedData.dv) {
+        return `--${collectedData.name} ${collectedData.dv}`;
     } else {
         return;
     }
 };
-
-/**
- * Method that drills down the service-config
- * @param dataHolder
- * @param path
- * @returns {*}
- */
-const drillDown = function (dataHolder, path) {
-    const pathEntries = path.split('/');
-    if (pathEntries.length === 1) {
-        return dataHolder[path];
-    }
-    const currentLocation = pathEntries.splice(0, 1);
-    if (!dataHolder[currentLocation]) {
-        log.error("path not found");
-        return null;
-    } else {
-        return drillDown(dataHolder[currentLocation], pathEntries.join('/'))
-    }
-
-};
-
-const getDesiredValue = function (taskTemplate, param, config) {
-    const env = config['TARGET_ENV'];
-    if (taskTemplate[`${env}`]) {
-        if (taskTemplate[`${env}`][`${param}`]) {
-            return taskTemplate[`${env}`][`${param}`];
-        }
-    }
-    if (taskTemplate[`default`][`${param}`]) {
-        return taskTemplate[`default`][`${param}`];
-    }
-};
-
-const getWantedParams = function (taskTemplate) {
-    log.info("gathering wanted params...");
-    let result = [];
-    if (taskTemplate['production']) {
-        log.info("... adding production keys ...");
-        result = result.concat(Object.keys(taskTemplate['production']));
-    }
-    if (taskTemplate["default"]) {
-        log.info("... adding default keys ...");
-        result = result.concat(Object.keys(taskTemplate["default"]));
-    }
-    log.info("... finished gathering finished params", result);
-    return result;
-};
-
 
 module.exports = {
     dockerCreate: buildDockerCreate,
