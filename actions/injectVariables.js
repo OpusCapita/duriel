@@ -18,28 +18,38 @@ const EnvProxy = require('../EnvProxy');
 module.exports = function (input, config) {
     const regex = /(?:\${)(?:[^'"}]*)(?:})/; //find'${' + anything but '}"' + find '}'
     const regExp = new RegExp(regex, 'g');
+    const targetEnv = config['TARGET_ENV'];
+    const envMarker = ":env";
 
     let i = 0;
     let missingConfigVars = [];
     let regexResult = regExp.exec(input);
     while (regexResult) {
-        log.info("replacing ", regexResult);
-        const variableName = regexResult[0].substring(2, regexResult[0].length - 1);
-        const replacement = config[variableName] ? config[variableName] : (config.fromProcessEnv(variableName) ? `${config.fromProcessEnv(variableName)}` : '');
-        if (!replacement) {
-            log.error(`${i++}: config variable ${variableName} is missing`);
-            missingConfigVars.push(variableName);
+        const varName = regexResult[0].substring(2, regexResult[0].length - 1);
+        let varOrigin = varName;
+
+        if (varName.includes(envMarker)) {
+            log.info(`injecting environment '${targetEnv}' for envMarker '${envMarker}'`);
+            varOrigin = varOrigin.replace(envMarker, targetEnv);
         }
-        log.info("replacing with", replacement.trim());
+
+        let replacement = config.get(varOrigin);
+        if (!replacement) {
+            log.error(`${i++}: config variable ${varName} is missing`);
+            replacement = "missing";
+            missingConfigVars.push(varName);
+        }
+
+        log.info(`injecting ${replacement.trim()} for ${regexResult}`);
         input = input.replace(regexResult, replacement.trim());
         regexResult = regExp.exec(input);
     }
-    return {
-        success: missingConfigVars.length === 0,
-        missing: missingConfigVars,
-        result: input
-    };
-};
+    if (missingConfigVars.length > 0) {
+        throw new Error(`injection failed: ${missingConfigVars.join(", ")}`);
+    }
+    return input;
+}
+;
 
 
 

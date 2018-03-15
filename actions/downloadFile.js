@@ -4,7 +4,6 @@ const log = new EpicLogger();
 const https = require('https');
 const fs = require('fs');
 
-
 module.exports = async function (url, targetFile) {
     return new Promise((resolve, reject) => {
 

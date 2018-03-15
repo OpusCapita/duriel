@@ -43,10 +43,3 @@ const getServiceId = async function (config, proxy) {
         return services[0].id;
     }
 };
-
-/**
- * fake Thread.sleep in js (needs async-await)
- * @param ms
- * @returns {Promise<any>}
- */
-const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));

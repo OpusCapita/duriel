@@ -50,19 +50,30 @@ module.exports = function () {
 };
 
 
-const getBaseConfigObject = function () {
-    return {
-        fromProcessEnv: (name) => {
-            const result = process.env[name];
-            if (result) {
-                return result.trim();
-            }
-        },
-        get: (name) => {
-            return this['name'] ? this['name'] : this.fromProcessEnv(name);
+const getBaseConfigObject = function (result = {}) {
+    return new BaseConfig(result);
+};
+
+class BaseConfig {
+    constructor(params) {
+        for(let param in params){
+            this[param] = params[param];
+        }
+        this.get = this.get.bind(this);
+        this.fromProcessEnv = this.fromProcessEnv.bind(this);
+    }
+    get(name) {
+        return this[name] ? this[name] : this.fromProcessEnv(name);
+    }
+    fromProcessEnv(name) {
+        const result = process.env[name];
+        if (result) {
+            return result.trim();
         }
     }
-};
+
+}
+
 module.exports.getBaseConfigObject = getBaseConfigObject;
 
 

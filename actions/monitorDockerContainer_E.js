@@ -45,7 +45,6 @@ const checkCreateStatus = async function (config, proxy) {
         check.state = 'failure';
     }
     return check;
-
 };
 
 const checkUpdateStatus = async function (config, proxy, serviceId) {
