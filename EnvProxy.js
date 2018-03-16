@@ -396,6 +396,33 @@ module.exports = class EnvProxy {
             ).then(result => result.filter(it => it !== undefined))  // needed for async await?
     }
 
+    /**
+     * returns a list of all services locally
+     * service-object looks like: {id, name, instances_up, instances_target, image, ports: ['port':'port']}
+     * @returns {PromiseLike<{id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}>}
+     */
+    getServices_L() {
+        return this.executeCommand_L("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
+            .then(response => {
+                return response.split('\n').map(
+                    row => {
+                        let split = row.split(semicolon_splitter);
+                        if (split.length === 5) {
+                            const replicasSplit = split[2].split('/');
+                            return {
+                                id: split[0],
+                                name: split[1],
+                                instances_up: replicasSplit[0],
+                                instances_target: replicasSplit[1],
+                                image: split[3],
+                                ports: split[4].split(comma_splitter)
+                            };
+                        }
+                    }
+                );
+            }).then(nodes => nodes.filter(it => it !== undefined))
+    }
+
 
     /**
      * changes the file permission on targetpath on local machine
@@ -489,7 +516,27 @@ module.exports = class EnvProxy {
         )
     }
 
-    getConsulHealthCheck(serviceName){
+    getNodes_L(onlyReady = false, onlyAvailable = false) {
+        return this.executeCommand_L(`docker node ls --format "{{.ID}};{{.Hostname}};{{.Status}};{{.Availability}}"`)
+            .then(response => response.split('\n').map(
+                row => {
+                    let split = row.split(semicolon_splitter);
+                    if (split.length === 4) {
+                        return {
+                            Id: split[0],
+                            hostname: split[1],
+                            status: split[2],
+                            available: split[3]
+                        };
+                    }
+                })
+            )
+            .then(result => result.filter(it => it !== undefined))
+            .then(result => result.filter(it => (!onlyReady || it.status === "Ready") && (!onlyAvailable || it.available === "Active")))
+
+    }
+
+    getConsulHealthCheck(serviceName) {
         return this.queryConsul(`/v1/health/service/${serviceName}`)
     }
 

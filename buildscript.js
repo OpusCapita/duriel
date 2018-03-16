@@ -57,7 +57,7 @@ const execute = async () => {
         process.exit(1);
     }
 
-    await pushDockerImage(config);
+    await pushDockerImage(config['HUB_REPO'], ["latest", config['VERSION']], ["latest"]);
     log.info("saving config for later buildprocess-steps");
     saveObject2File(config, "bp-config.json", true);
 };
