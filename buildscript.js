@@ -31,7 +31,6 @@ const execute = async () => {
     config['TARGET_ENV'] = calculateTargetEnv(config);
     config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     config["VERSION"] = calculateVersion(config);
-    log.info(JSON.stringify(config));
 
     //Building, Starting, Testing locally
     await dockerLogin(config);

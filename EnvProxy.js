@@ -113,7 +113,7 @@ module.exports = class EnvProxy {
         return this.createFolder_N(node, targetPath)
             .then(() => this.copyFileContent_2E(input, targetPath, targetFileName))
             .then(() => this.copyFile_E2N(node, targetPath, targetFileName, targetPath, targetFileName))
-            .then(() => this.executeCommand_E(`rm ${[targetPath, targetFileName].join('/')}`, true));
+            .then(() => this.executeCommand_E(`rm ${[targetPath, targetFileName].join('/')}`));
     }
 
     /**
@@ -214,7 +214,7 @@ module.exports = class EnvProxy {
     getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
-        return this.executeCommand_N(node, `docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`, true) // quotes needed
+        return this.executeCommand_N(node, `docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`) // quotes needed
             .then(response => response.split('\n').map(
                 row => {
                     let split = row.split(semicolon_splitter);
@@ -377,7 +377,7 @@ module.exports = class EnvProxy {
      * @returns {PromiseLike<T>}
      */
     getContainers_L(onlyRunning = false) {
-        return this.executeCommand_L(`docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`, true) // quotes needed
+        return this.executeCommand_L(`docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`) // quotes needed
             .then(response => response.split('\n').map(
                 row => {
                     let split = row.split(semicolon_splitter);
