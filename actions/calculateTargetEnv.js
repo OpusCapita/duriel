@@ -6,6 +6,8 @@ module.exports = function (config) {
             return "stage";
         case 'develop':
             return "develop";
+        case "st_dev":  // TODO: remove me
+            return "develop";
         case 'test':
             return "test";
         default:

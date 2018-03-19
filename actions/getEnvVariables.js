@@ -30,12 +30,6 @@ module.exports = function () {
         }
     }
 
-    if(config['andariel_branch'] === "st_dev"){
-        // TODO: delete me later!
-        log.info("replacing branch with develop");
-        config['andariel_branch'] = "develop";
-    }
-
     if (!all_required_vars_set) {
         log.error("env vars are missing! exiting!");
         throw new Error("env vars are missing! exiting!");
