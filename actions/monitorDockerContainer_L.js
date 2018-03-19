@@ -9,7 +9,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
         const result = {success: undefined, message: `Starting to check health of ${serviceName}`};
         let attempt = 0;
         let intervalId = setInterval(async () => {
-            log.info(`starting attempt ${attempt} of ${attempts}...`);
+            log.info(`starting attempt ${attempt + 1} of ${attempts}...`);
             try {
                 if (attempt === attempts && !result.success) {
                     result.success = false;

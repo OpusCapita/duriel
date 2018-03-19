@@ -182,7 +182,7 @@ const exec = async function () {
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
-        log.error(error);
+        log.error("ERROR!", error);
         process.exit(1);
     }
 };
