@@ -14,7 +14,7 @@ module.exports = async function (config) {
 
     log.info("Injecting values into task_template.json");
     const injectorResult = variableInjector(JSON.stringify(taskTemplate), config);
-    log.debug("Parsing edited data back to JSON: ", injectorResult);
+    log.debug("Trying to parse edited data back to JSON");
     JSON.parse(injectorResult);
     log.info("Writing mapped task_template.json");
     fs.writeFileSync("./task_template_mapped.json", injectorResult, {encoding: 'utf8'});

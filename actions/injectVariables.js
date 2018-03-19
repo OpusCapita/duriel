@@ -11,9 +11,9 @@ const EnvProxy = require('../EnvProxy');
  * e.g. input: "${insertMe}", config: {insertMe: '$upe12$ec123t'}
  *      result {success: true, missing: [], result: "$upe12$ec123t"}
  *
- * @param input
- * @param config
- * @returns {{success: boolean, missing: ["Names of missing config-entries"], result: "inputWithInjections"}}
+ * @param input - string with injection marked fields ${:env}
+ * @param config - holder of variables for the injection
+ * @returns input with injections
  */
 module.exports = function (input, config) {
     const regex = /(?:\${)(?:[^'"}]*)(?:})/; //find'${' + anything but '}"' + find '}'
@@ -48,8 +48,7 @@ module.exports = function (input, config) {
         throw new Error(`injection failed: ${missingConfigVars.join(", ")}`);
     }
     return input;
-}
-;
+};
 
 
 
