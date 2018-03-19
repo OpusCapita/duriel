@@ -21,10 +21,9 @@ const setupServiceUser = require('./actions/setupServiceUser');
 
 
 const exec = async function () {
-    const config_file_name = "bp-config.json";
-    const config = loadConfigFile(config_file_name);
-
     try {
+        const config_file_name = "bp-config.json";
+        const config = loadConfigFile(config_file_name);
         if (!config) {
             log.error(`config missing!`);
             process.exit(1);
@@ -41,7 +40,7 @@ const exec = async function () {
             log.error("CIRCLE_PROJECT_REPONAME missing!")
         }
 
-        if(EnvInfo[config['andariel_branch']]){
+        if (EnvInfo[config['andariel_branch']]) {
             paramsMissing = true;
             log.error(`no env-info for branch '${config['andariel_branch']}' found`);
         }
@@ -183,9 +182,8 @@ const exec = async function () {
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
-        console.error(error);
-        // log.error(error);
-        require('./actions/saveObject2File')(config, config_file_name, true);
+        log.error(error);
+        process.exit(1);
     }
 };
 
