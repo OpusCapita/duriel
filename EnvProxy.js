@@ -495,7 +495,7 @@ module.exports = class EnvProxy {
             exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
                 if (error) {
                     console.error(`stderr: ${stderr}`);
-                    console.error(`exec error: ${error}`);
+                    // console.error(`exec error: ${error}`);
                     return reject(error);
                 }
                 return resolve(stdout);
