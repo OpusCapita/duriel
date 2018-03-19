@@ -40,7 +40,7 @@ const exec = async function () {
             log.error("CIRCLE_PROJECT_REPONAME missing!")
         }
 
-        if (EnvInfo[config['andariel_branch']]) {
+        if (!EnvInfo[config['TARGET_ENV']]) {
             paramsMissing = true;
             log.error(`no env-info for branch '${config['andariel_branch']}' found`);
         }
@@ -51,9 +51,9 @@ const exec = async function () {
         }
 
         log.info(`copying data from envInfo into config`);
-        for (const key in EnvInfo[config['andariel_branch']]) {
+        for (const key in EnvInfo[config['TARGET_ENV']]) {
             log.info(`copying ${key}`);
-            config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
+            config[`${key}`] = EnvInfo[config['TARGET_ENV']][`${key}`];
         }
 
         log.info("loading task template...");
