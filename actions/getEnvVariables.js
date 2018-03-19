@@ -46,6 +46,8 @@ module.exports = function () {
 
     // TODO: unify later
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
+    config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";    // logic from old circle-config
+
     return config;
 };
 
@@ -56,15 +58,17 @@ const getBaseConfigObject = function (result = {}) {
 
 class BaseConfig {
     constructor(params) {
-        for(let param in params){
+        for (let param in params) {
             this[param] = params[param];
         }
         this.get = this.get.bind(this);
         this.fromProcessEnv = this.fromProcessEnv.bind(this);
     }
+
     get(name) {
         return this[name] ? this[name] : this.fromProcessEnv(name);
     }
+
     fromProcessEnv(name) {
         const result = process.env[name];
         if (result) {

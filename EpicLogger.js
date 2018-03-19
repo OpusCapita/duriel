@@ -2,7 +2,7 @@ class EpicLogger {
     constructor() {
         this.info = (msg, obj) => EpicLogger.log('info', msg, null, obj);
         this.error = (msg, error) => EpicLogger.log('error', msg, error);
-        this.debug = msg => EpicLogger.log('debug', msg);
+        this.debug = (msg, obj) => EpicLogger.log('debug', msg, null, obj);
         this.warn = msg => EpicLogger.log('warn', msg);
     }
 
