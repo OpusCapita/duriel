@@ -53,7 +53,7 @@ const execute = async () => {
     // Starting Deployment
     if(config['TARGET_ENV'] === 'none'){
         log.info("no target-environment associated with the branch \n no deployment is going to happen. \n exiting.");
-        process.exit(1);
+        process.exit(0);
     }
 
     await pushDockerImage(config['HUB_REPO'], ["latest", config['VERSION']], ["latest"]);

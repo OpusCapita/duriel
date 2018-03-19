@@ -5,7 +5,6 @@ const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
 const fs = require('fs');
 
-const loadFile2Object = require('./actions/loadFile2Object');
 const loadTaskTemplate = require('./actions/loadTaskTemplate');
 const loadFileFromPrivateGit = require('./actions/loadFileFromPrivateGit');
 const generateSecret = require('./actions/generateSecret');
@@ -24,10 +23,11 @@ const setupServiceUser = require('./actions/setupServiceUser');
 const exec = async function () {
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
-    // const config = loadFile2Object(config_file_name);
+
     try {
         if (!config) {
-            log.error(`no config passed info deploy.js! config: ${config === null}`);
+            log.error(`config missing!`);
+            process.exit(1);
         }
 
         let paramsMissing = false;
@@ -41,12 +41,17 @@ const exec = async function () {
             log.error("CIRCLE_PROJECT_REPONAME missing!")
         }
 
+        if(EnvInfo[config['andariel_branch']]){
+            paramsMissing = true;
+            log.error(`no env-info for branch '${config['andariel_branch']}' found`);
+        }
+
         if (paramsMissing) {
             log.error("params are missing! exiting!");
             process.exit(1);
         }
+
         log.info(`copying data from envInfo into config`);
-        // const envInfo = ;
         for (const key in EnvInfo[config['andariel_branch']]) {
             log.info(`copying ${key}`);
             config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
@@ -67,13 +72,17 @@ const exec = async function () {
 
         } catch (err) {
             log.error(`error while downloading field_defs file`, err);
+            process.exit(1);
         }
         log.info("finished loading field_defs.json");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
 
-        // build_docker_command ersetzt durch dockerCommandBuilder!
+        //
+        log.error("worked until envproxy connection");
+        process.exit(0);
+
         const proxy = await new EnvProxy().init(config);
         log.info(`establishing proxy to enviroment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = require('./actions/dependsOnServiceClient')();
@@ -85,12 +94,11 @@ const exec = async function () {
             const setupServiceUserSuccess = await setupServiceUser(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
             if (setupServiceUserSuccess) {
-                log.info("Service user does exist. checking for matching conssul name....");
+                log.info("Service user does exist. checking for matching consul name....");
                 await injectServiceClientUser(config, proxy);
             }
         }
-        // Line 155 deploy
-        // await handleServiceDB(config, proxy, true);  // TODO: use me later
+        await handleServiceDB(config, proxy, true);
 
         log.info("loading service informations"); // docker service inspect
         const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));
@@ -99,7 +107,7 @@ const exec = async function () {
 
         let dockerCommand;
         let isCreateMode = false;
-        if (serviceInformation.length === 0) {        // TODO: maybe check
+        if (serviceInformation && serviceInformation.length === 0) {        // TODO: maybe check
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.fileExistsSync('./task_template_mapped.json')) {
                 log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
@@ -108,13 +116,13 @@ const exec = async function () {
                 const secrets = await generateSecret(false, config, proxy);
                 config['serviceSecret'] = secrets.serviceSecret;
                 config['secretId'] = secrets.secretId;
-                // await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
+                await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
                 // TODO: finish me!
             }
         } else {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
-            // handleServiceDB(config, proxy, true); // TODO: add on rollout
+            await handleServiceDB(config, proxy, true); // TODO: add on rollout
             // TODO: line 230 --> unklar
             log.info("Trying to fetch secrets from target env.");
             const serviceTasks = await proxy.getTasksOfServices_E(config['serviceName'], true);
@@ -166,7 +174,7 @@ const exec = async function () {
         if (monitorResult === 'failure') {
             throw new Error("service not healthy after deployment!")
         }
-        if(syncToken) {
+        if (syncToken) {
             log.info("Removing syncToken from CircleCi");
             await waitForTests.removeSyncToken(config, proxy, syncToken);
         }

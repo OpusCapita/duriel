@@ -5,36 +5,14 @@ const fs = require('fs');
 const queryExecuter = require('./queryExecuter');
 
 module.exports = async function (config, proxy, forceUserCreate = false) {
-    const db_init_flag = "oc-db-init";
-
-    if (!fs.existsSync('./task_template_mapped.json')) {
-        throw new Error("could not find task_template.json");
-    }
-    const taskTemplateContent = fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'});
-    const taskTemplate = JSON.parse(JSON.parse(taskTemplateContent));   // TODO: wtf? like... ??!
-    log.info("successfully loaded task_template_json");
-
-    let db_init_settings;
-    if (taskTemplate[`${config['TARGET_ENV']}`]) {
-        db_init_settings = taskTemplate[`${config['TARGET_ENV'][db_init_flag]}`];
-    } else {
-        log.debug("no env-specific settings inside task_template.");
-    }
-
-    if (!db_init_settings) {
-        if (taskTemplate['default']) {
-            db_init_settings = taskTemplate['default'][db_init_flag]
-        } else {
-            log.debug("no default settings inside task_template.")
-        }
-    }
+    const task_template = loadTaskTemplate(config);
+    const db_init_settings = getTaskTemplateSettings(config, task_template);
     if (!db_init_settings) {
         log.info(`skipping db handling - no setting inside task_template.json`);
         return;
     }
 
     const populate_test_data = db_init_settings['populate-test-data'];
-
     log.info("gathering database-information: ");
     log.info("1 getting table schemas");
     const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
@@ -117,7 +95,34 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
 };
 
+function loadTaskTemplate() {
+    if (!fs.existsSync('./task_template_mapped.json')) {
+        throw new Error("could not find task_template.json");
+    }
+    const taskTemplateContent = fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'});
+    const taskTemplate = JSON.parse(JSON.parse(taskTemplateContent));   // TODO: wtf? like... ??!
+    log.info("successfully loaded task_template_json");
+    return taskTemplate;
+}
 
+function getTaskTemplateSettings(config, taskTemplate) {
+    const db_init_flag = "oc-db-init";
+    let db_init_settings;
+    if (taskTemplate[`${config['TARGET_ENV']}`]) {
+        db_init_settings = taskTemplate[`${config['TARGET_ENV'][db_init_flag]}`];
+    } else {
+        log.debug("no env-specific settings inside task_template.");
+    }
+
+    if (!db_init_settings) {
+        if (taskTemplate['default']) {
+            db_init_settings = taskTemplate['default'][db_init_flag]
+        } else {
+            log.debug("no default settings inside task_template.")
+        }
+    }
+    return db_init_settings;
+}
 
 
 
