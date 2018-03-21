@@ -12,7 +12,6 @@ const calculateVersion = require('./actions/calculateVersion');
 // Building, Starting, Testing locally
 const buildDockerImage = require('./actions/buildDockerImage');
 const getComposeCommand = require('./actions/getComposeCommand');
-const dockerLogin = require('./actions/dockerLogin');
 const dockerCompose = require('./actions/dockerCompose');
 const monitorDockerContainer = require('./actions/monitorDockerContainer_L');
 const outputContainerLogs = require('./actions/outputContainerLogs');
@@ -34,7 +33,6 @@ const execute = async () => {
         config["VERSION"] = calculateVersion(config);
 
         //Building, Starting, Testing locally
-        await dockerLogin(config);
         const compose_base = getComposeCommand();
         await dockerCompose(compose_base, "pull");
         await buildDockerImage(config);
