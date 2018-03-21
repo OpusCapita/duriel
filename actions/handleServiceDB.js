@@ -72,9 +72,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
         if (0 === userPwQueryResult[0][0].count) {
             log.info("4.4 updating user in db.");
-            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';\n
-                                     FLUSH PRIVILEGES;`;
+            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';`
             await queryExecuter(config, proxy, updateUserQuery);
+            await queryExecuter(config, proxy, `FLUSH PRIVILEGES;`)
         } else {
             log.info("4.4 no need to update user. skipping");
         }
