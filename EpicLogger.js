@@ -1,18 +1,34 @@
 class EpicLogger {
     constructor() {
-        this.info = (msg, obj) => EpicLogger.log('info', msg, null, obj);
-        this.error = (msg, error) => EpicLogger.log('error', msg, error);
-        this.debug = (msg, obj) => EpicLogger.log('debug', msg, null, obj);
-        this.warn = msg => EpicLogger.log('warn', msg);
+        this.logLevel = EpicLogger.getEnvLogLevel();
+        this.severe = (msg, obj) => this.log('severe', msg, null, obj);
+        this.debug = (msg, obj) => this.log('debug', msg, null, obj);
+        this.info = (msg, obj) => this.log('info', msg, null, obj);
+        this.warn = msg => this.log('warn', msg);
+        this.error = (msg, error) => this.log('error', msg, error);
+        this.log = this.log.bind(this);
     }
 
-    static log(level, message, error, obj) {
-        let logValue = this.convert2ReadableString(message);
+    static getLogLevels() {
+        return [
+            "severe", "debug", "info", "warn", "error"
+        ];
+    }
+
+    static getEnvLogLevel() {
+        return process.env.epicLogLevel ? process.env.epicLogLevel : "debug";
+    }
+
+    log(level, message, error, obj) {
+        if (EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
+            return;
+        }
+        let logValue = EpicLogger.convert2ReadableString(message);
         if (obj) {
-            logValue += `\n${this.convert2ReadableString(obj)}`;
+            logValue += `\n${EpicLogger.convert2ReadableString(obj)}`;
         }
         if (error) {
-            logValue += `\n${this.convert2ReadableString(error)}`;
+            logValue += `\n${EpicLogger.convert2ReadableString(error)}`;
         }
         console.log("%d - %s - %s", new Date(), level, logValue);
     }
@@ -30,7 +46,6 @@ class EpicLogger {
         }
         return logValue;
     }
-
 }
 
 module.exports = EpicLogger;
