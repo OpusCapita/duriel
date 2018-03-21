@@ -19,5 +19,5 @@ module.exports = function (proxy, query) {
 };
 
 module.exports.flushPrivileges = function (proxy) {
-    return module.exports(proxy, "flush privileges");
+    return module.exports(proxy, "flush privileges;");
 };
