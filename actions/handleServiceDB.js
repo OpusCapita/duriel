@@ -13,8 +13,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
 
     const populate_test_data = db_init_settings['populate-test-data'];
-    log.info("<b>Handling Service Database</b>");
-    log.info("1 <u>getting table schemas</u>");
+    log.info("Handling Service Database");
+    log.info("1 getting table schemas");
     const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
     const schemaQueryResult = await queryExecuter(proxy, schemaQuery);
     const foundServiceTable = schemaQueryResult[0].filter(row => row.schemaName === config['serviceName']).length > 0;
@@ -28,7 +28,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.1 creating service-database");
     if (!foundServiceTable) {
-        const createDBQuery = `CREATE DATABASE "${config['serviceName']}";`;
+        const createDBQuery = `SET sql_mode = 'ANSI_QUOTES';
+                               CREATE DATABASE \"${config['serviceName']}\";`;
         await queryExecuter(proxy, createDBQuery);
     } else {
         log.info("4.1 skipping - table exists already.")
@@ -54,8 +55,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
-        const userCreateQuery = `CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}'; 
-                                 GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%'`;
+        const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES';
+                                 CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}'; 
+                                 GRANT ALL PRIVILEGES ON \"${config['serviceName']}\".* TO '${config['serviceName']}'@'%'`;
         await queryExecuter(proxy, userCreateQuery);
         await queryExecuter.flushPrivileges(proxy)
     } else {
