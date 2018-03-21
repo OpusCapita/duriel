@@ -13,11 +13,10 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
 
     const populate_test_data = db_init_settings['populate-test-data'];
-    log.info("gathering database-information: ");
-    log.info("1 getting table schemas");
+    log.info("<b>Handling Service Database</b>");
+    log.info("1 <u>getting table schemas</u>");
     const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
     const schemaQueryResult = await queryExecuter(config, proxy, schemaQuery);
-    console.log(schemaQueryResult);
     const foundServiceTable = schemaQueryResult[0].filter(row => row.schemaName === config['serviceName']).length > 0;
 
     log.info("2 getting service-db-users");
@@ -30,10 +29,10 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("4.1 creating service-database");
     if (!foundServiceTable) {
         const createDBQuery = `SET sql_mode = 'ANSI_QUOTES';
-                           CREATE DATABASE "${config['serviceName']}";`;
+                               CREATE DATABASE "${config['serviceName']}";`;
         await queryExecuter(config, proxy, createDBQuery);
     } else {
-        log.info("4.1 skipping.")
+        log.info("4.1 skipping - table exists already.")
     }
     log.info("4.1 successfully created service-database");
 
@@ -45,7 +44,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const consulPassword = consulPasswords[0];
         db_password = consulPassword['Value'];
     } catch (error) {
-        // No Value -> 404 -> Promise.reject -> Error
+        log.error("error while getting service-password from consul: ", error);
     }
     if (!db_password) {
         log.info("4.2 no database-password was stored in consul. creating a new one!");
@@ -56,13 +55,13 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
-        const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES'; \n
-                                 CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}'; \n 
-                                 GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%'; \n
-                                 FLUSH PRIVILEGES;`;
+        const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES';
+                                 CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}'; 
+                                 GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%'`;
         await queryExecuter(config, proxy, userCreateQuery);
+        await queryExecuter(config, proxy, "FLUSH PRIVILEGES;");
     } else {
-        log.info("4.3 skipping.")
+        log.info("4.3 skipping. - user already exists");
     }
     log.info("4.3 successfully created service-database-user");
 
@@ -72,7 +71,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
         if (0 === userPwQueryResult[0][0].count) {
             log.info("4.4 updating user in db.");
-            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';`
+            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';`;
             await queryExecuter(config, proxy, updateUserQuery);
             await queryExecuter(config, proxy, `FLUSH PRIVILEGES;`)
         } else {
@@ -89,7 +88,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data);
         log.info("4.5 keys injected.")
     } else {
-        log.info("4.5 skipping");
+        log.info("4.5 skipping - data already in consul");
     }
     log.info("4.5 finished injecting data into consul");
 
