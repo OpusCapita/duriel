@@ -55,7 +55,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
         const userCreateQuery = `CREATE USER '${config['serviceName']}'@'%' IDENTIFIED BY '${db_password}'; 
-                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%'`;
+                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';`;
         await queryExecuter(proxy, userCreateQuery);
         await queryExecuter.flushPrivileges(proxy)
     } else {
