@@ -11,7 +11,8 @@ const generateSecret = require('./actions/generateSecret');
 const queryExecuter = require('./actions/queryExecuter');
 
 const handleServiceDB = require('./actions/handleServiceDB');
-const injectServiceClientUser = require('./actions/injectServiceClientUser');
+const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
+const injectConsulServiceCredentials = require('./actions/injectConsulServiceCredentials');
 const dockerCommandBuilder = require('./actions/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/loadConfigFile');
@@ -78,23 +79,20 @@ const exec = async function () {
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
 
-        //
-        log.error("worked until envproxy connection");
-        process.exit(0);
-
         const proxy = await new EnvProxy().init(config);
-        log.info(`establishing proxy to enviroment ${config['andariel_branch']}`);
-        config['dependsOnServiceClient'] = require('./actions/dependsOnServiceClient')();
-        if (!config['dependsOnServiceClient']) {   // TODO: remove me on production
+        log.info(`established proxy to enviroment ${config['andariel_branch']}`);
+        config['dependsOnServiceClient'] = await dependsOnServiceClient();
+        if (!config['dependsOnServiceClient']) {
             log.info("project does not depend on service-client. skipping name injection");
         } else {
+            log.info("project depends on service-client.");
             config['svcUserName'] = `svc_${config['serviceName']}`;
             config['svcUserPassword'] = await proxy.executeCommand_L(`openssl rand -base64 32`);
             const setupServiceUserSuccess = await setupServiceUser(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
             if (setupServiceUserSuccess) {
                 log.info("Service user does exist. checking for matching consul name....");
-                await injectServiceClientUser(config, proxy);
+                await injectConsulServiceCredentials(config, proxy);
             }
         }
         await handleServiceDB(config, proxy, true);
@@ -103,6 +101,10 @@ const exec = async function () {
         const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));
         await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
         log.info("saved service information into 'service_config.json'");
+
+
+        log.error("worked until loading service information");
+        process.exit(0);
 
         let dockerCommand;
         let isCreateMode = false;

@@ -6,11 +6,12 @@ const queryExecuter = require('./queryExecuter');
 
 
 module.exports = async function (config, proxy, checkOnly = true) {
+    log.info("Setting up service-user");
     let injectUser = false;
     const db_init_flag = "db-Init";
 
     const query = `SELECT * FROM auth.UserAuth WHERE id = '${config['svcUserName']}'`;
-    log.info(`query for existing users: ${query}`);
+    log.debug(`query for existing users: `, query);
     const queryResult = await queryExecuter(config, proxy, query);
 
     if (queryResult[0].length === 0) {
@@ -37,6 +38,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
     if (injectUser) {
         log.info("Deleting old user... ");
         const deleteUserQuery = `DELETE FROM auth.UserAuth WHERE id = '${config['svcUserName']}';`;
+        log.debug("query for deleting existing users:", deleteUserQuery);
         await queryExecuter(config, proxy, deleteUserQuery);
         log.info("... finished deleting");
 

@@ -56,7 +56,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
-
         const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES';
                                  CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}';
                                  GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%';
@@ -71,7 +70,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     if (forceUserCreate) {
         const userPwQuery = `select count(*) as count from mysql.user where user = '${config['serviceName']}' and password('${db_password}') = authentication_string;`;
         const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
-        if (0 === userPwQueryResult[0][0].count && false) {
+        if (0 === userPwQueryResult[0][0].count) {
             log.info("4.4 updating user in db.");
             const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER='${config['serviceName']}';FLUSH PRIVILEGES;`;
             await queryExecuter(config, proxy, updateUserQuery);
@@ -82,11 +81,11 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("4.4 successfully updated service-database-user");
 
     log.info("4.5 injecting data into consul");
-    if (injectIntoConsul || true) {
+    if (injectIntoConsul) {
         await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/password`, db_password);
         await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']);
         await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/database`, config['serviceName']);
-        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data2`, populate_test_data + "kevin");
+        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data);
         log.info("4.5 keys injected.")
     } else {
         log.info("4.5 skipping");
