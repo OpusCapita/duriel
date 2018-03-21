@@ -56,9 +56,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
-        const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES';
-                                 CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}';
-                                 GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%';
+        const userCreateQuery = `SET sql_mode = 'ANSI_QUOTES'; \n
+                                 CREATE USER '${config['serviceName']}@'%' IDENTIFIED BY '${db_password}'; \n 
+                                 GRANT ALL PRIVILEGES ON "${config['serviceName']}".* TO '${config['serviceName']}'@'%'; \n
                                  FLUSH PRIVILEGES;`;
         await queryExecuter(config, proxy, userCreateQuery);
     } else {
@@ -72,7 +72,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
         if (0 === userPwQueryResult[0][0].count) {
             log.info("4.4 updating user in db.");
-            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER='${config['serviceName']}';FLUSH PRIVILEGES;`;
+            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';\n
+                                     FLUSH PRIVILEGES;`;
             await queryExecuter(config, proxy, updateUserQuery);
         } else {
             log.info("4.4 no need to update user. skipping");
