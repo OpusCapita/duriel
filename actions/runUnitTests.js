@@ -6,7 +6,7 @@ const fs = require('fs');
 
 
 module.exports = async function (composeCommand) {
-    if (!fs.existsSync("./package.js")) {
+    if (!fs.existsSync("./package.json")) {
         log.info("no package.js - skipping npm based unit testing.");
         return;
     }
