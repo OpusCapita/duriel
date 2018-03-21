@@ -16,12 +16,12 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("Handling Service Database");
     log.info("1 getting table schemas");
     const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
-    const schemaQueryResult = await queryExecuter(proxy, schemaQuery);
+    const schemaQueryResult = await queryExecuter(config, proxy, schemaQuery);
     const foundServiceTable = schemaQueryResult[0].filter(row => row.schemaName === config['serviceName']).length > 0;
 
     log.info("2 getting service-db-users");
     const userQuery = `SELECT COUNT(*) as count FROM mysql.user WHERE User = '${config['serviceName']}';`;
-    const userQueryResult = await queryExecuter(proxy, userQuery);
+    const userQueryResult = await queryExecuter(config, proxy, userQuery);
     const foundServiceUser = userQueryResult[0][0].count > 0;
 
     log.info(`3 result: foundServiceTable: ${foundServiceTable}, foundServiceUser: ${foundServiceUser}`);
@@ -29,7 +29,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("4.1 creating service-database");
     if (!foundServiceTable) {
         const createDBQuery = `CREATE DATABASE \`${config['serviceName']}\`;`;
-        await queryExecuter(proxy, createDBQuery);
+        await queryExecuter(config, proxy, createDBQuery);
     } else {
         log.info("4.1 skipping - table exists already.")
     }
@@ -54,11 +54,10 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
-        const userCreateQuery = `CREATE USER '${config['serviceName']}'@'%' IDENTIFIED BY '${db_password}';`;
-        await queryExecuter(proxy, userCreateQuery);
-        const granPrivilegesQuery = `GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';`;
-        await queryExecuter(proxy, granPrivilegesQuery);
-        await queryExecuter.flushPrivileges(proxy)
+        const createUserQuery = `CREATE USER '${config['serviceName']}'@'%' IDENTIFIED BY '${db_password}';
+                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';
+                                 FLUSH PRIVILEGES;`;
+        await queryExecuter.executeMultiLineQuery(config, proxy, createUserQuery);
     } else {
         log.info("4.3 skipping. - user already exists");
     }
@@ -67,12 +66,12 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("4.4 forcing service-database-user update");
     if (forceUserCreate) {
         const userPwQuery = `select count(*) as count from mysql.user where user = '${config['serviceName']}' and password('${db_password}') = authentication_string;`;
-        const userPwQueryResult = await queryExecuter(proxy, userPwQuery);
+        const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
         if (0 === userPwQueryResult[0][0].count) {
             log.info("4.4 updating user in db.");
-            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';`;
-            await queryExecuter(proxy, updateUserQuery);
-            await queryExecuter.flushPrivileges(proxy);
+            const updateUserQuery = `UPDATE mysql.user SET authentication_string = PASSWORD('${db_password}') WHERE USER ='${config['serviceName']}';
+                                     FLUSH PRIVILEGES;`;
+            await queryExecuter.executeMultiLineQuery(config, proxy, updateUserQuery);
         } else {
             log.info("4.4 no need to update user. skipping");
         }
