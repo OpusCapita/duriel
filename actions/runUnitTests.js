@@ -10,7 +10,7 @@ module.exports = async function (composeCommand) {
         log.info("no package.js - skipping npm based unit testing.");
         return;
     }
-    composeCommand += "exec main npm run test";
+    composeCommand += " exec main npm run test";
     const proxy = new EnvProxy();
     try {
         const testResult = await  proxy.executeCommand_L(composeCommand);
