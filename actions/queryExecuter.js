@@ -6,6 +6,7 @@ const mysql = require('mysql2/promise');
 
 module.exports = function (proxy, query) {
     let result;
+    log.debug("### exectuing query: ", query);
     return mysql.createConnection({
         host: 'localhost',
         port: proxy.proxyServers['mysql'].port,
