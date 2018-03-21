@@ -12,7 +12,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
     const query = `SELECT * FROM auth.UserAuth WHERE id = '${config['svcUserName']}'`;
     log.debug(`query for existing users: `, query);
-    const queryResult = await queryExecuter(config, proxy, query);
+    const queryResult = await queryExecuter(proxy, query);
 
     if (queryResult[0].length === 0) {
         console.log(`${config['svcUserName']} was not found in DB`);
@@ -39,13 +39,13 @@ module.exports = async function (config, proxy, checkOnly = true) {
         log.info("Deleting old user... ");
         const deleteUserQuery = `DELETE FROM auth.UserAuth WHERE id = '${config['svcUserName']}';`;
         log.debug("query for deleting existing users:", deleteUserQuery);
-        await queryExecuter(config, proxy, deleteUserQuery);
+        await queryExecuter(proxy, deleteUserQuery);
         log.info("... finished deleting");
 
         log.info("insertig new user ... ");
         const insertUserQuery = `INSERT INTO auth.UserAuth (id, password, createdBy, createdOn, changedBy, changedOn)
                                  VALUES ('${config['svcUserName']}', md5('${config['svcUserName']}'), 'build-automation', NOW(), 'build-automation', NOW());`;
-        await queryExecuter(config, proxy, insertUserQuery);
+        await queryExecuter(proxy, insertUserQuery);
         log.info("... finished inserting new user");
 
         return true;

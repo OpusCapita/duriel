@@ -8,7 +8,6 @@ const fs = require('fs');
 const loadTaskTemplate = require('./actions/loadTaskTemplate');
 const loadFileFromPrivateGit = require('./actions/loadFileFromPrivateGit');
 const generateSecret = require('./actions/generateSecret');
-const queryExecuter = require('./actions/queryExecuter');
 
 const handleServiceDB = require('./actions/handleServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
