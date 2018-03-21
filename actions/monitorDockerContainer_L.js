@@ -7,9 +7,9 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
     const proxy = new EnvProxy();
     return await new Promise(async (resolve, reject) => {
         const result = {success: undefined, message: `Starting to check health of ${serviceName}`};
-        let attempt = 0;
+        let attempt = 1;
         let intervalId = setInterval(async () => {
-            log.info(`starting attempt ${attempt + 1} of ${attempts}...`);
+            log.info(`starting attempt ${attempt} of ${attempts}...`);
             try {
                 if (attempt === attempts && !result.success) {
                     result.success = false;
