@@ -123,13 +123,12 @@ const exec = async function () {
             const fetchedSecrets = [];
             log.info(`found ${serviceTasks.length} tasks for service '${config['serviceName']}'`);
             for (let task of serviceTasks) {
-                log.debug(`working on task: `, task);
-                log.debug(`containers of ${task.node}`, await proxy.getContainers_N(task.node));
                 const containers = await proxy.getContainersOfService_N(task.node, config['serviceName'], true);
                 log.info(`node '${task.node}' has ${containers.length} containers for service '${config['serviceName']}'`);
                 for (let container of containers) {
                     log.info(`fetching service secret from node '${task.node}' for container '${container.containerId}'`);
-                    const command = `docker exec ${container.containerId} cat /run/secret/${config['serviceName']}-consul-key`;
+                    const command = `'docker exec ${container.containerId} cat /run/secret/${config['serviceName']}-consul-key'`;
+                    log.debug(`fetching with command ${command}`);
                     const secret = await proxy.executeCommand_N(task.node, command);
                     if (secret) {
                         fetchedSecrets.push(new RegExp(/^\S+/).exec(secret));   // first value before whitespace

@@ -48,7 +48,7 @@ const buildDockerCreate = function (config) {
             }
         }
     }
-    log.info("added fields: ", addedFields);
+    log.debug("added fields: ", addedFields);
     return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 
@@ -77,7 +77,7 @@ const buildDockerUpdate = function (config) {
                 dv: desiredValue,
                 fieldDef: fieldDefinition
             };
-            log.info(`handling param '${param}'\n`);
+            log.debug(`handling param '${param}'...`);
             switch (type) {
                 case 'repl':
                     addedFields.push(getMultipleOptionsFromString(collectedData));
@@ -98,13 +98,13 @@ const buildDockerUpdate = function (config) {
                     addedFields.push(updateMarh(collectedData));
                     break;
                 case 'update':
-                    log.info("ignoring update-type, skipping.");
+                    log.debug("ignoring update-type, skipping.");
                     break;
                 case 'create':
-                    log.info("ignoring create-type, skipping.");
+                    log.debug("ignoring create-type, skipping.");
                     break;
                 default:
-                    log.info(`'${param}' --> type '${type}' is not supported`);
+                    log.debug(`'${param}' --> type '${type}' is not supported`);
             }
         }
     }
@@ -189,13 +189,12 @@ const addKeyValueParam = function (result, mappedKV, delimiter, name) {
             log.info(`${key} did not change - skipping`);
         }
     }
-    log.info(result);
+    log.debug("addKeyValueParam: ", result);
     return result;
 };
 
 const updateMarh = function (param) {
     const delimiter = ':';
-    log.info(param);
     let result = "";
     const mappedKV = {};
     param.dv.forEach(
@@ -238,7 +237,7 @@ const updateMar = function (param) {
             if (mappedKV[name]) {
                 mappedKV[name].cv = value;
             } else {
-                log.info(`${name} is not needed any more - removing`);
+                log.debug(`${name} is not needed any more - removing`);
                 result += ` --${param.name}-rm ${name}`;
             }
         });
@@ -313,8 +312,6 @@ const updateMart = function (param) {
             .filter(it => fd2ttMap[it] && !Object.keys(dv_value_map).includes(fd2ttMap[it]))    // is there a mapping?
             .forEach(it => pairs4remove.push({name: fd2ttMap[it], value: null}));
 
-        log.info(param);
-
         for (let key in dv_value_map) {
             let current = param.cv[tt2fdMap[key]];
             if (!current) { // value could be unmapped (e.g. protocol <-> Protocol)
@@ -335,19 +332,18 @@ const updateMart = function (param) {
             const desired = `${dv_value_map[key]}`;
             log.info(`${key} --> current: '${current}', desired: '${desired}'`);
             if (current == desired) {   // !== return idiotic non-valid results '3016' !== '3016' --> true
-                log.info(`param '${key}' need to be updated`);
+                log.debug(`param '${key}' need to be updated`);
                 pairs4remove.push({name: key, value: dv_value_map[key]});
                 pairs4insert.push({name: key, value: dv_value_map[key]});
             } else if (!current) {
-                log.info(`param '${key}' is new`);
+                log.debug(`param '${key}' is new`);
                 pairs4insert.push({name: key, value: dv_value_map[key]})
             } else {
-                log.info(`param '${key}' has not changed its value`);
+                log.debug(`param '${key}' has not changed its value`);
             }
         }
     }
-    log.info("going to create command params from: ", pairs4insert);
-    log.info(pairs4insert);
+    log.debug("going to create command params from: ", pairs4insert);
 
     pairs4insert = pairs4insert.map(entry => `${entry.name}=${entry.value}`);
     pairs4remove = pairs4remove.map(entry => `${entry.name}=${entry.value}`);

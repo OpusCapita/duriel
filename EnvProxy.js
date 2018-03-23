@@ -158,7 +158,7 @@ module.exports = class EnvProxy {
     /**
      * executes command on node
      * @param node
-     * @param cmd
+     * @param cmd - be sure to put the command in quotes ''
      * @param surroundWithQuotes
      * @param sudo
      * @returns {*}
@@ -333,6 +333,7 @@ module.exports = class EnvProxy {
 
     /**
      * saves the input-data into targetPath/targetFileName
+     * @param targetPath
      * @param targetPath
      * @param targetFileName
      * @param input
