@@ -102,9 +102,6 @@ const exec = async function () {
         log.info("saved service information into 'service_config.json'");
 
 
-        log.error("worked until loading service information");
-        process.exit(0);
-
         let dockerCommand;
         let isCreateMode = false;
         if (serviceInformation && serviceInformation.length === 0) {        // TODO: maybe check
@@ -123,7 +120,6 @@ const exec = async function () {
         } else {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
             await handleServiceDB(config, proxy, true); // TODO: add on rollout
-            // TODO: line 230 --> unklar
             log.info("Trying to fetch secrets from target env.");
             const serviceTasks = await proxy.getTasksOfServices_E(config['serviceName'], true);
             const fetchedSecrets = [];
@@ -141,7 +137,7 @@ const exec = async function () {
                 }
             }
             if (!fetchedSecrets.length !== 1) {
-                log.warn("was not able to get secret from env, generating");
+                log.warn(`was not able to get unique secret from env (got: ${fetchedSecrets}), generating`);
                 // const secrets = await generateSecret(true, config, proxy); // TODO: remove on rollout
                 // config['serviceSecret'] = secrets.serviceSecret;
                 // config['serviceId'] = secrets.serviceId;
@@ -160,6 +156,9 @@ const exec = async function () {
         }
         log.info(`docker command is ${dockerCommand}`);
         await doConsulInjection(config, proxy);
+
+        log.error("worked until consul injection");
+        process.exit(0);
 
         // prepare to execute docker command line 333 in old deploy.sh
         const dockerLoginPart = `docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`;

@@ -13,12 +13,10 @@ module.exports = async function (composeCommand) {
     composeCommand += " exec -T main npm run test";
     const proxy = new EnvProxy();
     try {
-        const testResult = await  proxy.executeCommand_L(composeCommand);
-        log.info("test successful:", testResult);
-
+        log.debug(await proxy.executeCommand_L(composeCommand));
+        log.info("unit tests successful.");
     } catch (error) {
         log.error("unit tests unsuccessfully.", error);
-
         const artifactDir = 'artifact';
         const resultFile = 'test-results.xml';
 

@@ -26,6 +26,7 @@ module.exports.executeMultiLineQuery = function (config, proxy, query) {
 
 function executeQuery(params, query) {
     let result;
+    log.debug("executing query: ", query);
     return mysql.createConnection(params)
         .then(async connection => {
             result = await connection.query(query);
