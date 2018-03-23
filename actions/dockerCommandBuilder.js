@@ -49,7 +49,7 @@ const buildDockerCreate = function (config) {
         }
     }
     log.debug("added fields: ", addedFields);
-    return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
+    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 
 const buildDockerUpdate = function (config) {
@@ -109,7 +109,7 @@ const buildDockerUpdate = function (config) {
         }
     }
     log.info("added fields: ", addedFields);
-    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
+    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 /**
  * Adds up params for 'production' and 'default'
@@ -349,14 +349,19 @@ const updateMart = function (param) {
 
 
     if (isCommaSeperatedList) {
-        if (pairs4remove) {
+        if (pairs4remove.length > 0) {
             result += ` --${param.name}-rm ${pairs4remove.join(',')}`;
         }
-        if (pairs4insert) {
-            result += ` --${param.name}-add ${pairs4insert.join(',')}`
+        if (pairs4insert.length > 0) {
+            result += ` --${param.name}-add ${pairs4insert.join(',')}`;
         }
     } else {
-        //
+        if (pairs4remove.length > 0) {
+            result += pairs4remove.map(it => `--${param.name}-rm ${it}`).join(" ");
+        }
+        if (pairs4insert.length > 0) {
+            result += pairs4insert.map(it => `--${param.name}-rm ${it}`).join(" ");
+        }
     }
     for (let entry of pairs4insert) {
         log.info(entry);

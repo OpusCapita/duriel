@@ -134,8 +134,8 @@ const exec = async function () {
                     }
                 }
             }
-            if (!fetchedSecrets.length !== 1) {
-                log.warn(`was not able to get unique secret from env (got: [${fetchedSecrets.join(', ')}]), generating`);
+            if (fetchedSecrets.length !== 1) {
+                log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
                 // const secrets = await generateSecret(true, config, proxy);
                 // config['serviceSecret'] = secrets.serviceSecret;
                 // config['serviceId'] = secrets.serviceId;
