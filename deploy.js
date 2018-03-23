@@ -18,6 +18,7 @@ const loadConfigFile = require('./actions/loadConfigFile');
 const monitorDockerContainer_E = require('./actions/monitorDockerContainer_E');
 const waitForTests = require('./actions/waitForRunningTests');
 const setupServiceUser = require('./actions/setupServiceUser');
+const dockerLogin = require('./actions/dockerLogin_E');
 
 
 const exec = async function () {
@@ -137,9 +138,9 @@ const exec = async function () {
             const addSecret = fetchedSecrets.length !== 1;
             if (addSecret) {
                 log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
-                // const secrets = await generateSecret(true, config, proxy);
-                // config['serviceSecret'] = secrets.serviceSecret;
-                // config['serviceId'] = secrets.serviceId;
+                const secrets = await generateSecret(true, config, proxy);
+                config['serviceSecret'] = secrets.serviceSecret;
+                config['serviceId'] = secrets.serviceId;
             } else {
                 log.info("service secret retrieved from running instance.");
                 config['serviceSecret'] = fetchedSecrets[0];
@@ -149,13 +150,13 @@ const exec = async function () {
         log.info(`docker command is ${dockerCommand}`);
         await doConsulInjection(config, proxy);
 
-        log.error("worked until consul injection");
+        await dockerLogin(config, proxy);
+        config['DS2'] = dockerCommand;    // TODO: stupid name... refactor this
+        // wait for e2e tests if necessary
+
+        log.error("worked until docker login e");
         process.exit(0);
 
-        // prepare to execute docker command line 333 in old deploy.sh
-        const dockerLoginPart = `docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`;
-        config['DS2'] = `${dockerLoginPart} & ${dockerCommand}`;    // TODO: stupid name... refactor this
-        // wait for e2e tests if necessary
         const syncToken = await waitForTests(config, proxy);
 
         // TODO: add on rollout execute on env

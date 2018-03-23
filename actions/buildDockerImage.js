@@ -2,7 +2,7 @@
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
-const dockerLogin = require('./dockerLogin');
+const dockerLogin = require('./dockerLogin_L');
 
 module.exports = async function (config) {
     const proxy = new EnvProxy();
