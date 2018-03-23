@@ -73,7 +73,6 @@ const exec = async function () {
             log.error(`error while downloading field_defs file`, err);
             process.exit(1);
         }
-        log.info("finished loading field_defs.json");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
@@ -94,16 +93,15 @@ const exec = async function () {
                 await injectConsulServiceCredentials(config, proxy);
             }
         }
-        await handleServiceDB(config, proxy, true);
 
         log.info("loading service informations"); // docker service inspect
         const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));
         await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
         log.info("saved service information into 'service_config.json'");
 
-
         let dockerCommand;
         let isCreateMode = false;
+        log.info(`creating dockerCommand in ${isCreateMode ? 'CreateMode' : 'Updatemode' }`);
         if (serviceInformation && serviceInformation.length === 0) {        // TODO: maybe check
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.fileExistsSync('./task_template_mapped.json')) {
@@ -119,12 +117,14 @@ const exec = async function () {
             }
         } else {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
-            await handleServiceDB(config, proxy, true); // TODO: add on rollout
+            await handleServiceDB(config, proxy, true);
             log.info("Trying to fetch secrets from target env.");
             const serviceTasks = await proxy.getTasksOfServices_E(config['serviceName'], true);
             const fetchedSecrets = [];
             log.info(`found ${serviceTasks.length} tasks for service '${config['serviceName']}'`);
             for (let task of serviceTasks) {
+                log.debug(`working on task: `, task);
+                log.debug(`containers of ${task.node}`, await proxy.getContainers_N(task.node));
                 const containers = await proxy.getContainersOfService_N(task.node, config['serviceName'], true);
                 log.info(`node '${task.node}' has ${containers.length} containers for service '${config['serviceName']}'`);
                 for (let container of containers) {
