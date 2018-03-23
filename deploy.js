@@ -134,7 +134,8 @@ const exec = async function () {
                     }
                 }
             }
-            if (fetchedSecrets.length !== 1) {
+            const addSecret = fetchedSecrets.length !== 1;
+            if (addSecret) {
                 log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
                 // const secrets = await generateSecret(true, config, proxy);
                 // config['serviceSecret'] = secrets.serviceSecret;
@@ -143,13 +144,7 @@ const exec = async function () {
                 log.info("service secret retrieved from running instance.");
                 config['serviceSecret'] = fetchedSecrets[0];
             }
-
-            if (!fs.existsSync('./task_template_mapped.json')) {
-                log.info("no task_template_mapped found. using simple update mode (only updating to new image");
-                dockerCommand = "docker service update --force --image";
-            } else {
-                dockerCommand = dockerCommandBuilder.dockerUpdate(config);
-            }
+            dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);
         }
         log.info(`docker command is ${dockerCommand}`);
         await doConsulInjection(config, proxy);
@@ -159,7 +154,7 @@ const exec = async function () {
 
         // prepare to execute docker command line 333 in old deploy.sh
         const dockerLoginPart = `docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`;
-        config['DS2'] = `${dockerLoginPart} & ${dockerCommand}`;    // stupid name...
+        config['DS2'] = `${dockerLoginPart} & ${dockerCommand}`;    // TODO: stupid name... refactor this
         // wait for e2e tests if necessary
         const syncToken = await waitForTests(config, proxy);
 
