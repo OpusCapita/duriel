@@ -214,7 +214,7 @@ module.exports = class EnvProxy {
     getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
-        return this.executeCommand_N(node, `docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}`) // quotes needed
+        return this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => response.split('\n').map(
                 row => {
                     let split = row.split(semicolon_splitter);
@@ -617,7 +617,7 @@ module.exports = class EnvProxy {
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {
-            console.log("proxySrv for " + targetHostName + ":" + targetPort + " handling client request, remote port = " + conn.remotePort);
+            // console.log("proxySrv for " + targetHostName + ":" + targetPort + " handling client request, remote port = " + conn.remotePort);
             conn.on('end', () => {
                 console.log('proxySrv client disconnected from socket');
             });
@@ -625,7 +625,7 @@ module.exports = class EnvProxy {
                 console.log('proxySrv client socket closed');
             });
 
-            console.log("connecting client to proxyStream, remote address " + conn.remoteAddress + ", remote port " + conn.remotePort);
+            // console.log("connecting client to proxyStream, remote address " + conn.remoteAddress + ", remote port " + conn.remotePort);
 
             this.sshconn.forwardOut('localhost',
                 this.proxyServers[proxyKey].port,
