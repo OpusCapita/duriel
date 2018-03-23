@@ -60,9 +60,9 @@ const buildDockerUpdate = function (config) {
 
     let serviceSecretPart = "";
     if (config['serviceSecretName']) {
-        serviceSecretPart = ` --secret-add='${config['serviceSecretName']}'`
+        serviceSecretPart = `--secret-add '${config['serviceSecretName']}'`
     }
-    const base_cmd = `docker service update -d${serviceSecretPart} --with-registry-auth`;
+    const base_cmd = `docker service update -d ${serviceSecretPart} --with-registry-auth`;
     let addedFields = [];
     for (let param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];
@@ -109,7 +109,7 @@ const buildDockerUpdate = function (config) {
         }
     }
     log.info("added fields: ", addedFields);
-    return `${base_cmd} ${addedFields.filter(it => it).join('')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
+    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 /**
  * Adds up params for 'production' and 'default'
@@ -330,9 +330,9 @@ const updateMart = function (param) {
 
             const desired = `${dv_value_map[key]}`;
             log.info(`${key} --> current: '${current}', desired: '${desired}'`);
-            if (current == desired) {   // !== return idiotic non-valid results '3016' !== '3016' --> true
+            if (current != desired) {   // !== return idiotic non-valid results '3016' !== '3016' --> true
                 log.debug(`param '${key}' need to be updated`);
-                pairs4remove.push({name: key, value: dv_value_map[key]});
+                // pairs4remove.push({name: key, value: dv_value_map[key]}); //add params are implicit updates
                 pairs4insert.push({name: key, value: dv_value_map[key]});
             } else if (!current) {
                 log.debug(`param '${key}' is new`);

@@ -108,12 +108,11 @@ const exec = async function () {
                 log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
             } else {
                 log.info("drop/creating the service secret");
-                const secrets = await generateSecret(false, config, proxy);
-                config['serviceSecret'] = secrets.serviceSecret;
-                config['secretId'] = secrets.secretId;
+                const generatedSecret = await generateSecret(false, config, proxy);
+                config['serviceSecret'] = generatedSecret.serviceSecret;
+                config['secretId'] = generatedSecret.secretId;
                 await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
-                // TODO: finish me!
             }
         } else {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
@@ -136,8 +135,8 @@ const exec = async function () {
                 }
             }
             if (!fetchedSecrets.length !== 1) {
-                log.warn(`was not able to get unique secret from env (got: ${fetchedSecrets}), generating`);
-                // const secrets = await generateSecret(true, config, proxy); // TODO: remove on rollout
+                log.warn(`was not able to get unique secret from env (got: [${fetchedSecrets.join(', ')}]), generating`);
+                // const secrets = await generateSecret(true, config, proxy);
                 // config['serviceSecret'] = secrets.serviceSecret;
                 // config['serviceId'] = secrets.serviceId;
             } else {
@@ -150,7 +149,6 @@ const exec = async function () {
                 dockerCommand = "docker service update --force --image";
             } else {
                 dockerCommand = dockerCommandBuilder.dockerUpdate(config);
-                log.info(dockerCommand);
             }
         }
         log.info(`docker command is ${dockerCommand}`);

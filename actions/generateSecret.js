@@ -8,7 +8,7 @@ module.exports = async function (failOnExit, config, proxy) {
         log.info(`failOnExit is false --> will drop secret`);
         await proxy.executeCommand_E(`docker secret rm '${config['serviceName']}'`);
     }
-    const createSecretCommand = `docker secret create '${config['serviceSecretName']}' - <<< '${serviceSecret}'`;   // TODO: test?
+    const createSecretCommand = `echo '${serviceSecret}' | docker secret create '${config['serviceSecretName']}' - `;
     const secretId = await proxy.executeCommand_E(createSecretCommand);
     log.info(secretId);
     return {secretId: secretId, serviceSecret: serviceSecret};
