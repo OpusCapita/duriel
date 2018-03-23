@@ -149,7 +149,6 @@ const drillDown = function (dataHolder, path) {
     } else {
         return drillDown(dataHolder[currentLocation], pathEntries.join('/'))
     }
-
 };
 
 /**

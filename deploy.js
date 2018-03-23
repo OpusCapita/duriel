@@ -127,7 +127,7 @@ const exec = async function () {
                 log.info(`node '${task.node}' has ${containers.length} containers for service '${config['serviceName']}'`);
                 for (let container of containers) {
                     log.info(`fetching service secret from node '${task.node}' for container '${container.containerId}'`);
-                    const command = `'docker exec ${container.containerId} cat /run/secret/${config['serviceName']}-consul-key'`;
+                    const command = `'docker exec ${container.containerId} cat /run/secrets/${config['serviceName']}-consul-key'`;
                     log.debug(`fetching with command ${command}`);
                     const secret = await proxy.executeCommand_N(task.node, command);
                     if (secret) {
