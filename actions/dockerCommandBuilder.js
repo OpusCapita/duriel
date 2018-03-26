@@ -4,11 +4,12 @@ const log = new Logger();
 const fs = require('fs');
 
 const buildDockerCreate = function (config) {
+    log.info("Building docker create command");
     const taskTemplate = JSON.parse(JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'})));
     const fieldDefs = JSON.parse(fs.readFileSync('./field_defs.json'));
     const wantedParams = getWantedParams(taskTemplate);
-    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
 
+    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
     const addedFields = [];
 
     for (let param of wantedParams) {
@@ -374,6 +375,7 @@ const updateMart = function (param) {
 };
 
 const getMultipleOptionsFromArray = function (collectedData) {
+    log.info(`getMultipleOptionsFromArray: `, collectedData);
     let result = "";
     for (let opt of collectedData.dv) {
         result += `--${collectedData.name} ${opt} `
@@ -382,10 +384,11 @@ const getMultipleOptionsFromArray = function (collectedData) {
 };
 
 const getMultipleOptionsFromString = function (collectedData) {
+    log.info(`getMultipleOptionsFromString: `, collectedData);
     if (collectedData.dv) {
         return `--${collectedData.name} ${collectedData.dv}`;
     } else {
-        return;
+        return "";
     }
 };
 
