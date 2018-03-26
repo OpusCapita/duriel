@@ -110,7 +110,7 @@ const exec = async function () {
         log.info(`creating dockerCommand in ${isCreateMode ? 'CreateMode' : 'UpdateMode' }`);
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
-            if (!fs.fileExistsSync('./task_template_mapped.json')) {
+            if (!fs.existsSync('./task_template_mapped.json')) {
                 log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
             } else {
                 log.info("drop/creating the service secret");
