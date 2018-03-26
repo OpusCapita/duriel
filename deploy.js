@@ -118,7 +118,7 @@ const exec = async function () {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
             await handleServiceDB(config, proxy, true);
             log.info("Trying to fetch secrets from target env.");
-            const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key'`);
+            const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key`);
             const addSecret = fetchedSecrets.length !== 1;
             if (addSecret) {
                 log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
