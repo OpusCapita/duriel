@@ -6,10 +6,12 @@ const fs = require('fs');
 module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
     let serviceId = undefined;
     if (!isCreateMode) {
+        log.info("fetching serviceId...");
         serviceId = getServiceID(config, proxy);
+        log.debug("serviceId: ", serviceId);
     }
     const interval = 5000;
-    for (let i = 0; i <= attempts; i++) {
+    for (let i = 1; i <= attempts; i++) {
         log.info(`Checking service-health ${i}/${attempts}`);
         let serviceHealth;
         if (isCreateMode) {
@@ -17,6 +19,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy, serviceId);
         }
+        log.debug(`serviceHealth: `, serviceHealth);
         if (['success'].includes(serviceHealth.state)) {
             log.info("success! service up and running!");
             return 'success';
@@ -34,13 +37,18 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
 };
 
 const getServiceID = async function (config, proxy) {
-    return await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`)
+    const services = await proxy.getServices_E()
+        .filter(service => service.name === config['serviceName']);
+    if (services && services[0]) {
+        return services[0].id;
+    }
 };
 
 const checkCreateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const services = await proxy.getServices_E();
     const serviceInfo = services.filter(service => service.name === config['serviceName'])[0];
+    log.debug("serviceInfo: ", serviceInfo);
     if (serviceInfo) {
         if (serviceInfo.instances_up < serviceInfo.instances_target) {
             check.state = 'starting'
@@ -58,6 +66,7 @@ const checkCreateStatus = async function (config, proxy) {
 const checkUpdateStatus = async function (config, proxy, serviceId) {
     const check = {state: 'unknown'};
     const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${serviceId}`));
+    log.debug("docker inspect: ", inspection);
     const state = inspection[0]['UpdateStatus']['State'];
     if (state === 'updating') {
         check.state = 'updating';

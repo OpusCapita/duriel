@@ -24,9 +24,8 @@ module.exports = async function (config, proxy) {
             throw new Error(`service not healthy after rollback`);
         }
         log.info(rollbackSuccess);
-
     } catch (error) {
-        log.error(error);
+        log.error("error during rollback", error);
         if (error.message.includes("does not have a previous spec")) {
             log.info(`service has not previous version. going to remove it`);
             await proxy.executeCommand_E(`docker service rm '${config['serviceName']}'`);
