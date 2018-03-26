@@ -328,6 +328,7 @@ module.exports = class EnvProxy {
             .then(response => {
                 return response.split('\n').map(
                     row => {
+                        console.log("row" + row);
                         let split = row.split(semicolon_splitter);
                         if (split.length === 5) {
                             const replicasSplit = split[2].split('/');

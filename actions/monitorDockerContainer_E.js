@@ -4,12 +4,6 @@ const log = new Logger();
 const fs = require('fs');
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
-    let serviceId = undefined;
-    if (!isCreateMode) {
-        log.info("fetching serviceId...");
-        serviceId = getServiceID(config, proxy);
-        log.debug("serviceId: ", serviceId);
-    }
     const interval = 5000;
     for (let i = 1; i <= attempts; i++) {
         log.info(`Checking service-health ${i}/${attempts}`);
@@ -17,7 +11,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
         if (isCreateMode) {
             serviceHealth = await checkCreateStatus(config, proxy)
         } else {
-            serviceHealth = await checkUpdateStatus(config, proxy, serviceId);
+            serviceHealth = await checkUpdateStatus(config, proxy);
         }
         log.debug(`serviceHealth: `, serviceHealth);
         if (['success'].includes(serviceHealth.state)) {
@@ -34,14 +28,6 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
         }
     }
     return 'failure';
-};
-
-const getServiceID = async function (config, proxy) {
-    const services = await proxy.getServices_E()
-        .filter(service => service.name === config['serviceName']);
-    if (services && services[0]) {
-        return services[0].id;
-    }
 };
 
 const checkCreateStatus = async function (config, proxy) {
@@ -63,9 +49,9 @@ const checkCreateStatus = async function (config, proxy) {
     return check;
 };
 
-const checkUpdateStatus = async function (config, proxy, serviceId) {
+const checkUpdateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
-    const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${serviceId}`));
+    const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
     log.debug("docker inspect: ", inspection);
     const state = inspection[0]['UpdateStatus']['State'];
     if (state === 'updating') {

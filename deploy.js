@@ -146,9 +146,9 @@ const exec = async function () {
         const syncToken = await waitForTests(config, proxy);
         log.info(`executing dockerCommand ... `);
         await proxy.executeCommand_E(dockerCommand);
-
         log.info("monitoring service after command-execution");
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
+
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
             await rollback(config, proxy);
