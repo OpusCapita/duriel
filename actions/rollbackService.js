@@ -14,7 +14,7 @@ module.exports = async function (config, proxy) {
         const rollBackCommand = `docker service update --rollback ${config['serviceName']}`;
         const commandResponse = await proxy.executeCommand_E(rollBackCommand);
 
-        log.info(`Watching if rollback is successful`);
+        log.info(`Watching if rollback is successful: `, commandResponse);
         let rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
         if (rollbackSuccess && rollbackSuccess === 'paused') {
             await proxy.executeCommand_E(`docker service update ${serviceId}`);
@@ -30,7 +30,7 @@ module.exports = async function (config, proxy) {
         if (error.message.includes("does not have a previous spec")) {
             log.info(`service has not previous version. going to remove it`);
             await proxy.executeCommand_E(`docker service rm '${config['serviceName']}'`);
-            await proxy.executeCommand_E(`docker secret rm '${config['serviceName']}'-consul-key`);
+            await proxy.removeDockerSecret(`${config['serviceName']}-consul-key`);
             return;
         }
     }

@@ -34,12 +34,12 @@ module.exports = async function (config, proxy, checkOnly = true) {
     }
 
     if (injectUser) {
-        log.info("Deleting old user... ");
+        log.info("Deleting old svc-user... ");
         const deleteUserQuery = `DELETE FROM auth.UserAuth WHERE id = '${config['svcUserName']}';`;
         await queryExecuter(config, proxy, deleteUserQuery);
-        log.info("... finished deleting");
+        log.debug("... finished deleting");
 
-        log.info("insertig new user ... ");
+        log.info("inserting new svc-user ... ");
         const insertUserQuery = `INSERT INTO auth.UserAuth (id, password, createdBy, createdOn, changedBy, changedOn)
                                  VALUES ('${config['svcUserName']}', md5('${config['svcUserName']}'), 'build-automation', NOW(), 'build-automation', NOW());`;
         await queryExecuter(config, proxy, insertUserQuery);

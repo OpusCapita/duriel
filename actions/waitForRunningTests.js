@@ -30,9 +30,9 @@ const getTestStatus = async function (config, proxy) {
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
         .then(res => {
-            return new Promise(((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 return resolve(res.text);
-            }))
+            })
         }).catch(error => {
             log.error("error while fetching testStatus", error);
             return undefined;

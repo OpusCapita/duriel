@@ -19,6 +19,7 @@ const monitorDockerContainer_E = require('./actions/monitorDockerContainer_E');
 const waitForTests = require('./actions/waitForRunningTests');
 const setupServiceUser = require('./actions/setupServiceUser');
 const dockerLogin = require('./actions/dockerLogin_E');
+const rollback = require('./actions/rollbackService');
 
 
 const exec = async function () {
@@ -96,7 +97,12 @@ const exec = async function () {
         }
 
         log.info("loading service informations"); // docker service inspect
-        const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));     // TODO: throwa error instead of false
+        let serviceInformation;
+        try {
+            serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));     // TODO: throwa error instead of false
+        } catch (error) {
+            log.error("error while fetching service information", error);
+        }
         await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
         log.info("saved service information into 'service_config.json'");
         let dockerCommand;
@@ -137,18 +143,20 @@ const exec = async function () {
         await dockerLogin(config, proxy);
         config['DS2'] = dockerCommand;
 
-        log.error("worked until docker login e");
-        process.exit(0);
-
         const syncToken = await waitForTests(config, proxy);
-
         log.info(`executing dockerCommand ... `);
-        // TODO: add on rollout execute on env
-        // await proxy.executeCommand_E(dockerCommand);
+        await proxy.executeCommand_E(dockerCommand);
 
-        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode, serviceInformation[0].ID); // mark actions on ENV or LOCAL, etc.
+        log.info("monitoring service after command-execution");
+        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
-            throw new Error("service not healthy after deployment!");
+            log.error("service unhealthy after deployment, starting rollback!");
+            await rollback(config, proxy);
+            log.info("monitoring service after rollback");
+            await monitorDockerContainer_E(config, proxy, false);
+            throw new Error("deployment unsuccessful");
+        } else {
+            log.info(`Monitoring exited with status: '${monitorResult}'`);
         }
         if (syncToken) {
             log.info("Removing syncToken from CircleCi");

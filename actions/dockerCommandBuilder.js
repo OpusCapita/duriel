@@ -186,10 +186,10 @@ const addKeyValueParam = function (result, mappedKV, delimiter, name) {
     for (let key in mappedKV) {
         const entry = mappedKV[key];
         if (!entry.cv || entry.dv != entry.cv) {
-            log.info(`${key} is new or did change its value`);
+            log.debug(`${key} is new or did change its value`);
             result += ` --${name}-add ${key}${delimiter}${entry.dv}`;
         } else {
-            log.info(`${key} did not change - skipping`);
+            log.debug(`${key} did not change - skipping`);
         }
     }
     log.debug("addKeyValueParam: ", result);
@@ -333,16 +333,16 @@ const updateMart = function (param) {
             }
 
             const desired = `${dv_value_map[key]}`;
-            log.info(`${key} --> current: '${current}', desired: '${desired}'`);
-            if (current != desired) {   // !== return idiotic non-valid results '3016' !== '3016' --> true
-                log.debug(`param '${key}' need to be updated`);
+            log.debug(`${key} --> current: '${current}', desired: '${desired}'`);
+            if (current != desired) {   // !== returns idiotic non-valid results '3016' !== '3016' --> true
+                log.severe(`param '${key}' need to be updated`);
                 // pairs4remove.push({name: key, value: dv_value_map[key]}); //add params are implicit updates
                 pairs4insert.push({name: key, value: dv_value_map[key]});
             } else if (!current) {
-                log.debug(`param '${key}' is new`);
+                log.severe(`param '${key}' is new`);
                 pairs4insert.push({name: key, value: dv_value_map[key]})
             } else {
-                log.debug(`param '${key}' has not changed its value`);
+                log.severe(`param '${key}' has not changed its value`);
             }
         }
     }

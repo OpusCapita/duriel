@@ -3,12 +3,16 @@ const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
-module.exports = async function (config, proxy, isCreateMode, serviceId, attempts = 30) {
+module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
+    let serviceId = undefined;
+    if (!isCreateMode) {
+        serviceId = getServiceID(config, proxy);
+    }
     const interval = 5000;
     for (let i = 0; i <= attempts; i++) {
         log.info(`Checking service-health ${i}/${attempts}`);
         let serviceHealth;
-        if (isCreateMode || true) {
+        if (isCreateMode) {
             serviceHealth = await checkCreateStatus(config, proxy)
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy, serviceId);
@@ -27,6 +31,10 @@ module.exports = async function (config, proxy, isCreateMode, serviceId, attempt
         }
     }
     return 'failure';
+};
+
+const getServiceID = async function (config, proxy) {
+    return await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`)
 };
 
 const checkCreateStatus = async function (config, proxy) {

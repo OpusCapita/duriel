@@ -8,7 +8,8 @@ module.exports = async function (config, proxy) {
     log.info(`Starting to service-values into consul...`);
     log.info("loading task_template...");
     const taskTemplate = JSON.parse(JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'})));
-    log.info("...finished downloading", taskTemplate);
+    log.info("...finished downloading");
+    log.debug("taskTemplate: ", taskTemplate);
 
     const injectionValues = gatherInjectionVariables(taskTemplate, config);
     if (!injectionValues) {
@@ -21,8 +22,8 @@ module.exports = async function (config, proxy) {
                 log.info(`...will not insert empty value for '${key}'`);
             } else {
                 log.info(`... injecting '${key}' to consul`);
-                await proxy.addKeyValueToConsul(key + "test", injectionValues[key]); // TODO: remove Test
-                log.debug(`... done.`)
+                await proxy.addKeyValueToConsul(key, injectionValues[key]);
+                log.debug(`... done.`);
             }
         } catch (error) {
             log.error('error while injecting kv-pairs to consul!');

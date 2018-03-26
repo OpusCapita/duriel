@@ -26,7 +26,7 @@ module.exports = function () {
             all_required_vars_set = false;
         } else {
             config[`${env_var}`] = process.env[env_var];
-            log.debug(`env_var ${env_var} set successfully.`);
+            log.severe(`env_var ${env_var} set successfully.`);
         }
     }
 
@@ -38,7 +38,7 @@ module.exports = function () {
     for (let env_var of ADDITIONAL_ENV_VARS) {
         if (process.env[env_var]) {
             config[`${env_var}`] = process.env[env_var];
-            log.debug(`env_var ${env_var} set successfully.`);
+            log.severe(`env_var ${env_var} set successfully.`);
         } else {
             log.debug(`skipping ${env_var} - no environment value set`);
         }
