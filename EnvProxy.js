@@ -272,9 +272,10 @@ module.exports = class EnvProxy {
                     console.log(container);
                     try {
                         const command = `'docker exec ${container.containerId} cat /run/secrets/${secretName}'`;
-                        console.log("command: %s", command);
-                        const secret = await this.executeCommand_N(task.node, command);
-                        log.info("secret: %s", secret);
+                        const secret = await this.executeCommand_N(task.node, command).then(result => {
+                            console.log("result: " + result);
+                            return result;
+                        });
                         if (secret) {
                             fetchedSecrets.push(new RegExp(first_until_space).exec(secret));
                         }
