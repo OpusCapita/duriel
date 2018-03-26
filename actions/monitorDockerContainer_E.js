@@ -53,7 +53,13 @@ const checkUpdateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
     log.debug("docker inspect: ", inspection);
-    const state = inspection[0]['UpdateStatus']['State'];
+    let state;
+    try {
+        state = inspection[0]['UpdateStatus']['State'];
+    } catch (error) {
+        log.error("could not fetch update-status", error);
+        return check;
+    }
     if (state === 'updating') {
         check.state = 'updating';
     } else if (state === 'completed') {

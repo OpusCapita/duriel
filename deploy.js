@@ -112,6 +112,7 @@ const exec = async function () {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.existsSync('./task_template_mapped.json')) {
                 log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
+                process.exit(1);
             } else {
                 log.info("drop/creating the service secret");
                 const generatedSecret = await generateSecret(false, config, proxy);
@@ -167,8 +168,6 @@ const exec = async function () {
         require('./actions/saveObject2File')(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
-        console.error(error);
-        log.error(error);
         log.error("ERROR!", error);
         process.exit(1);
     }

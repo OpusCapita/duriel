@@ -27,10 +27,10 @@ class EpicLogger {
         if (obj) {
             logValue += `\n${EpicLogger.convert2ReadableString(obj)}`;
         }
-        if (error) {
-            logValue += `\n${EpicLogger.convert2ReadableString(error)}`;
-        }
         console.log("%d - %s - %s", new Date(), level, logValue);
+        if (error) {
+            console.error(error);
+        }
     }
 
     static convert2ReadableString(message) {
