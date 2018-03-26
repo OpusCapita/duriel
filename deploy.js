@@ -99,11 +99,10 @@ const exec = async function () {
         const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));
         await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
         log.info("saved service information into 'service_config.json'");
-
         let dockerCommand;
-        let isCreateMode = false;
-        log.info(`creating dockerCommand in ${isCreateMode ? 'CreateMode' : 'Updatemode' }`);
-        if (serviceInformation && serviceInformation.length === 0) {        // TODO: maybe check
+        let isCreateMode = serviceInformation && serviceInformation.length === 0;
+        log.info(`creating dockerCommand in ${isCreateMode ? 'CreateMode' : 'UpdateMode' }`);
+        if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.fileExistsSync('./task_template_mapped.json')) {
                 log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
@@ -119,22 +118,7 @@ const exec = async function () {
             log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
             await handleServiceDB(config, proxy, true);
             log.info("Trying to fetch secrets from target env.");
-            const serviceTasks = await proxy.getTasksOfServices_E(config['serviceName'], true);
-            const fetchedSecrets = [];
-            log.info(`found ${serviceTasks.length} tasks for service '${config['serviceName']}'`);
-            for (let task of serviceTasks) {
-                const containers = await proxy.getContainersOfService_N(task.node, config['serviceName'], true);
-                log.info(`node '${task.node}' has ${containers.length} containers for service '${config['serviceName']}'`);
-                for (let container of containers) {
-                    log.info(`fetching service secret from node '${task.node}' for container '${container.containerId}'`);
-                    const command = `'docker exec ${container.containerId} cat /run/secrets/${config['serviceName']}-consul-key'`;
-                    log.debug(`fetching with command ${command}`);
-                    const secret = await proxy.executeCommand_N(task.node, command);
-                    if (secret) {
-                        fetchedSecrets.push(new RegExp(/^\S+/).exec(secret));   // first value before whitespace
-                    }
-                }
-            }
+            const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key'`);
             const addSecret = fetchedSecrets.length !== 1;
             if (addSecret) {
                 log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
@@ -151,8 +135,7 @@ const exec = async function () {
         await doConsulInjection(config, proxy);
 
         await dockerLogin(config, proxy);
-        config['DS2'] = dockerCommand;    // TODO: stupid name... refactor this
-        // wait for e2e tests if necessary
+        config['DS2'] = dockerCommand;
 
         log.error("worked until docker login e");
         process.exit(0);

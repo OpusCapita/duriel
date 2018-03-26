@@ -235,6 +235,56 @@ module.exports = class EnvProxy {
     }
 
     /**
+     * Remove all passed secrets from the swarm.
+     * Environment of this proxy should be a <b>swarm-master</b>
+     * @param secretNames (secrets that should be removed)
+     * @returns-
+     */
+    removeDockerSecret(...secretNames){
+        return this.executeCommand_E(`docker secret rm ${secretNames.join(" ")}`);
+    }
+
+    /**
+     * add a secret into the docker swarm
+     * @param secret
+     * @param secretName
+     * @returns {*}
+     */
+    insertDockerSecret(secret, secretName) {
+        return this.executeCommand_E(`echo '${secret}' | docker secret create '${secretName}' - `);
+    }
+
+    /**
+     * Reads in all running containers the given secret.
+     * @param serviceName
+     * @param secretName
+     * @returns Array<string> of all secrets
+     */
+    async readDockerSecretOfService_E(serviceName, secretName) {
+        const fetchedSecrets = [];
+        const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
+        for (let task of serviceTasks) {
+            try {
+                const containers = await this.getContainersOfService_N(task.node, serviceName, true);
+                for (let container of containers) {
+                    try {
+                        const command = `'docker exec ${container.containerId} cat /run/secrets/${secretName}'`;
+                        const secret = await this.executeCommand_N(task.node, command);
+                        if (secret) {
+                            fetchedSecrets.push(new RegExp(/^\S+/).exec(secret));
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        return fetchedSecrets.filter(it => it); // filter out empty entries
+    }
+
+    /**
      * returns a list containing all tasks running the service
      * @param service
      * @param onlyRunning
