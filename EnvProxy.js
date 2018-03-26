@@ -272,7 +272,8 @@ module.exports = class EnvProxy {
                         const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
-                            if(regexResult && regexResult.length > 0){
+                            if (regexResult && regexResult.length > 0){
+                                log.debug("adding secret!: ", regexResult[0].substring(0, 5));
                                 fetchedSecrets.push(regexResult[0]);
                             }
                         }
@@ -328,7 +329,6 @@ module.exports = class EnvProxy {
             .then(response => {
                 return response.split('\n').map(
                     row => {
-                        console.log("row" + row);
                         let split = row.split(semicolon_splitter);
                         if (split.length === 5) {
                             const replicasSplit = split[2].split('/');

@@ -58,10 +58,10 @@ const checkUpdateStatus = async function (config, proxy) {
         check.state = 'updating';
     } else if (state === 'completed') {
         check.state = 'success'
-    } else if (check.state) {
-        check.state = 'failure';
     } else if (check.state === 'paused') {
         check.state = 'paused';
+    } else if (check.state) {
+        check.state = 'failure';
     }
     return check;
 };

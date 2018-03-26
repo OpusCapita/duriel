@@ -6,6 +6,7 @@ const request = require('superagent');
 const monitorDockerContainer = require('./monitorDockerContainer_E');
 
 module.exports = async function (config, proxy) {
+    log.info("rolling back service!");
     const serviceId = await getServiceId(config, proxy);
     try {
         if (!serviceId) {
