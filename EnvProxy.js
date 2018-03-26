@@ -14,7 +14,6 @@ let default_config = {};
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
 const comma_splitter = /\s*,\s*/;
 const linebreak_splitter = /(\r\n|\n|\r)/gm;
-const linebreak_splitter = /(\r\n|\n|\r)/gm;
 
 const dataSizes = {
     KB: 1024,
