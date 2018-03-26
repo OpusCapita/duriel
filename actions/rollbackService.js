@@ -32,7 +32,8 @@ module.exports = async function (config, proxy) {
             await proxy.executeCommand_E(`docker service rm '${config['serviceName']}'`);
             await proxy.removeDockerSecret(`${config['serviceName']}-consul-key`);
             return;
-        }
+            }
+        throw error;
     }
 };
 
