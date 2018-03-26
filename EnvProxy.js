@@ -177,6 +177,7 @@ module.exports = class EnvProxy {
             command += `'${cmd}'`;
         else
             command += `${cmd}`;
+        console.log("executing command: " + command);
         return this.executeCommand_E(command, sudo);
     }
 
@@ -271,11 +272,8 @@ module.exports = class EnvProxy {
                 for (let container of containers) {
                     console.log(container);
                     try {
-                        const command = `'docker exec ${container.containerId} cat /run/secrets/${secretName}'`;
-                        const secret = await this.executeCommand_N(task.node, command).then(result => {
-                            console.log("result: " + result);
-                            return result;
-                        });
+                        const command = `docker exec ${container.containerId} cat /run/secrets/${secretName}`;
+                        const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
                             fetchedSecrets.push(new RegExp(first_until_space).exec(secret));
                         }
