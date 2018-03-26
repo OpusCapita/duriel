@@ -142,12 +142,13 @@ const exec = async function () {
 
         const syncToken = await waitForTests(config, proxy);
 
+        log.info(`executing dockerCommand ... `);
         // TODO: add on rollout execute on env
         // await proxy.executeCommand_E(dockerCommand);
 
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode, serviceInformation[0].ID); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
-            throw new Error("service not healthy after deployment!")
+            throw new Error("service not healthy after deployment!");
         }
         if (syncToken) {
             log.info("Removing syncToken from CircleCi");

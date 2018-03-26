@@ -14,7 +14,7 @@ let default_config = {};
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
 const comma_splitter = /\s*,\s*/;
 const linebreak_splitter = /(\r\n|\n|\r)/gm;
-const first_until_space = /^\S+/;
+const linebreak_splitter = /(\r\n|\n|\r)/gm;
 
 const dataSizes = {
     KB: 1024,
@@ -265,27 +265,27 @@ module.exports = class EnvProxy {
     async readDockerSecretOfService_E(serviceName, secretName) {
         const fetchedSecrets = [];
         const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
-        console.log(serviceTasks);
         for (let task of serviceTasks) {
             try {
                 const containers = await this.getContainersOfService_N(task.node, serviceName, true);
                 for (let container of containers) {
-                    console.log(container);
                     try {
                         const command = `docker exec ${container.containerId} cat /run/secrets/${secretName}`;
                         const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
-                            fetchedSecrets.push(new RegExp(first_until_space).exec(secret));
+                            const regexResult = new RegExp(/^\S+/).exec(secret);
+                            if(regexResult && regexResult.length > 0){
+                                fetchedSecrets.push(regexResult[0]);
+                            }
                         }
                     } catch (error) {
-                        console.info(error);
+                        console.error(error);
                     }
                 }
             } catch (error) {
-                console.info(error);
+                console.error(error);
             }
         }
-        log.info(fetchedSecrets);
         return fetchedSecrets.filter(it => it); // filter out empty entries
     }
 

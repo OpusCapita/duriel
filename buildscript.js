@@ -57,8 +57,7 @@ const execute = async () => {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
         }
-
-        await pushDockerImage(config['HUB_REPO'], ["latest", config['VERSION']], ["latest"]);
+        await pushDockerImage(config['HUB_REPO'], ["latest", config['VERSION']], [config['VERSION']]);
     }catch (error){
         log.error(error);
         process.exit(1);

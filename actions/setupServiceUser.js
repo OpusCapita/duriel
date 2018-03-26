@@ -14,18 +14,17 @@ module.exports = async function (config, proxy, checkOnly = true) {
     const queryResult = await queryExecuter(config, proxy, query);
 
     if (queryResult[0].length === 0) {
-        console.log(`${config['svcUserName']} was not found in DB`);
+        log.info(`${config['svcUserName']} was not found in DB`);
         injectUser = true;
     } else {
-        console.info(queryResult[0]);
-        let createdByDBInit = queryResult[0].filter(it => {
-            return it.createdBy !== db_init_flag
-        });
-        log.info(createdByDBInit);
+        log.info(queryResult[0]);
+        let createdByDBInit = queryResult[0]
+            .filter(it => it.createdBy !== db_init_flag);
+        log.debug("createdByDBInit: ", createdByDBInit);
         if (createdByDBInit.length > 0) {
-            console.log(`${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);
+            log.info(`${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);
         } else {
-            console.log(`${config['svcUserName']} exists, created by ${db_init_flag}, updating`);
+            log.info(`${config['svcUserName']} exists, created by ${db_init_flag}, updating`);
             injectUser = true;
         }
     }

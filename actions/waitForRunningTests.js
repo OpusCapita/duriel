@@ -4,11 +4,9 @@ const log = new Logger();
 const fs = require('fs');
 const request = require('superagent');
 
-let watchedTestNumber = -1;
-
 module.exports = async function (config, proxy) {
     const includedServices = ['kong', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
-    if (!includedServices.includes(config['serviceName'].toLowerCase()) && false) {
+    if (!includedServices.includes(config['serviceName'].toLowerCase())) {
         log.info("This service needs no e2e testing");
         return;
     }
@@ -18,7 +16,6 @@ module.exports = async function (config, proxy) {
     }
     log.info(`BN E2E suite on ${config['CIRCLE_BRANCH']} current status = ${testStatus.status}, updating syncToken`);
     const syncToken = `build_${config['CIRCLE_BRANCH']}_${testStatus['nextTestNumber']}_${config['CIRCLE_PROJECT_REPONAME']}_${config['CIRCLE_BUILD_NUM']}`;
-    watchedTestNumber = testStatus['nextTestNumber'];
     await addSyncToken(config, proxy, syncToken);
     return syncToken;
 };
@@ -36,6 +33,9 @@ const getTestStatus = async function (config, proxy) {
             return new Promise(((resolve, reject) => {
                 return resolve(res.text);
             }))
+        }).catch(error => {
+            log.error("error while fetching testStatus", error);
+            return undefined;
         });
     const parsedApiResponse = JSON.parse(apiResponse)[0];
     return {
