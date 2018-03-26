@@ -272,6 +272,7 @@ module.exports = class EnvProxy {
                         const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
+                            log.debug("regex-result: ", regexResult);
                             if (regexResult && regexResult.length > 0){
                                 log.debug("adding secret!: ", regexResult[0].substring(0, 5));
                                 fetchedSecrets.push(regexResult[0]);

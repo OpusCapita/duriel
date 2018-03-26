@@ -41,7 +41,7 @@ const checkCreateStatus = async function (config, proxy) {
         } else if (serviceInfo.instances_up === serviceInfo.instances_target) {
             check.state = 'success'
         } else {
-            check.state = 'error';  // TODO: wtf?
+            check.state = 'error';
         }
     } else {
         check.state = 'failure';
