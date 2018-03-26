@@ -241,7 +241,7 @@ module.exports = class EnvProxy {
      * @param secretNames (secrets that should be removed)
      * @returns-
      */
-    removeDockerSecret(...secretNames){
+    removeDockerSecret(...secretNames) {
         return this.executeCommand_E(`docker secret rm ${secretNames.join(" ")}`);
     }
 
@@ -271,7 +271,10 @@ module.exports = class EnvProxy {
                 for (let container of containers) {
                     console.log(container);
                     try {
-                        const secret = await this.executeCommand_N(task.node, `'docker exec ${container.containerId} cat /run/secrets/${secretName}'`);
+                        const command = `'docker exec ${container.containerId} cat /run/secrets/${secretName}'`;
+                        console.log("command: %s", command);
+                        const secret = await this.executeCommand_N(task.node, command);
+                        log.info("secret: %s", secret);
                         if (secret) {
                             fetchedSecrets.push(new RegExp(first_until_space).exec(secret));
                         }

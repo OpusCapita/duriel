@@ -96,7 +96,7 @@ const exec = async function () {
         }
 
         log.info("loading service informations"); // docker service inspect
-        const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));
+        const serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));     // TODO: throwa error instead of false
         await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
         log.info("saved service information into 'service_config.json'");
         let dockerCommand;
