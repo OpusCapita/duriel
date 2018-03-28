@@ -80,14 +80,12 @@ const exec = async function () {
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
-        log.info(`established proxy to enviroment ${config['andariel_branch']}`);
+        log.info(`established proxy to environment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = await dependsOnServiceClient();
         if (!config['dependsOnServiceClient']) {
             log.info("project does not depend on service-client. skipping name injection");
         } else {
             log.info("project depends on service-client.");
-            config['svcUserName'] = `svc_${config['serviceName']}`;
-            config['svcUserPassword'] = await proxy.executeCommand_L(`openssl rand -base64 32`);
             const setupServiceUserSuccess = await setupServiceUser(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
             if (setupServiceUserSuccess) {
@@ -154,9 +152,9 @@ const exec = async function () {
 
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
-            // await rollback(config, proxy);
-            // log.info("monitoring service after rollback");
-            // await monitorDockerContainer_E(config, proxy, false);
+            await rollback(config, proxy);
+            log.info("monitoring service after rollback");
+            await monitorDockerContainer_E(config, proxy, false);
             throw new Error("deployment unsuccessful");
         } else {
             log.info(`Monitoring exited with status: '${monitorResult}'`);

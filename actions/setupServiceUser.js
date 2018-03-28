@@ -10,6 +10,14 @@ module.exports = async function (config, proxy, checkOnly = true) {
     let injectUser = false;
     const db_init_flag = "db-Init";
 
+    if (!config['svcUserName']) {
+        config['svcUserName'] = `svc_${config['serviceName']}`;
+    }
+
+    if(!config['svcUserPassword'] ){
+        config['svcUserPassword'] = await proxy.executeCommand_L(`openssl rand -base64 32`).trim();
+    }
+
     const query = `SELECT * FROM auth.UserAuth WHERE id = '${config['svcUserName']}'`;
     const queryResult = await queryExecuter(config, proxy, query);
 
@@ -41,7 +49,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
         log.info("inserting new svc-user ... ");
         const insertUserQuery = `INSERT INTO auth.UserAuth (id, password, createdBy, createdOn, changedBy, changedOn)
-                                 VALUES ('${config['svcUserName']}', md5('${config['svcUserName']}'), 'build-automation', NOW(), 'build-automation', NOW());`;
+                                 VALUES ('${config['svcUserName']}', md5('${config['svcUserPassword']}'), 'build-automation', NOW(), 'build-automation', NOW());`;
         await queryExecuter(config, proxy, insertUserQuery);
         log.info("... finished inserting new user");
 

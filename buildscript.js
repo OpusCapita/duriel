@@ -18,7 +18,7 @@ const outputContainerLogs = require('./actions/outputContainerLogs');
 const runUnitTests = require('./actions/runUnitTests');
 const setGitCredentials = require('./actions/setGitCredentials');
 const tagGitCommit = require('./actions/tagGitCommit');
-const pushDockerImage = require('./actions/pushDockerImage');
+const tagAndPushImage = require('./actions/tagAndPushDockerImage');
 
 // Deploying
 const saveObject2File = require('./actions/saveObject2File');
@@ -57,7 +57,7 @@ const execute = async () => {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
         }
-        await pushDockerImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+        await tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
     } catch (error) {
         log.error("error during local building: ", error);
         process.exit(1);

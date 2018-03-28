@@ -34,7 +34,7 @@ const checkCreateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const services = await proxy.getServices_E();
     const serviceInfo = services.filter(service => service.name === config['serviceName'])[0];
-    log.debug("serviceInfo: ", serviceInfo);
+    log.severe("serviceInfo: ", serviceInfo);
     if (serviceInfo) {
         if (serviceInfo.instances_up < serviceInfo.instances_target) {
             check.state = 'starting'
@@ -52,7 +52,7 @@ const checkCreateStatus = async function (config, proxy) {
 const checkUpdateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
-    log.debug("docker inspect: ", inspection);
+    log.severe("docker inspect: ", inspection);
     let state;
     try {
         state = inspection[0]['UpdateStatus']['State'];
