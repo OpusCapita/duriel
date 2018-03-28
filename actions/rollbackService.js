@@ -12,6 +12,7 @@ module.exports = async function (config, proxy) {
         if (!serviceId) {
             throw new Error(`could not fetch serviceId for ${config['serviceName']}`);
         }
+        log.info("executing rollback-command");
         const rollBackCommand = `docker service update --rollback ${config['serviceName']}`;
         const commandResponse = await proxy.executeCommand_E(rollBackCommand);
 

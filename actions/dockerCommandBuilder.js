@@ -50,7 +50,7 @@ const buildDockerCreate = function (config) {
         }
     }
     log.debug("added fields: ", addedFields);
-    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
+    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']}`;
 };
 
 const buildDockerUpdate = function (config, addSecret = false) {

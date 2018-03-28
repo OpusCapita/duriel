@@ -154,9 +154,9 @@ const exec = async function () {
 
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
-            await rollback(config, proxy);
-            log.info("monitoring service after rollback");
-            await monitorDockerContainer_E(config, proxy, false);
+            // await rollback(config, proxy);
+            // log.info("monitoring service after rollback");
+            // await monitorDockerContainer_E(config, proxy, false);
             throw new Error("deployment unsuccessful");
         } else {
             log.info(`Monitoring exited with status: '${monitorResult}'`);

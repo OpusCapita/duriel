@@ -38,7 +38,7 @@ const exec = async function () {
             log.info(`...done.`);
             config['PREV_VERSION'] = config['VERSION'];
             config['VERSION'] = calculateVersion(config, true); // return raw from version file
-            await pushDockerImage(config['HUB_REPO'], [config['PREV_VERSION'], config['VERSION']], [config['VERSION']]);
+            await pushDockerImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], [config['VERSION']]);
         }
         require('./actions/saveObject2File')(config, config_file_name, true);
         proxy.close();

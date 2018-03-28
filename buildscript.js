@@ -48,7 +48,7 @@ const execute = async () => {
         await runUnitTests(compose_base);
         await setGitCredentials(config);
         await tagGitCommit(config['VERSION'], config['CIRCLE_SHA1']);
-        
+
         log.info("saving config for later buildprocess-steps");
         saveObject2File(config, "bp-config.json", true);
 
@@ -57,8 +57,8 @@ const execute = async () => {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
         }
-        await pushDockerImage(config['HUB_REPO'], ["latest", config['VERSION']], [config['VERSION']]);
-    }catch (error){
+        await pushDockerImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+    } catch (error) {
         log.error(error);
         process.exit(1);
     }
