@@ -52,6 +52,11 @@ const exec = async function () {
             process.exit(1);
         }
 
+        if(config['SKIP_DEPLOY2PROD']){ // flag from afterDeploy.js script
+            log.info("skipping prodDeployment.");
+            process.exit(0);
+        }
+
         log.info(`copying data from envInfo into config`);
         for (const key in EnvInfo[config['TARGET_ENV']]) {
             log.info(`copying ${key}`);

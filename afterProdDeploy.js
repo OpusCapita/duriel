@@ -15,7 +15,12 @@ module.exports = async function () {
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
 
-    if (!await runIntegrationTests(config, proxy) || true) { // TODO: remove on rollout
+    if(config['SKIP_DEPLOY2PROD']){ // flag from afterDeploy.js script
+        log.info("skipping - no prod deployment was done.");
+        process.exit(0);
+    }
+
+    if (!await runIntegrationTests(config, proxy)) {
         log.error("integration tests not successful - rollback!");
         await rollback(config, proxy);
     }

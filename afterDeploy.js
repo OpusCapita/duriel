@@ -30,7 +30,7 @@ const exec = async function () {
         if (BRANCHES_4_DEV_TAG.includes(config['CIRCLE_BRANCH'])) {
             await tagAndPushImage(config['HUB_REPO'], null, null, "dev") // don't tag but push - TODO: in old bp a merge from develop to master
         }
-
+        config['SKIP_DEPLOY2PROD'] = true;
         if (config['CIRCLE_BRANCH'] === "master" && config['TARGET_ENV'] === "stage") {
             log.info("PROD deployment is needed.");
             config['TARGET_ENV'] = "prod";
