@@ -23,7 +23,7 @@ const tagAndPushImage = require('./actions/tagAndPushDockerImage');
 // Deploying
 const saveObject2File = require('./actions/saveObject2File');
 
-const execute = async () => {
+const exec = async () => {
     try {
         // Preparing
         const config = getEnvVariables();
@@ -63,7 +63,7 @@ const execute = async () => {
         process.exit(1);
     }
 };
-execute();
+exec();
 
 
 
