@@ -80,10 +80,10 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info("4.5 injecting data into consul");
     if (injectIntoConsul) {
-        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/password`, db_password);
-        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']);
-        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/database`, config['serviceName']);
-        await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data);
+        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/password`, db_password));
+        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']));
+        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/database`, config['serviceName']));
+        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data));
         log.info("4.5 keys injected.")
     } else {
         log.info("4.5 skipping - data already in consul");
