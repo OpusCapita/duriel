@@ -7,7 +7,7 @@ const request = require('superagent');
 module.exports = async function (config, proxy) {
     const tries = 5;
     const snoozeTime = 5000;
-    log.info("run integration tests");
+    log.info("run integration tests...");
     for (let i = 0; i < tries; i++) {
         log.info(`running test no. ${i}...`);
         const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']);
@@ -19,7 +19,7 @@ module.exports = async function (config, proxy) {
             log.info(`${passingChecks} checks are passing - Service is healthy`);
             return true;
         } else {
-            log.info(`0 checks are passing - waiting for ${snoozeTime}ms.`)
+            log.info(`0 checks are passing - waiting for ${snoozeTime}ms.`);
             await snooze(snoozeTime);
         }
     }

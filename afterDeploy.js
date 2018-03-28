@@ -10,22 +10,25 @@ const rollback = require('./actions/rollbackService');
 const tagAndPushImage = require('./actions/tagAndPushDockerImage');
 const calculateVersion = require('./actions/calculateVersion');
 
+const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
+
 const exec = async function () {
     log.info("Running after deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
     log.info("loaded config-file!");
     try {
+        log.info("connecting to environment...");
         const proxy = await new EnvProxy().init(config);
+        log.debug("... done.");
 
         if (!await runIntegrationTests(config, proxy)) {
             log.error("integration tests not successful - rollback!");
             await rollback(config, proxy);
         }
 
-        if (config['CIRCLE_BRANCH'] === "develop") {
-            await tagAndPushImage(config['HUB_REPO'], null, null, "dev") // don't tag but push
-            // TODO: in old bp a merge from develop to master
+        if (BRANCHES_4_DEV_TAG.includes(config['CIRCLE_BRANCH'])) {
+            await tagAndPushImage(config['HUB_REPO'], null, null, "dev") // don't tag but push - TODO: in old bp a merge from develop to master
         }
 
         if (config['CIRCLE_BRANCH'] === "master" && config['TARGET_ENV'] === "stage") {
@@ -45,6 +48,7 @@ const exec = async function () {
     } catch (error) {
         log.error(error);
         require('./actions/saveObject2File')(config, config_file_name, true);
+        process.exit(1);
     }
 };
 
