@@ -5,18 +5,23 @@ const fs = require('fs');
 const request = require('superagent');
 
 module.exports = async function (config, proxy) {
-    const tries = 5;
+    const tries = 10;
     const snoozeTime = 5000;
     log.info("run integration tests...");
-    for (let i = 0; i < tries; i++) {
+    for (let i = 1; i <= tries; i++) {
         log.info(`running test no. ${i}...`);
         const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']);
+        const totalChecks = flattenRecursive(consulApiResponse.map(entry => entry.Checks))
+            .length;
         const passingChecks = flattenRecursive(consulApiResponse.map(entry => entry.Checks))
             .filter(entry => entry['ServiceName'] === config['serviceName'])
             .filter(entry => entry['Status'] === 'passing')
             .length;
-        if (passingChecks > 0) {
-            log.info(`${passingChecks} checks are passing - Service is healthy`);
+        if (passingChecks > 0 && passingChecks === totalChecks) {
+            log.info(`all ${totalChecks} are passing! - service is healthy!`);
+            return true;
+        } else if (passingChecks > 0) {
+            log.warn(`${passingChecks} of ${totalChecks} checks are passing - service is healthy`);
             return true;
         } else {
             log.info(`0 checks are passing - waiting for ${snoozeTime}ms.`);
