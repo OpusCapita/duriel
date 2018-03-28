@@ -13,7 +13,6 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
-        log.debug(`serviceHealth: `, serviceHealth);
         if (['success'].includes(serviceHealth.state)) {
             log.info("success! service up and running!");
             return 'success';
