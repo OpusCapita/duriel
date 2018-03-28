@@ -655,7 +655,7 @@ module.exports = class EnvProxy {
      * @returns value as String | Promise.reject
      */
     getKeyValue(key) {
-        return this.queryConsul(`/v1/kv/${config['serviceName']}`)
+        return this.queryConsul(`/v1/kv/${key}?raw`);
     }
 
     /**

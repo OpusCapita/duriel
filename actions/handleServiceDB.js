@@ -31,7 +31,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const createDBQuery = `CREATE DATABASE \`${config['serviceName']}\`;`;
         await queryExecuter(config, proxy, createDBQuery);
     } else {
-        log.info("4.1 skipping - table exists already.");
+        log.info("4.1 skipping - table exists already.")
     }
     log.info("4.1 successfully created service-database");
 
@@ -39,12 +39,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     let db_password = null;
     let injectIntoConsul = false;
     try {
-        const consulPasswords = await proxy.queryConsul(`/v1/kv/${config['serviceName']}/db-init/password`);
-        log.debug(consulPasswords);
+        const consulPasswords = await proxy.getKeyValue(`${config['serviceName']}/db-init/password`);
         const consulPassword = consulPasswords[0];
-        log.debug(consulPassword);
         db_password = consulPassword['Value'];
-        log.debug(db_password);
     } catch (error) {
         log.error("error while getting service-password from consul: ", error);
     }
