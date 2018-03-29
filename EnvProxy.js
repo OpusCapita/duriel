@@ -506,7 +506,7 @@ module.exports = class EnvProxy {
      * @param command
      * @param sudo
      */
-    executeCommand_E(command, sudo = false) {
+    executeCommand_E(command, sudo = false, loggingStream) {
         if (sudo) {
             command = 'sudo ' + command;
         }
@@ -520,6 +520,9 @@ module.exports = class EnvProxy {
                 stream.on('end', () => {
                     return resolve(response);
                 }).on('data', function (data) {
+                    if(loggingStream){
+                        loggingStream(data.toString());
+                    }
                     response += data.toString();
                 });
             });

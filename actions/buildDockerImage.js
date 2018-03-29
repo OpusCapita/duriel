@@ -8,6 +8,6 @@ module.exports = async function (config) {
     const proxy = new EnvProxy();
     await dockerLogin(config);
     log.info("building actual image...");
-    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true .`);
+    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true .`, undefined, log.debug);
     log.info('... finished');
 };
