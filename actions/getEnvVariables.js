@@ -46,7 +46,7 @@ module.exports = function () {
     log.info(`calculating env-depending variables...`);
     config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
-    config['TARGET_ENV'] = calculateTargetEnv(config);
+    config['TARGET_ENV'] = calculateTargetEnv(config['CIRCLE_BRANCH']);
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['VERSION'] = calculateVersion(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
