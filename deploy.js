@@ -8,7 +8,7 @@ const fs = require('fs');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const generateSecret = require('./actions/docker/generateDockerSecret');
 
-const handleServiceDB = require('./actions/handleServiceDB');
+const handleServiceDB = require('./actions/database/createServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
 const injectConsulServiceCredentials = require('./actions/injectConsulServiceCredentials');
 const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
@@ -16,7 +16,7 @@ const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
 const waitForTests = require('./actions/waitForRunningTests');
-const setupServiceUser = require('./actions/setupServiceUser');
+const setupServiceUser = require('./actions/database/createServiceUser');
 const dockerLogin = require('./actions/docker/dockerLogin');
 const rollback = require('./actions/rollbackService');
 
