@@ -9,6 +9,7 @@ const rollback = require('./actions/rollbackService');
 const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
 const calculateVersion = require('./actions/calculateVersion');
 const fileHandler = require('./actions/filehandling/fileHandler');
+const getEnvVariables = require("./actions/getEnvVariables");
 
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
@@ -32,8 +33,9 @@ const exec = async function () {
         }
         config['SKIP_DEPLOY2PROD'] = true;
         if (config['CIRCLE_BRANCH'] === "master" && config['TARGET_ENV'] === "stage") {
-            log.info("PROD deployment is needed.");
+            log.info("PROD deployment is needed - updating config-file");
             config['TARGET_ENV'] = "prod";
+            config['MYSQL_PW'] = getEnvVariables.getDatabasePassword(config);
             log.info(`copying env-info for prod into config...`);
             for (const key in EnvInfo[config['TARGET_ENV']]) {
                 config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];

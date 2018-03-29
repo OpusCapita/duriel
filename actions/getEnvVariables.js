@@ -81,12 +81,14 @@ function calculateRepoPath(andariel_branch, circle_branch){
 function getDatabasePassword (config) {
     const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     if (process.env[valueKey]) {
-        config[`${valueKey}`] = process.env[valueKey];
         log.severe(`env_var ${valueKey} set successfully.`);
+        return process.env[valueKey];
     } else {
         throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
+
+module.exports.getDatabasePassword = getDatabasePassword;
 
 
 const getBaseConfigObject = function (result = {}) {

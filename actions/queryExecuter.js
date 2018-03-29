@@ -9,7 +9,7 @@ module.exports = function (config, proxy, query) {
         host: 'localhost',
         port: proxy.proxyServers['mysql'].port,
         user: 'root',
-        password: 'notSecureP455w0rd'   //TODO: make depending on config
+        password: config['MYSQL_PW']   //TODO: make depending on config
     }, query);
 
 };
@@ -19,7 +19,7 @@ module.exports.executeMultiLineQuery = function (config, proxy, query) {
         host: 'localhost',
         port: proxy.proxyServers['mysql'].port,
         user: 'root',
-        password: 'notSecureP455w0rd', //TODO: make depending on config
+        password: config['MYSQL_PW'], //TODO: make depending on config
         multipleStatements: true
     }, query);
 };
