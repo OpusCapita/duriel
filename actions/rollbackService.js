@@ -1,8 +1,6 @@
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
-const fs = require('fs');
-const request = require('superagent');
 const monitorDockerContainer = require('./docker/monitorDockerContainer_E');
 
 module.exports = async function (config, proxy) {

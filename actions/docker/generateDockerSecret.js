@@ -1,5 +1,5 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('../../EpicLogger');
 const log = new Logger();
 
 /**

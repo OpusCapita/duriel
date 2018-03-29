@@ -6,7 +6,7 @@ const EnvInfo = require('./envInfo');
 const fs = require('fs');
 
 const fileHandler = require('./actions/filehandling/fileHandler');
-const generateSecret = require('./actions/generateDockerSecret');
+const generateSecret = require('./actions/docker/generateDockerSecret');
 
 const handleServiceDB = require('./actions/handleServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');

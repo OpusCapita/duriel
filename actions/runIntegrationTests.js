@@ -1,8 +1,6 @@
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
-const fs = require('fs');
-const request = require('superagent');
 
 module.exports = async function (config, proxy) {
     const tries = 10;
@@ -43,8 +41,4 @@ const flattenRecursive = function (array) {
     return array.reduce(function (flat, toFlatten) {
         return flat.concat(Array.isArray(toFlatten) ? flattenRecursive(toFlatten) : toFlatten);
     }, [])
-};
-
-const flattenArray = function (arrayOfArrays) {
-    return [].concat.apply([], arrayOfArrays)
 };
