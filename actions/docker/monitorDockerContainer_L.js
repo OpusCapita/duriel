@@ -1,7 +1,7 @@
 'use strict';
-const EpicLogger = require('../EpicLogger');
+const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
-const EnvProxy = require('../EnvProxy');
+const EnvProxy = require('../../EnvProxy');
 
 module.exports = async function (serviceName, attempts = 5, interval = 1000) {
     const proxy = new EnvProxy();

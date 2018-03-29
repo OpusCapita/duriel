@@ -1,7 +1,7 @@
 'use strict';
-const EpicLogger = require('../EpicLogger');
+const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
-const EnvProxy = require('../EnvProxy');
+const EnvProxy = require('../../EnvProxy');
 
 /**
  *

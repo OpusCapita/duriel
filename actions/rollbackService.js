@@ -3,7 +3,7 @@ const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 const request = require('superagent');
-const monitorDockerContainer = require('./monitorDockerContainer_E');
+const monitorDockerContainer = require('./docker/monitorDockerContainer_E');
 
 module.exports = async function (config, proxy) {
     log.info("rolling back service!");

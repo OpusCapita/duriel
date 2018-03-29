@@ -9,7 +9,7 @@ module.exports = async function (config, proxy) {
     log.info("loading task_template...");
     const taskTemplate = JSON.parse(JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'})));
     log.info("...finished downloading");
-    log.debug("taskTemplate: ", taskTemplate);
+    log.debug("loadTaskTemplate: ", taskTemplate);
 
     const injectionValues = gatherInjectionVariables(taskTemplate, config);
     if (!injectionValues) {

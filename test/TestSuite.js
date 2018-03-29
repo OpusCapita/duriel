@@ -1,5 +1,5 @@
-const saveObject2File = require('../actions/saveObject2File');
-const loadConfigFile = require('../actions/loadConfigFile');
+const fileHandler = require('../actions/filehandling/fileHandler');
+const loadConfigFile = require('../actions/filehandling/loadConfigFile');
 
 const dummyConfigPath = `./dummyConfig-${new Date().getTime()}.json`;
 const constants = require("./TestConstants");
@@ -13,7 +13,7 @@ require("./CommandBuilderTests").run();
 after();
 
 function before() {
-    saveObject2File(constants.testConfigFields, dummyConfigPath, true);
+    fileHandler.saveObject2File(constants.testConfigFields, dummyConfigPath, true);
     config = loadConfigFile(dummyConfigPath);
 }
 

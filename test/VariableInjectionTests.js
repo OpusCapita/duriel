@@ -1,5 +1,5 @@
 const assert = require("assert");
-const variableInjector = require("../actions/injectVariables");
+const variableInjector = require("../actions/filehandling/injectVariables");
 
 module.exports.run = run;
 

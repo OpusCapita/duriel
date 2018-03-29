@@ -1,6 +1,6 @@
 'use strict';
 const assert = require("assert");
-const dockerCommandBuilder = require('../actions/dockerCommandBuilder');
+const dockerCommandBuilder = require('../actions/docker/dockerCommandBuilder');
 
 
 const taskTemplatePath = "./task_template_mapped.json";

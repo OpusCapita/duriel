@@ -4,7 +4,7 @@ const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('./EnvProxy');
 
-const loadConfigFile = require('./actions/loadConfigFile');
+const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
 const buildDocs = require('./actions/buildDocs');

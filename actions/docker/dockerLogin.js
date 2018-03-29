@@ -1,7 +1,8 @@
 'use strict';
-const EpicLogger = require('../EpicLogger');
+const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
-const EnvProxy = require('../EnvProxy');
+const EnvProxy = require('../../EnvProxy');
+
 /**
  * logs into dockerhub
  * if no proxy instance is give into the function:
@@ -10,7 +11,7 @@ const EnvProxy = require('../EnvProxy');
  * @param proxy - envProxy instance to execute command in ENV
  * @returns nothing
  */
-module.exports = async function(config, proxy){
+async function onEnv (config, proxy){
     log.info(`logging into docker with user ${config['DOCKER_USER']}`);
     let createdProxy = false;
     if(!proxy){
@@ -22,4 +23,20 @@ module.exports = async function(config, proxy){
     if(createdProxy){
         proxy.close();
     }
+}
+
+/**
+ * executes docker login locally with the credentials inside the config object
+ * @param config - used fields: {'DOCKER_USER' : '', 'DOCKER_PASS' : ''}
+ * @returns {Promise<void>}
+ */
+async function local(config){
+    log.info(`logging into docker with user ${config['DOCKER_USER']}`);
+    const proxy = new EnvProxy();
+    await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`)
+}
+
+module.exports = {
+    onEnv: onEnv,
+    local: local
 };

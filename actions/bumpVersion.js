@@ -4,6 +4,13 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
 
+/**
+ *
+ * @param version - e.g '1.0.0'
+ * @param bumpLevel - 'major - minor - patch'
+ * @param onlyReturn - flag to prevent
+ * @returns {Promise<string>}
+ */
 module.exports = async function (version, bumpLevel = "patch", onlyReturn = false) {
     const regex = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
     if (!regex.test(version)) {

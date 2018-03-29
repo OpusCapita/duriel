@@ -1,5 +1,5 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
@@ -157,8 +157,8 @@ const drillDown = function (dataHolder, path) {
 };
 
 /**
- * returns the value of a param from taskTemplate
- * value = taskTemplate[env] ?: taskTemplate[default]
+ * returns the value of a param from loadTaskTemplate
+ * value = loadTaskTemplate[env] ?: loadTaskTemplate[default]
  * @param taskTemplate
  * @param param
  * @param config
@@ -392,7 +392,21 @@ const getMultipleOptionsFromString = function (collectedData) {
     }
 };
 
+const buildDockerCompose = function () {
+    log.info("building compose command:");
+    let command = "docker-compose -f docker-compose.yml";
+    if (fs.existsSync("./docker-compose.ci.yml")) {
+        log.info("docker-compose.ci.yml exists");
+        command += " -f docker-compose.ci.yml";
+    } else {
+        log.info("no docker-compose.ci.yml - using docker-compose.yml");
+    }
+    log.info(`compose-command is "${command}"`);
+    return command;
+};
+
 module.exports = {
     dockerCreate: buildDockerCreate,
-    dockerUpdate: buildDockerUpdate
+    dockerUpdate: buildDockerUpdate,
+    dockerComposeBase: buildDockerCompose
 };

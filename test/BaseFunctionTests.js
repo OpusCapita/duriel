@@ -4,7 +4,6 @@ const fs = require("fs");
 
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 const versionCalculator = require("../actions/calculateVersion");
-const targetEnvCalculator = require("../actions/calculateTargetEnv");
 const bumpVersion = require("../actions/bumpVersion");
 
 const versionFileContent = "0.8.15-a";
@@ -38,14 +37,6 @@ function run() {
             const calculatedVersion = versionCalculator(config);
             assert.equal(calculatedVersion, `${versionFileContent}-rc-${circleBuildNum}`);
             deleteVersionFile();
-        });
-        it("calculate target env", () => {
-            const env = targetEnvCalculator({CIRCLE_BRANCH: circleDevBranch, noise: "42"});
-            assert.equal(env, "develop");
-        });
-        it("branch without env", () => {
-            const env = targetEnvCalculator({CIRCLE_BRANCH: "homeless", noise: "Eine Ente ist auch nur ein Pferd"});
-            assert.equal(env, "none");
         });
         describe("bump version - functions", () => {
             it("bump - major", async () => {

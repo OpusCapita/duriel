@@ -1,15 +1,15 @@
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
+const calculateVersion = require("./calculateVersion");
+
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
 const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN']; // TODO: SHA1 & Token are identical
-
 /**
- * CIRCLE_PROJECT_REPONAME === serviceName
- *
+ * initials function that gatheres and calculates all variables needed for the buildprocess
+ * @returns {*}
  */
-
 module.exports = function () {
     const config = getBaseConfigObject();
     if (process.argv.length < 3) {
@@ -40,16 +40,53 @@ module.exports = function () {
             config[`${env_var}`] = process.env[env_var];
             log.severe(`env_var ${env_var} set successfully.`);
         } else {
-            log.debug(`skipping ${env_var} - no environment value set`);
+            log.debug(`skipping ${env_var} - no value set`);
         }
     }
-
-    // TODO: unify later
+    log.info(`calculating env-depending variables...`);
+    config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
+    config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
+    config['TARGET_ENV'] = calculateTargetEnv(config);
+    config['MYSQL_PW'] = getDatabasePassword(config);
+    config['VERSION'] = calculateVersion(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
-    config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";    // logic from old circle-config
+    log.debug("done.");
 
     return config;
 };
+
+function calculateTargetEnv(circle_branch){
+    switch (circle_branch) {
+        case 'master':
+            return "stage";
+        case 'develop':
+            return "develop";
+        case "nbp":  // TODO: remove me
+            return "develop";
+        case 'test':
+            return "test";
+        default:
+            return "none";
+    }
+}
+
+function calculateRepoPath(andariel_branch, circle_branch){
+    let result = `OpusCapita/andariel/${andariel_branch}`;
+    if(circle_branch === 'master'){
+        result = "OpusCapita/andariel/master";
+    }
+    return result;
+}
+
+function getDatabasePassword (config) {
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
+    if (process.env[valueKey]) {
+        config[`${valueKey}`] = process.env[valueKey];
+        log.severe(`env_var ${valueKey} set successfully.`);
+    } else {
+        throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+    }
+}
 
 
 const getBaseConfigObject = function (result = {}) {

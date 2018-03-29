@@ -4,13 +4,13 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
 
-const loadFile2Object = require('./loadFile2Object');
+const fileHandler = require('./filehandling/fileHandler');
 
 module.exports = async function (config, commit = false) {
     const proxy = new EnvProxy();
     let packageJson;
     try {
-        packageJson = await loadFile2Object("./package.json");
+        packageJson = await fileHandler.loadFile2Object("./package.json");
     } catch (error) {
         log.error("could not load package.json");
         return;

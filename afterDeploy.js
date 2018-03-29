@@ -3,12 +3,12 @@ const Logger = require('./EpicLogger');
 const log = new Logger();
 const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
-const fs = require('fs');
-const loadConfigFile = require('./actions/loadConfigFile');
+const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
-const tagAndPushImage = require('./actions/tagAndPushDockerImage');
+const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
 const calculateVersion = require('./actions/calculateVersion');
+const fileHandler = require('./actions/filehandling/fileHandler');
 
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
@@ -43,11 +43,11 @@ const exec = async function () {
             config['VERSION'] = calculateVersion(config, true); // return raw from version file
             await tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], [config['VERSION']]);
         }
-        require('./actions/saveObject2File')(config, config_file_name, true);
+        fileHandler.saveObject2File(config, config_file_name, true);
         proxy.close();
     } catch (error) {
         log.error(error);
-        require('./actions/saveObject2File')(config, config_file_name, true);
+        fileHandler.saveObject2File(config, config_file_name, true);
         process.exit(1);
     }
 };

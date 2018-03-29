@@ -5,35 +5,26 @@ const EnvProxy = require('./EnvProxy');
 
 // Preparing
 const getEnvVariables = require('./actions/getEnvVariables');
-const calculateRepoPath = require('./actions/calculateRepoPath');
-const calculateTargetEnv = require('./actions/calculateTargetEnv');
-const calculateVersion = require('./actions/calculateVersion');
 
 // Building, Starting, Testing locally
-const buildDockerImage = require('./actions/buildDockerImage');
-const getComposeCommand = require('./actions/getComposeCommand');
-const dockerCompose = require('./actions/dockerCompose');
-const monitorDockerContainer = require('./actions/monitorDockerContainer_L');
+const buildDockerImage = require('./actions/docker/buildDockerImage');
+const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
+const dockerCompose = require('./actions/docker/dockerCompose');
+const monitorDockerContainer = require('./actions/docker/monitorDockerContainer_L');
 const outputContainerLogs = require('./actions/outputContainerLogs');
 const runUnitTests = require('./actions/runUnitTests');
-const setGitCredentials = require('./actions/setGitCredentials');
-const tagGitCommit = require('./actions/tagGitCommit');
-const tagAndPushImage = require('./actions/tagAndPushDockerImage');
-
-// Deploying
-const saveObject2File = require('./actions/saveObject2File');
+const setGitCredentials = require('./actions/git/setGitCredentials');
+const tagGitCommit = require('./actions/git/tagGitCommit');
+const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
+const fileHandler = require('./actions/filehandling/fileHandler');
 
 const exec = async () => {
     try {
         // Preparing
         const config = getEnvVariables();
-        config['REPO_PATH'] = calculateRepoPath(config);
-        config['TARGET_ENV'] = calculateTargetEnv(config);
-        config['MYSQL_PWD'] = `SECRET_${config['TARGET_ENV']}_MYSQL`;
-        config["VERSION"] = calculateVersion(config);
 
         //Building, Starting, Testing locally
-        const compose_base = getComposeCommand();
+        const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerCompose(compose_base, "pull");
         await buildDockerImage(config);
         await dockerCompose(compose_base, "up -d");
@@ -42,7 +33,7 @@ const exec = async () => {
             await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
         } catch (error) {
             log.error(JSON.stringify(error));
-            await outputContainerLogs();
+            await outputContainerLogs();    // TODO: testerino?
             process.exit(1);
         }
         await runUnitTests(compose_base);
@@ -50,7 +41,7 @@ const exec = async () => {
         await tagGitCommit(config['VERSION'], config['CIRCLE_SHA1']);
 
         log.info("saving config for later buildprocess-steps");
-        saveObject2File(config, "bp-config.json", true);
+        fileHandler.saveObject2File(config, "bp-config.json", true);
 
         // Starting Deployment
         if (config['TARGET_ENV'] === 'none') {

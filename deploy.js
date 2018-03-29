@@ -5,20 +5,19 @@ const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
 const fs = require('fs');
 
-const loadTaskTemplate = require('./actions/loadTaskTemplate');
-const loadFileFromPrivateGit = require('./actions/loadFileFromPrivateGit');
-const generateSecret = require('./actions/generateSecret');
+const fileHandler = require('./actions/filehandling/fileHandler');
+const generateSecret = require('./actions/generateDockerSecret');
 
 const handleServiceDB = require('./actions/handleServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
 const injectConsulServiceCredentials = require('./actions/injectConsulServiceCredentials');
-const dockerCommandBuilder = require('./actions/dockerCommandBuilder');
+const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
-const loadConfigFile = require('./actions/loadConfigFile');
-const monitorDockerContainer_E = require('./actions/monitorDockerContainer_E');
+const loadConfigFile = require('./actions/filehandling/loadConfigFile');
+const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
 const waitForTests = require('./actions/waitForRunningTests');
 const setupServiceUser = require('./actions/setupServiceUser');
-const dockerLogin = require('./actions/dockerLogin_E');
+const dockerLogin = require('./actions/docker/dockerLogin');
 const rollback = require('./actions/rollbackService');
 
 
@@ -52,7 +51,7 @@ const exec = async function () {
             process.exit(1);
         }
 
-        if(config['SKIP_DEPLOY2PROD']){ // flag from afterDeploy.js script
+        if (config['SKIP_DEPLOY2PROD']) { // flag from afterDeploy.js script
             log.info("skipping prodDeployment.");
             process.exit(0);
         }
@@ -64,14 +63,14 @@ const exec = async function () {
         }
 
         log.info("loading task template...");
-        await loadTaskTemplate(config);
+        await fileHandler.loadTaskTemplate(config);
         log.info("...finished task template");
 
         const field_defs_url = `https://raw.githubusercontent.com/${config['REPO_PATH']}/field_defs.json`;
         const field_defs_file = './field_defs.json';
         try {
             log.info("loading field_defs.json");
-            await loadFileFromPrivateGit(field_defs_url, field_defs_file, config)
+            await fileHandler.loadPrivateGit2File(field_defs_url, field_defs_file, config)
                 .then(() => {
                     log.info("finished loading field_defs.json");
                 });
@@ -106,7 +105,7 @@ const exec = async function () {
         } catch (error) {
             log.error("error while fetching service information", error);
         }
-        await require('./actions/saveObject2File')(serviceInformation, './service_config.json', true);  //
+        await fileHandler.saveObject2File(serviceInformation, './service_config.json', true);
         log.info("saved service information into 'service_config.json'");
         let dockerCommand;
         let isCreateMode = serviceInformation && serviceInformation.length === 0;
@@ -144,7 +143,7 @@ const exec = async function () {
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
 
-        await dockerLogin(config, proxy);
+        await dockerLogin.onEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
         const syncToken = await waitForTests(config, proxy);
@@ -170,7 +169,7 @@ const exec = async function () {
         }
 
         await setupServiceUser(config, proxy, false);
-        require('./actions/saveObject2File')(config, config_file_name, true);
+        await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
         log.error("ERROR!", error);
