@@ -1,10 +1,15 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('../../EpicLogger');
 const log = new Logger();
-const fs = require('fs');
 const queryExecuter = require('./queryExecuter');
 
-
+/**
+ *
+ * @param config - used fields: {svcUserName, svcUserPassword}
+ * @param proxy - EnvProxy instance used to connect to db
+ * @param checkOnly - flag if the service user will be inserted/updated if necessary
+ * @returns success<boolean>
+ */
 module.exports = async function (config, proxy, checkOnly = true) {
     log.info("Setting up service-user");
     let injectUser = false;

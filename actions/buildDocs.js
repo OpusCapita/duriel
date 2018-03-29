@@ -1,9 +1,7 @@
 'use strict';
-const fs = require('fs');
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
-
 const fileHandler = require('./filehandling/fileHandler');
 
 module.exports = async function (config, commit = false) {

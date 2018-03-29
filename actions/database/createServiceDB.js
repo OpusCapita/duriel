@@ -1,9 +1,16 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 const queryExecuter = require('./queryExecuter');
 
+/**
+ *
+ * @param config - used fields: [serviceName, TARGET_ENV]
+ * @param proxy - EnvProxy instance
+ * @param forceUserCreate - flag to force password update of database-user
+ * @returns -
+ */
 module.exports = async function (config, proxy, forceUserCreate = false) {
     const task_template = loadTaskTemplate(config);
     const db_init_settings = getTaskTemplateSettings(config, task_template);
@@ -11,7 +18,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         log.info(`skipping db handling - no setting inside task_template.json`);
         return;
     }
-
     const populate_test_data = db_init_settings['populate-test-data'];
     log.info("Handling Service Database");
     log.info("1 getting table schemas");

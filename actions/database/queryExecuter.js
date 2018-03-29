@@ -1,7 +1,6 @@
 'use strict';
-const Logger = require('../EpicLogger');
+const Logger = require('../../EpicLogger');
 const log = new Logger();
-const fs = require('fs');
 const mysql = require('mysql2/promise');
 
 module.exports = function (config, proxy, query) {

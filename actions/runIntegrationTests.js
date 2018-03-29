@@ -10,6 +10,7 @@ module.exports = async function (config, proxy) {
         log.info(`running test no. ${i}...`);
         const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']);
         const totalChecks = flattenRecursive(consulApiResponse.map(entry => entry.Checks))
+            .filter(entry => entry['ServiceName'] === config['serviceName'])
             .length;
         const passingChecks = flattenRecursive(consulApiResponse.map(entry => entry.Checks))
             .filter(entry => entry['ServiceName'] === config['serviceName'])
