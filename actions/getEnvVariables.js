@@ -2,6 +2,7 @@
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const calculateVersion = require("./calculateVersion");
+const calculateEnv = require('./calculateEnv');
 
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
@@ -46,7 +47,7 @@ module.exports = function () {
     log.info(`calculating env-depending variables...`);
     config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
-    config['TARGET_ENV'] = calculateTargetEnv(config['CIRCLE_BRANCH']);
+    config['TARGET_ENV'] = calculateEnv.firstTargetEnv(config['CIRCLE_BRANCH']);
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['VERSION'] = calculateVersion(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
@@ -54,21 +55,6 @@ module.exports = function () {
 
     return config;
 };
-
-function calculateTargetEnv(circle_branch){
-    switch (circle_branch) {
-        case 'master':
-            return "stage";
-        case 'develop':
-            return "develop";
-        case "nbp":  // TODO: remove me
-            return "develop";
-        case 'test':
-            return "test";
-        default:
-            return "none";
-    }
-}
 
 function calculateRepoPath(andariel_branch, circle_branch){
     let result = `OpusCapita/andariel/${andariel_branch}`;

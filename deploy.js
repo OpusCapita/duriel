@@ -51,7 +51,7 @@ const exec = async function () {
             process.exit(1);
         }
 
-        if (config['SKIP_DEPLOY2PROD']) { // flag from afterDeploy.js script
+        if (config['SKIP_SECOND_DEPLOYMENT']) { // flag from afterDeploy.js script
             log.info("skipping prodDeployment.");
             process.exit(0);
         }
@@ -169,6 +169,7 @@ const exec = async function () {
         }
 
         await setupServiceUser(config, proxy, false);
+
         await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
     } catch (error) {

@@ -49,6 +49,7 @@ const exec = async () => {
             process.exit(0);
         }
         await tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+        await outputContainerLogs();
     } catch (error) {
         log.error("error during local building: ", error);
         process.exit(1);

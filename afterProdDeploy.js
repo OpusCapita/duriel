@@ -15,7 +15,7 @@ module.exports = async function () {
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
 
-    if(config['SKIP_DEPLOY2PROD']){ // flag from afterDeploy.js script
+    if(config['SKIP_SECOND_DEPLOYMENT']){ // flag from afterDeploy.js script
         log.info("skipping - no prod deployment was done.");
         process.exit(0);
     }

@@ -3,7 +3,6 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
 module.exports = function (config, returnRaw = false) {
-    // setting version
     let versionFileContent;
     if (!fs.existsSync("./VERSION")) {
         log.error('no VERSION-File found! exiting!');

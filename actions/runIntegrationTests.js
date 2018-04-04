@@ -41,5 +41,5 @@ const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 const flattenRecursive = function (array) {
     return array.reduce(function (flat, toFlatten) {
         return flat.concat(Array.isArray(toFlatten) ? flattenRecursive(toFlatten) : toFlatten);
-    }, [])
+    }, []);
 };
