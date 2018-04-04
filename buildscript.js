@@ -32,7 +32,7 @@ const exec = async () => {
         try {
             await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
         } catch (error) {
-            log.error(JSON.stringify(error));
+            log.error("service not healthy!", error);
             await outputContainerLogs();
             process.exit(1);
         }
@@ -43,7 +43,6 @@ const exec = async () => {
         log.info("saving config for later buildprocess-steps");
         fileHandler.saveObject2File(config, "bp-config.json", true);
 
-        // Starting Deployment
         if (config['TARGET_ENV'] === 'none') {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);

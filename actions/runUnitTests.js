@@ -18,15 +18,19 @@ module.exports = async function (composeCommand) {
         log.info("unit tests successful.");
     } catch (error) {
         log.error("unit tests unsuccessfully.", error);
-        const artifactDir = 'artifact';
-        const resultFile = 'test-results.xml';
-
-        await proxy.createFolder_L(artifactDir);
-        let containers = await proxy.getContainers_L();
-        containers = containers.filter(it => it.name.includes("_main"));
-        for (let it of containers) {    // should be only one, but ...
-            await proxy.createFolder_L(`${artifactDir}/${it.name}`);
-            await proxy.executeCommand_L(`docker exec ${it.name} cat ${resultFile} >> ${artifactDir}/${it.name}/${resultFile}`);    // docker cp would be better
-        }
+        await copyTestResult(proxy);
     }
 };
+
+async function copyTestResult(proxy){
+    const artifactDir = 'artifacts';
+    const resultFile = 'test-results.xml';
+
+    await proxy.createFolder_L(artifactDir);
+    let containers = await proxy.getContainers_L();
+    containers = containers.filter(it => it.name.includes("_main"));
+    for (let it of containers) {
+        await proxy.createFolder_L(`${artifactDir}/${it.name}`);
+        await proxy.executeCommand_L(`docker exec ${it.name} cat ${resultFile} >> ${artifactDir}/${it.name}/${resultFile}`);    // docker cp would be better
+    }
+}
