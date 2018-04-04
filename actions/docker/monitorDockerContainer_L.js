@@ -23,7 +23,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 throw new Error(JSON.stringify(result));
             }
             log.debug("current-container-state: " + JSON.stringify(containers, null, 2));
-            containers.forEach(service => {
+            for (let service of containers) {
                 if (service.status === "healthy") {
                     result.message = `service is healthy after ${attempt} attempts`;
                     result.success = true;
@@ -39,10 +39,10 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     result.message = `status is not in a known: '${service.status}'`
                 }
                 log.info(`current-result: ${JSON.stringify(result)} \n waiting ${interval}ms...`);
-            });
+            }
         } catch (error) {
             throw new Error(JSON.stringify(error));
         }
-        await helper.snooze(interval)
+        await helper.snooze(interval);
     }
 };
