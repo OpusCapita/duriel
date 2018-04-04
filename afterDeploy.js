@@ -44,6 +44,7 @@ const exec = async function () {
                 config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
             }
             log.info(`...done.`);
+            // TODO: only update version when its master + prod
             config['PREV_VERSION'] = config['VERSION'];
             config['VERSION'] = calculateVersion(config, true); // return raw from version file
             await tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
