@@ -16,6 +16,7 @@ module.exports = async function (config, proxy) {
 
         log.info(`Watching if rollback is successful: `, commandResponse);
         let rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
+        log.info("rollbacksuccess: ", rollbackSuccess);
         if (rollbackSuccess && rollbackSuccess === 'paused') {
             await proxy.executeCommand_E(`docker service update ${serviceId}`);
             rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
@@ -23,7 +24,6 @@ module.exports = async function (config, proxy) {
         if (!rollbackSuccess || rollbackSuccess !== "success") {
             throw new Error(`service not healthy after rollback`);
         }
-        log.info(rollbackSuccess);
     } catch (error) {
         log.error("error during rollback", error);
         if (error.message.includes("does not have a previous spec")) {
