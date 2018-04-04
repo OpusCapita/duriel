@@ -24,7 +24,6 @@ module.exports = async function (composeBase) {
 async function copyTestResult(proxy, composeBase) {
     const artifactDir = 'artifacts';
     const resultFile = 'test-results.xml';
-
     await proxy.createFolder_L(`${artifactDir}`);
-    await proxy.executeCommand_L(`${composeBase} exec main cat ${resultFile} >> ${artifactDir}/local_${resultFile}`);    // docker cp would be better
+    await proxy.executeCommand_L(`${composeBase} exec -T main cat ${resultFile} >> ${artifactDir}/local_${resultFile}`);    // docker cp would be better
 }
