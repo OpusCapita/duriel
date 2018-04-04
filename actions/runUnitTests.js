@@ -5,32 +5,26 @@ const EnvProxy = require('../EnvProxy');
 const fs = require('fs');
 
 
-module.exports = async function (composeCommand) {
+module.exports = async function (composeBase) {
     log.info(`running unit tests.`);
     if (!fs.existsSync("./package.json")) {
         log.info("no package.js - skipping npm based unit testing.");
         return;
     }
-    composeCommand += " exec -T main npm run test";
     const proxy = new EnvProxy();
     try {
-        log.debug(await proxy.executeCommand_L(composeCommand));
+        log.debug(await proxy.executeCommand_L(`${composeBase} exec -T main npm run test`));
         log.info("unit tests successful.");
+        await copyTestResult(proxy);
     } catch (error) {
         log.error("unit tests unsuccessfully.", error);
-        await copyTestResult(proxy);
     }
 };
 
-async function copyTestResult(proxy){
+async function copyTestResult(proxy, composeBase) {
     const artifactDir = 'artifacts';
     const resultFile = 'test-results.xml';
 
-    await proxy.createFolder_L(artifactDir);
-    let containers = await proxy.getContainers_L();
-    containers = containers.filter(it => it.name.includes("_main"));
-    for (let it of containers) {
-        await proxy.createFolder_L(`${artifactDir}`);
-        await proxy.executeCommand_L(`docker exec ${it.name} cat ${resultFile} >> ${artifactDir}/${resultFile}`);    // docker cp would be better
-    }
+    await proxy.createFolder_L(`${artifactDir}`);
+    await proxy.executeCommand_L(`${composeBase} exec main cat ${resultFile} >> ${artifactDir}/local_${resultFile}`);    // docker cp would be better
 }
