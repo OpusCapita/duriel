@@ -4,17 +4,16 @@ const log = new Logger();
 const fs = require('fs');
 const helper = require("../util/helper");
 
-module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
+module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
     for (let i = 1; i <= attempts; i++) {
-        log.info(`Checking service-health ${i}/${attempts}`);
-        let serviceHealth;
+        let serviceHealth = {};
         if (isCreateMode) {
             serviceHealth = await checkCreateStatus(config, proxy)
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
-        log.info(serviceHealth);
+        log.info(`Checking service-health ${i}/${attempts} - current state: '${serviceHealth.state}'`);
         if (['success'].includes(serviceHealth.state)) {
             log.info("success! service up and running!");
             return 'success';
