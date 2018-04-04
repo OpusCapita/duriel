@@ -41,10 +41,6 @@ module.exports = async function (version, bumpLevel = "patch", onlyReturn = fals
     }
     await proxy.executeCommand_L(`git push --tags`);
 
-    // git tag
-    // git push
-
-
 };
 
 function createBumpedVersion(version, bumpLevel) {

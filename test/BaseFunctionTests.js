@@ -69,8 +69,37 @@ function run() {
             });
 
         });
+        describe("util", () => {
+            const helper = require('../actions/util/helper');
+            it("flatten simple array", () => {
+                const input = [[1], [2]];
+                const expected = [1, 2];
+                assert.deepEqual(helper.flattenArray(input), expected);
+            });
+            it("flatten non array", () => {
+                assert.throws(() => helper.flattenArray(1), Error, "reduce is not a function");
+            });
+            it("flatten with different depth", () => {
+                const input = [[1], [[2], [[3]]], 4];
+                const expected = [1, 2, 3, 4];
+                assert.deepEqual(helper.flattenArray(input), expected);
+            });
+            it("flatten mixed up array and non-array", () => {
+                const input = [[1,[2]],3];
+                const expected = [1, 2, 3];
+                assert.deepEqual(helper.flattenArray(input), expected);
+            });
+            it("test sleeping", async () => {
+                const sleepTime = 1000;
+                const start = Date.now();
+                await helper.snooze(sleepTime);
+                const end = Date.now();
+                assert.ok((end - start - 1000) < 100);
+            });
+        });
     });
 }
+
 function writeVersionFile() {
     fs.writeFileSync("./VERSION", versionFileContent);
 }

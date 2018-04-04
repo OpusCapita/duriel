@@ -2,19 +2,18 @@
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../../EnvProxy');
+const helper = require('../util/helper');
 
 module.exports = async function (serviceName, attempts = 5, interval = 1000) {
     const proxy = new EnvProxy();
     return await new Promise(async (resolve, reject) => {
         const result = {success: undefined, message: `Starting to check health of ${serviceName}`};
-        let attempt = 1;
-        let intervalId = setInterval(async () => {
+        for (let attempt = 1; attempt <= attempts; attempt++) {
             log.info(`starting attempt ${attempt} of ${attempts}...`);
             try {
                 if (attempt === attempts && !result.success) {
                     result.success = false;
                     result.message = `service not healthy after ${attempts} attempts`;
-                    clearTimeout(intervalId);
                     return reject(result);
                 }
                 let containers = await proxy.getContainers_L();
@@ -22,7 +21,6 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 if (containers.length === 0) {
                     result.success = false;
                     result.message = `no container found for service ${serviceName}`;
-                    clearTimeout(intervalId);
                     return reject(result);
                 }
                 log.debug("current-container-state: " + JSON.stringify(containers, null, 2));
@@ -30,13 +28,11 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     if (service.status === "healthy") {
                         result.message = `service is healthy after ${attempt} attempts`;
                         result.success = true;
-                        clearTimeout(intervalId);
                         return resolve(result)
                     } else if (service.status === "unhealthy") {
                         log.error("service is unhealthy!");
                         result.message = `service is unhealthy! attempt: ${attempt}`;
                         result.success = false;
-                        clearTimeout(intervalId);
                         return reject(result);
                     } else if (service.status === "starting") {
                         result.message = `service is still starting. attempt: ${attempt}`;
@@ -46,10 +42,9 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     log.info(`current-result: ${JSON.stringify(result)} \n waiting ${interval}ms...`);
                 });
             } catch (error) {
-                clearTimeout(intervalId);
                 return reject(error);
             }
-            attempt++;
-        }, interval);
+            await helper.snooze(interval)
+        }
     })
 };

@@ -169,7 +169,6 @@ const exec = async function () {
         }
 
         await setupServiceUser(config, proxy, false);
-
         await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
     } catch (error) {

@@ -33,7 +33,7 @@ const exec = async () => {
             await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
         } catch (error) {
             log.error(JSON.stringify(error));
-            await outputContainerLogs();    // TODO: testerino?
+            await outputContainerLogs();
             process.exit(1);
         }
         await runUnitTests(compose_base);
@@ -49,7 +49,6 @@ const exec = async () => {
             process.exit(0);
         }
         await tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
-        await outputContainerLogs();
     } catch (error) {
         log.error("error during local building: ", error);
         process.exit(1);

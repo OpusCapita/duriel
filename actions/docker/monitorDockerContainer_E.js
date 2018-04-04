@@ -2,6 +2,7 @@
 const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
+const helper = require("./actions/util/helper");
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
     const interval = 5000;
@@ -18,7 +19,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 30) {
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
             log.info("waiting a bit and checking again!");
-            await snooze(interval)
+            await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
             return 'paused';
         } else {
@@ -70,10 +71,3 @@ const checkUpdateStatus = async function (config, proxy) {
     }
     return check;
 };
-
-/**
- * fake Thread.sleep in js (needs async-await)
- * @param ms
- * @returns {Promise<any>}
- */
-const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
