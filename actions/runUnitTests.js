@@ -30,7 +30,7 @@ async function copyTestResult(proxy){
     let containers = await proxy.getContainers_L();
     containers = containers.filter(it => it.name.includes("_main"));
     for (let it of containers) {
-        await proxy.createFolder_L(`${artifactDir}/${it.name}`);
-        await proxy.executeCommand_L(`docker exec ${it.name} cat ${resultFile} >> ${artifactDir}/${it.name}/${resultFile}`);    // docker cp would be better
+        await proxy.createFolder_L(`${artifactDir}`);
+        await proxy.executeCommand_L(`docker exec ${it.name} cat ${resultFile} >> ${artifactDir}/${resultFile}`);    // docker cp would be better
     }
 }
