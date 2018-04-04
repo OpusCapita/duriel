@@ -18,7 +18,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 50) {
             log.info("success! service up and running!");
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
-            log.info("waiting a bit and checking again!");
+            log.info(`current status is: '${serviceHealth.state}'. waiting a bit and checking again!`);
             await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
             return 'paused';
