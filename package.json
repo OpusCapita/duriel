@@ -4,7 +4,7 @@
   "description": "Continuous Deployment and Integration for Andariel",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test --recursive -R mocha-junit-reporter --reporter-options mochaFile=junit/buildprocess_tests.xml"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "superagent": "^3.8.2"
   },
   "devDependencies": {
-    "mocha": "^5.0.4"
+    "mocha": "^5.0.4",
+    "mocha-junit-reporter": "^1.12.1"
   }
 }
