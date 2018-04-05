@@ -488,7 +488,7 @@ module.exports = class EnvProxy {
      * @param sudo[optional] - use sudo for command or not
      * @returns Promise<>
      */
-    changePermission_L(targetPath, permission, sudo = false) {
+    changePermission_L(permission, targetPath, sudo = false) {
         return this.executeCommand_L(`chmod ${permission} ${targetPath}`, sudo)
     }
 
