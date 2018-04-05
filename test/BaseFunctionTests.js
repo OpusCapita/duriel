@@ -1,7 +1,6 @@
 'use strict';
 const assert = require("assert");
 const fs = require("fs");
-
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 const versionCalculator = require("../actions/helpers/versionHelper");
 const versionHandler = require("../actions/helpers/versionHelper");
@@ -91,7 +90,7 @@ function run() {
                 assert.deepEqual(helper.flattenArray(input), expected);
             });
             it("flatten mixed up array and non-array", () => {
-                const input = [[1,[2]],3];
+                const input = [[1, [2]], 3];
                 const expected = [1, 2, 3];
                 assert.deepEqual(helper.flattenArray(input), expected);
             });
@@ -101,6 +100,17 @@ function run() {
                 await helper.snooze(sleepTime);
                 const end = Date.now();
                 assert.ok((end - start - 1000) < 100);
+            });
+        });
+        describe("logger", () => {
+            const EpicLogger = require('../EpicLogger');
+            it("padding strings", () => {
+                const padded = EpicLogger.padLeft("13", '0', 3);
+                assert.equal(padded, "013")
+            });
+            it("padding strings", () => {
+                const padded = EpicLogger.padLeft(13, '0', 3);
+                assert.equal(padded, "013")
             });
         });
     });

@@ -48,12 +48,13 @@ class EpicLogger {
     }
 
     static formatDate2String(date) {
-        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth(), '0', 2)}.${this.padLeft(date.getFullYear(), '0', 2)} ${this.padLeft(date.getHours(), '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
+        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth() + 1, '0', 2)}.${date.getFullYear()} ${this.padLeft(date.getHours() , '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
     }
 
     static padLeft(s, c, l) {
+        s = String(s);
         while (s.length < l) {
-            s = `${c}${s}` ;
+            s = `${c}${s}`;
         }
         return s;
     }
