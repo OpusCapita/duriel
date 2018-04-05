@@ -27,7 +27,7 @@ class EpicLogger {
         if (obj) {
             logValue += `\n${EpicLogger.convert2ReadableString(obj)}`;
         }
-        console.log("%d - %s - %s", EpicLogger.formatDate2String(new Date()), level, logValue);
+        console.log("%s - %s - %s", EpicLogger.formatDate2String(new Date()), level, logValue);
         if (error) {
             console.error(error);
         }
