@@ -48,7 +48,7 @@ async function status() {
 
 async function executeCommand(command) {
     const proxy = new EnvProxy();
-    return await proxy.execureCommand_L(command);
+    return await proxy.executeCommand_L(command);
 }
 
 async function setCredentials(user, mail){
