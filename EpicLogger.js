@@ -48,7 +48,7 @@ class EpicLogger {
     }
 
     static formatDate2String(date){
-        return `${date.getDate()}${date.getMonth()}${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+        return `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
     }
 }
 
