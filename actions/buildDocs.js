@@ -20,6 +20,7 @@ module.exports = async function (config, commit = false) {
     if (packageJson['scripts'] && packageJson['scripts']['doc']) {
         await proxy.executeCommand_L("rm -Rf wiki");
         await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
+        await proxy.changePermission_L("777 -R", "wiki");
         await proxy.executeCommand_L(`docker-compose run main npm run doc`);
         await proxy.changeCommandDir_L("wiki");
         if (commit) {
@@ -32,7 +33,6 @@ module.exports = async function (config, commit = false) {
             log.info("git would commit doc changes:", gitStatus);
         }
         await proxy.changeCommandDir_L("..");
-
     }
 
 };
