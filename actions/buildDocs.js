@@ -26,6 +26,9 @@ module.exports = async function (config, commit = false) {
             return;
         }
         await proxy.changePermission_L("777 -R", "wiki", true);
+        log.info(await proxy.executeCommand_L("ls -la"));
+        log.info(await proxy.executeCommand_L("ls -la wiki"));
+        log.info(await proxy.executeCommand_L("pwd"));
         try {
             await proxy.executeCommand_L(`docker-compose run main npm run doc`);
         }catch (error) {
