@@ -1,7 +1,30 @@
 'use strict';
+const fs = require('fs');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../../EnvProxy');
+
+async function tagImage(image, src_tag, target_tag) {
+    if (src_tag && target_tag) {
+        const proxy = new EnvProxy();
+        log.info(`adding tag '${target_tag}' to tag '${src_tag}'`);
+        await proxy.executeCommand_L(`docker tag ${image}:${src_tag} ${image}:${target_tag}`);
+    }
+}
+
+async function pushImage(image, push_tag) {
+    if(push_tag) {
+        const proxy = new EnvProxy();
+        log.info(`pushing tag '${push_tag}' to dockerhub...`);
+        await proxy.executeCommand_L(`docker push ${image}:${push_tag}`);
+        log.info("...finished pushing docker image")
+    }
+}
+
+async function tagAndPushImage(image, src, target, push) {
+    await tagImage(image, src, target);
+    await pushImage(image, push);
+}
 
 /**
  * logs into dockerhub
@@ -37,6 +60,9 @@ async function local(config){
 }
 
 module.exports = {
-    onEnv: onEnv,
-    local: local
+    tagImage: tagImage,
+    pushImage: pushImage,
+    tagAndPushImage: tagAndPushImage,
+    loginLocal: local,
+    loginEnv: onEnv
 };

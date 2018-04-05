@@ -8,7 +8,7 @@ const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
 const buildDocs = require('./actions/buildDocs');
-const versionHandler = require('./actions/util/versionHelper');
+const versionHandler = require('./actions/helpers/versionHelper');
 
 module.exports = async function () {
     log.info("Running after prod deploy script");
@@ -19,7 +19,7 @@ module.exports = async function () {
         log.info("skipping - no prod deployment was done.");
         process.exit(0);
     }
-
+    const proxy = await new EnvProxy().init(config);
     if (!await runIntegrationTests(config, proxy)) {
         log.error("integration tests not successful - rollback!");
         await rollback(config, proxy);

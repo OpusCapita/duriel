@@ -3,6 +3,7 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
 const fileHandler = require('./filehandling/fileHandler');
+const gitHelper = require('./helpers/gitHelper');
 
 module.exports = async function (config, commit = false) {
     const proxy = new EnvProxy();
@@ -18,16 +19,17 @@ module.exports = async function (config, commit = false) {
         await proxy.executeCommand_L("rm -Rf wiki");
         await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
         await proxy.executeCommand_L(`docker-compose run main npm run doc`);
+        await proxy.changeCommandDir_L("wiki");
         if (commit) {
-            await proxy.changeCommandDir_L("wiki");
-            await proxy.executeCommand_L("git add --all . ; git commit -am 'Updated documentation. [ci skip]' ; git push ;");
-            await proxy.changeCommandDir_L("..");
+            await gitHelper.addAll();
+            await gitHelper.commit('updated documentation. [ci skip]');
+            await gitHelper.push();
         } else {
-            await proxy.changeCommandDir_L("wiki");
-            const gitStatus = await proxy.executeCommand_L("git status");
+            const gitStatus = await gitHelper.status();
             log.info("git would commit doc changes:", gitStatus);
-            await proxy.changeCommandDir_L("..");
         }
+        await proxy.changeCommandDir_L("..");
+
     }
 
 };

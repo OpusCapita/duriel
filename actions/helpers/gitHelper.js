@@ -5,6 +5,7 @@ const log = new EpicLogger();
 
 module.exports = {
     addFiles: addFiles,
+    addAll: addAll,
     tag: tag,
     commit: commit,
     push: push,
@@ -23,8 +24,12 @@ async function addFiles(files) {
     }
 }
 
+async function addAll(){
+    return await executeCommand(`git add --all .`)
+}
+
 async function commit(commitMessage) {
-    await executeCommand(`git commit -m '${commitMessage}'`);
+    return await executeCommand(`git commit -m '${commitMessage}'`);
 }
 
 async function tag(tag, push) {
@@ -35,11 +40,11 @@ async function tag(tag, push) {
 }
 
 async function push() {
-    await executeCommand("git push");
+    return await executeCommand("git push");
 }
 
 async function pushTags() {
-    await executeCommand("git push --tags")
+    return await executeCommand("git push --tags")
 }
 
 async function status() {

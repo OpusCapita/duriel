@@ -6,11 +6,12 @@ const EnvInfo = require('./envInfo');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
-const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
-const calculateVersion = require('./actions/util/versionHelper');
+const calculateVersion = require('./actions/helpers/versionHelper');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const getEnvVariables = require("./actions/getEnvVariables");
 const calculateEnv = require("./actions/calculateEnv");
+const dockerHelper = require('./actions/helpers/dockerHelper');
+const buildDocs = require('./actions/buildDocs');
 
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
@@ -30,7 +31,7 @@ const exec = async function () {
         }
 
         if (BRANCHES_4_DEV_TAG.includes(config['CIRCLE_BRANCH'])) {
-            await tagAndPushImage(config['HUB_REPO'], null, null, "dev") // don't tag but push - TODO: in old bp a merge from develop to master
+            await dockerHelper.pushImage(config['HUB_REPO'], "dev");
         }
         config['SKIP_SECOND_DEPLOYMENT'] = true;
         const nextEnv = calculateEnv.secondTargetEnv(config['CIRCLE_BRANCH']);
@@ -47,9 +48,10 @@ const exec = async function () {
             if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) {
                 config['PREV_VERSION'] = config['VERSION'];
                 config['VERSION'] = calculateVersion.getRawVersion();
-                await tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
+                await dockerHelper.tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION'])
             }
         }
+        await buildDocs();
         fileHandler.saveObject2File(config, config_file_name, true);
         proxy.close();
     } catch (error) {

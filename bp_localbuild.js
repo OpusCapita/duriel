@@ -5,13 +5,13 @@ const log = new Logger();
 const getEnvVariables = require('./actions/getEnvVariables');
 const buildDockerImage = require('./actions/docker/buildDockerImage');
 const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
-const dockerCompose = require('./actions/docker/dockerCompose');
+const dockerCompose = require('./actions/docker/runDockerCompose');
 const monitorDockerContainer = require('./actions/docker/monitorDockerContainer_L');
 const outputContainerLogs = require('./actions/outputContainerLogs');
 const runUnitTests = require('./actions/runUnitTests');
-const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
 const fileHandler = require('./actions/filehandling/fileHandler');
-const gitHelper = require('./actions/util/gitHelper');
+const gitHelper = require('./actions/helpers/gitHelper');
+const dockerHelper = require('./actions/helpers/dockerHelper');
 
 const exec = async () => {
     try {
@@ -40,7 +40,7 @@ const exec = async () => {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
         }
-        await tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+        await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
     } catch (error) {
         log.error("error during local building: ", error);
         process.exit(1);

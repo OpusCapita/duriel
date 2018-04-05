@@ -1,7 +1,7 @@
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
-const calculateVersion = require("./util/versionHelper");
+const calculateVersion = require("./helpers/versionHelper");
 const calculateEnv = require('./calculateEnv');
 
 

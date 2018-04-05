@@ -17,7 +17,7 @@ const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
 const waitForTests = require('./actions/waitForRunningTests');
 const setupServiceUser = require('./actions/database/createServiceUser');
-const dockerLogin = require('./actions/docker/dockerLogin');
+const dockerHelper = require('./actions/helpers/dockerHelper');
 const rollback = require('./actions/rollbackService');
 
 
@@ -143,7 +143,8 @@ const exec = async function () {
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
 
-        await dockerLogin.onEnv(config, proxy);
+
+        await dockerHelper.loginEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
         const syncToken = await waitForTests(config, proxy);

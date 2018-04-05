@@ -2,7 +2,7 @@
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../../EnvProxy');
-const helper = require('../util/utilHelper');
+const helper = require('../helpers/utilHelper');
 
 module.exports = async function (serviceName, attempts = 5, interval = 1000) {
     const proxy = new EnvProxy();

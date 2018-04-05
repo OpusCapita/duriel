@@ -3,8 +3,8 @@ const assert = require("assert");
 const fs = require("fs");
 
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
-const versionCalculator = require("../actions/util/versionHelper");
-const versionHandler = require("../actions/util/versionHelper");
+const versionCalculator = require("../actions/helpers/versionHelper");
+const versionHandler = require("../actions/helpers/versionHelper");
 
 const versionFileContent = "0.8.15-a";
 const circleDevBranch = "develop";
@@ -76,7 +76,7 @@ function run() {
 
         });
         describe("util", () => {
-            const helper = require('../actions/util/utilHelper');
+            const helper = require('../actions/helpers/utilHelper');
             it("flatten simple array", () => {
                 const input = [[1], [2]];
                 const expected = [1, 2];
