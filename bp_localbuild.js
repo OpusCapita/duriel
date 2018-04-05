@@ -34,7 +34,7 @@ const exec = async () => {
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
 
-        await docBuilder(config);
+        await docBuilder(compose_base, config);
 
         log.info("saving config for later buildprocess-steps");
         fileHandler.saveObject2File(config, "bp-config.json", true);

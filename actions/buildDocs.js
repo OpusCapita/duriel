@@ -5,7 +5,7 @@ const EnvProxy = require('../EnvProxy');
 const fileHandler = require('./filehandling/fileHandler');
 const gitHelper = require('./helpers/gitHelper');
 
-module.exports = async function (config, commit = false) {
+module.exports = async function (compose_base, config, commit = false) {
     const proxy = new EnvProxy();
     log.info("build docs");
     let packageJson;
@@ -30,7 +30,7 @@ module.exports = async function (config, commit = false) {
         log.info(await proxy.executeCommand_L("ls -la wiki"));
         log.info(await proxy.executeCommand_L("pwd"));
         try {
-            await proxy.executeCommand_L(`docker-compose run main npm run doc`);
+            await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
         }catch (error) {
             log.error("error during creating documentation", error);
             return;
