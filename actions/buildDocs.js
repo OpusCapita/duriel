@@ -26,9 +26,6 @@ module.exports = async function (compose_base, config, commit = false) {
             return;
         }
         await proxy.changePermission_L("777 -R", "wiki", true);
-        log.info(await proxy.executeCommand_L("ls -la"));
-        log.info(await proxy.executeCommand_L("ls -la wiki"));
-        log.info(await proxy.executeCommand_L("pwd"));
         try {
             await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
         }catch (error) {
