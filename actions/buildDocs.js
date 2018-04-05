@@ -25,7 +25,7 @@ module.exports = async function (config, commit = false) {
             log.error("error during clong wiki", error);
             return;
         }
-        await proxy.changePermission_L("777 -R", "wiki");
+        await proxy.changePermission_L("777 -R", "wiki", true);
         try {
             await proxy.executeCommand_L(`docker-compose run main npm run doc`);
         }catch (error) {
