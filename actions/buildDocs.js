@@ -19,9 +19,19 @@ module.exports = async function (config, commit = false) {
 
     if (packageJson['scripts'] && packageJson['scripts']['doc']) {
         await proxy.executeCommand_L("rm -Rf wiki");
-        await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
+        try {
+            await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
+        } catch (error) {
+            log.error("error during clong wiki", error);
+            return;
+        }
         await proxy.changePermission_L("777 -R", "wiki");
-        await proxy.executeCommand_L(`docker-compose run main npm run doc`);
+        try {
+            await proxy.executeCommand_L(`docker-compose run main npm run doc`);
+        }catch (error) {
+            log.error("error during creating documentation", error);
+            return;
+        }
         await proxy.changeCommandDir_L("wiki");
         if (commit) {
             log.info("committing and pushing changes of documentation");
