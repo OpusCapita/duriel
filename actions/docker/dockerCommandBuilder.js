@@ -365,7 +365,7 @@ const updateMart = function (param) {
             result += pairs4remove.map(it => `--${param.name}-rm ${it}`).join(" ");
         }
         if (pairs4insert.length > 0) {
-            result += pairs4insert.map(it => `--${param.name}-rm ${it}`).join(" ");
+            result += pairs4insert.map(it => `--${param.name}-add ${it}`).join(" ");
         }
     }
     for (let entry of pairs4insert) {

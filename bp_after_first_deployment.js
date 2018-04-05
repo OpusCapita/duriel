@@ -51,11 +51,10 @@ const exec = async function () {
                 await dockerHelper.tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION'])
             }
         }
-        await buildDocs();
         fileHandler.saveObject2File(config, config_file_name, true);
         proxy.close();
     } catch (error) {
-        log.error(error);
+        log.error("Error in first after_deployment", error);
         fileHandler.saveObject2File(config, config_file_name, true);
         process.exit(1);
     }

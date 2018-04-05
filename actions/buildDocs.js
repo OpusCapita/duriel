@@ -7,8 +7,10 @@ const gitHelper = require('./helpers/gitHelper');
 
 module.exports = async function (config, commit = false) {
     const proxy = new EnvProxy();
+    log.info("build docs");
     let packageJson;
     try {
+        log.info("loading package.json");
         packageJson = await fileHandler.loadFile2Object("./package.json");
     } catch (error) {
         log.error("could not load package.json");
@@ -21,6 +23,7 @@ module.exports = async function (config, commit = false) {
         await proxy.executeCommand_L(`docker-compose run main npm run doc`);
         await proxy.changeCommandDir_L("wiki");
         if (commit) {
+            log.info("committing and pushing changes of documentation");
             await gitHelper.addAll();
             await gitHelper.commit('updated documentation. [ci skip]');
             await gitHelper.push();

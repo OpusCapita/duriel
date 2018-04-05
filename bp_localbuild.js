@@ -12,6 +12,7 @@ const runUnitTests = require('./actions/runUnitTests');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const gitHelper = require('./actions/helpers/gitHelper');
 const dockerHelper = require('./actions/helpers/dockerHelper');
+const docBuilder = require('./actions/buildDocs');
 
 const exec = async () => {
     try {
@@ -33,9 +34,10 @@ const exec = async () => {
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
 
+        await docBuilder(config);
+
         log.info("saving config for later buildprocess-steps");
         fileHandler.saveObject2File(config, "bp-config.json", true);
-
         if (config['TARGET_ENV'] === 'none') {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
