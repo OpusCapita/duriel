@@ -47,8 +47,15 @@ class EpicLogger {
         return logValue;
     }
 
-    static formatDate2String(date){
-        return `${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    static formatDate2String(date) {
+        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth(), '0', 2)}.${this.padLeft(date.getFullYear(), '0', 2)} ${this.padLeft(date.getHours(), '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
+    }
+
+    static padLeft(s, c, l) {
+        while (s.length < l) {
+            s = `${c}${s}` ;
+        }
+        return s;
     }
 }
 
