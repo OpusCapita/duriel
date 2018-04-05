@@ -3,8 +3,8 @@ const assert = require("assert");
 const fs = require("fs");
 
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
-const versionCalculator = require("../actions/calculateVersion");
-const bumpVersion = require("../actions/bumpVersion");
+const versionCalculator = require("../actions/util/versionHelper");
+const versionHandler = require("../actions/util/versionHelper");
 
 const versionFileContent = "0.8.15-a";
 const circleDevBranch = "develop";
@@ -16,7 +16,13 @@ module.exports.run = run;
 function run() {
     describe("Base Functions", () => {
         it("missing VERSION file", () => {
-            assert.throws(() => versionCalculator({}), Error, "no VERSION-File found! exiting!");
+            assert.throws(() => versionCalculator.getDevTag({}), Error, "no VERSION-File found! exiting!");
+        });
+        it("get Version raw", () => {
+            writeVersionFile();
+            const rawVersion = versionCalculator.getRawVersion();
+            assert.equal(rawVersion, versionFileContent);
+            deleteVersionFile();
         });
         it("calculating version - non-master", async () => {
             writeVersionFile();
@@ -24,7 +30,7 @@ function run() {
                 'CIRCLE_BRANCH': circleDevBranch,
                 'CIRCLE_BUILD_NUM': circleBuildNum
             });
-            const calculatedVersion = versionCalculator(config);
+            const calculatedVersion = versionCalculator.getDevTag(config);
             assert.equal(calculatedVersion, `${versionFileContent}-dev-${circleBuildNum}`);
             deleteVersionFile();
         });
@@ -34,7 +40,7 @@ function run() {
                 'CIRCLE_BRANCH': circleProdBranch,
                 'CIRCLE_BUILD_NUM': circleBuildNum
             });
-            const calculatedVersion = versionCalculator(config);
+            const calculatedVersion = versionCalculator.getDevTag(config);
             assert.equal(calculatedVersion, `${versionFileContent}-rc-${circleBuildNum}`);
             deleteVersionFile();
         });
@@ -42,35 +48,35 @@ function run() {
             it("bump - major", async () => {
                 const version = "1.2.3-f";
                 const expectation = "2.2.3-f";
-                const bumpedVersion = await bumpVersion(version, "major", true);
+                const bumpedVersion = await versionHandler.getBumpedVersion(version, "major", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - minor", async () => {
                 const version = "1.2.3-f";
                 const expectation = "1.3.3-f";
-                const bumpedVersion = await bumpVersion(version, "minor", true);
+                const bumpedVersion = await versionHandler.getBumpedVersion(version, "minor", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - patch", async () => {
                 const version = "1.2.3-f";
                 const expectation = "1.2.4-f";
-                const bumpedVersion = await bumpVersion(version, "patch", true);
+                const bumpedVersion = await versionHandler.getBumpedVersion(version, "patch", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("incorrect version-format", async () => {
                 const version = "kaputt-42";
-                const bumpedVersion = await bumpVersion(version, "patch", true);
+                const bumpedVersion = await versionHandler.getBumpedVersion(version, "patch", true);
                 assert.equal(bumpedVersion, undefined)
             });
             it("incorrect bump-format", async () => {
                 const version = "1.1.1";
-                const bumpedVersion = await bumpVersion(version, "dropDB", true);
+                const bumpedVersion = await versionHandler.getBumpedVersion(version, "dropDB", true);
                 assert.equal(bumpedVersion, undefined)
             });
 
         });
         describe("util", () => {
-            const helper = require('../actions/util/helper');
+            const helper = require('../actions/util/utilHelper');
             it("flatten simple array", () => {
                 const input = [[1], [2]];
                 const expected = [1, 2];

@@ -1,7 +1,7 @@
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
-const calculateVersion = require("./calculateVersion");
+const calculateVersion = require("./util/versionHelper");
 const calculateEnv = require('./calculateEnv');
 
 
@@ -49,7 +49,7 @@ module.exports = function () {
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
     config['TARGET_ENV'] = calculateEnv.firstTargetEnv(config['CIRCLE_BRANCH']);
     config['MYSQL_PW'] = getDatabasePassword(config);
-    config['VERSION'] = calculateVersion(config);
+    config['VERSION'] = calculateVersion.getDevTag(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     log.debug("done.");
 

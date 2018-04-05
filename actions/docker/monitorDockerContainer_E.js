@@ -2,7 +2,7 @@
 const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
-const helper = require("../util/helper");
+const helper = require("../util/utilHelper");
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;

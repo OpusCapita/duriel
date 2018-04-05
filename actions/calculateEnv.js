@@ -24,7 +24,12 @@ function getSecondEnv(circle_branch){
     }
 }
 
+function isMainVersionBranch(branch){
+    return branch === 'master';
+}
+
 module.exports = {
     firstTargetEnv: getFirstEnv,
-    secondTargetEnv: getSecondEnv
+    secondTargetEnv: getSecondEnv,
+    isMainVersionBranch: isMainVersionBranch
 };

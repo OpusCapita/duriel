@@ -1,29 +1,22 @@
 'use strict';
 const Logger = require('./EpicLogger');
 const log = new Logger();
-const EnvProxy = require('./EnvProxy');
 
-// Preparing
 const getEnvVariables = require('./actions/getEnvVariables');
-
-// Building, Starting, Testing locally
 const buildDockerImage = require('./actions/docker/buildDockerImage');
 const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
 const dockerCompose = require('./actions/docker/dockerCompose');
 const monitorDockerContainer = require('./actions/docker/monitorDockerContainer_L');
 const outputContainerLogs = require('./actions/outputContainerLogs');
 const runUnitTests = require('./actions/runUnitTests');
-const setGitCredentials = require('./actions/git/setGitCredentials');
-const tagGitCommit = require('./actions/git/tagGitCommit');
 const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
 const fileHandler = require('./actions/filehandling/fileHandler');
+const gitHelper = require('./actions/util/gitHelper');
 
 const exec = async () => {
     try {
-        // Preparing
-        const config = getEnvVariables();
 
-        //Building, Starting, Testing locally
+        const config = getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerCompose(compose_base, "pull");
         await buildDockerImage(config);
@@ -37,8 +30,8 @@ const exec = async () => {
             process.exit(1);
         }
         await runUnitTests(compose_base);
-        await setGitCredentials(config);
-        await tagGitCommit(config['VERSION'], config['CIRCLE_SHA1']);
+        await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
+        await gitHelper.tag(config['VERSION'], true);
 
         log.info("saving config for later buildprocess-steps");
         fileHandler.saveObject2File(config, "bp-config.json", true);

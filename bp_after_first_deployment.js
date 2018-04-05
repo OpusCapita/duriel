@@ -7,7 +7,7 @@ const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
 const tagAndPushImage = require('./actions/docker/tagAndPushDockerImage');
-const calculateVersion = require('./actions/calculateVersion');
+const calculateVersion = require('./actions/util/versionHelper');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const getEnvVariables = require("./actions/getEnvVariables");
 const calculateEnv = require("./actions/calculateEnv");
@@ -44,10 +44,11 @@ const exec = async function () {
                 config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
             }
             log.info(`...done.`);
-            // TODO: only update version when its master + prod
-            config['PREV_VERSION'] = config['VERSION'];
-            config['VERSION'] = calculateVersion(config, true); // return raw from version file
-            await tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
+            if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) {
+                config['PREV_VERSION'] = config['VERSION'];
+                config['VERSION'] = calculateVersion.getRawVersion();
+                await tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
+            }
         }
         fileHandler.saveObject2File(config, config_file_name, true);
         proxy.close();

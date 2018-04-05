@@ -1,7 +1,7 @@
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
-const helper = require('./util/helper');
+const helper = require('./util/utilHelper');
 
 module.exports = async function (config, proxy) {
     const attempts = 10, interval = 5000;

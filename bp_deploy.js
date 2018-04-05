@@ -51,8 +51,8 @@ const exec = async function () {
             process.exit(1);
         }
 
-        if (config['SKIP_SECOND_DEPLOYMENT']) { // flag from afterDeploy.js script
-            log.info("skipping prodDeployment.");
+        if (config['SKIP_SECOND_DEPLOYMENT'] || config['TARGET_ENV'] === 'none') {
+            log.info("skipping deployment.");
             process.exit(0);
         }
 
