@@ -45,7 +45,7 @@ const buildDockerCreate = function (config) {
                     addedFields.push(getMultipleOptionsFromString(collectedData));
                     break;
                 default:
-                    log.info(`'${param}' --> type '${type}' is not supported`);
+                    log.warn(`'${param}' --> type '${type}' is not supported`);
             }
         }
     }
@@ -63,11 +63,11 @@ const buildDockerUpdate = function (config, addSecret = false) {
     const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
     const wantedParams = getWantedParams(taskTemplate);
 
-    let serviceSecretPart = "";
+    let serviceSecretPart = " ";
     if (addSecret && config['serviceSecretName']) {
-        serviceSecretPart = `--secret-add '${config['serviceSecretName']}'`
+        serviceSecretPart = ` --secret-add '${config['serviceSecretName']}' `
     }
-    const base_cmd = `docker service update -d ${serviceSecretPart} --with-registry-auth`;
+    const base_cmd = `docker service update -d${serviceSecretPart}--with-registry-auth`;
     let addedFields = [];
     for (let param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];
@@ -125,11 +125,11 @@ const getWantedParams = function (taskTemplate) {
     log.info("gathering wanted params...");
     let result = [];
     if (taskTemplate['production']) {
-        log.info("... adding production keys ...");
+        log.debug("... adding production keys ...");
         result = result.concat(Object.keys(taskTemplate['production']));
     }
     if (taskTemplate["default"]) {
-        log.info("... adding default keys ...");
+        log.debug("... adding default keys ...");
         result = result.concat(Object.keys(taskTemplate["default"]));
     }
     log.info("... finished gathering finished params", result);
@@ -286,10 +286,7 @@ const updateMart = function (param) {
         tt2fdMap[tt_value] = fd_value;
         fd2ttMap[fd_value] = tt_value;
     }
-    log.info(`creating task_template to field_definition mapping...`);
-    log.info("task_template 2 fieldMap --> ", tt2fdMap);
-    log.info("fieldMap 2 task_template --> ", fd2ttMap);
-    log.info('...finished.');
+    log.debug(`creating task_template to field_definition mapping:\n'task_template 2 fieldMap' --> ${JSON.stringify(tt2fdMap)}\n'fieldMap 2 task_template' --> ${JSON.stringify(fd2ttMap)}`);
 
 
     if (Array.isArray(param.cv)) {
@@ -319,10 +316,10 @@ const updateMart = function (param) {
         for (let key in dv_value_map) {
             let current = param.cv[tt2fdMap[key]];
             if (!current) { // value could be unmapped (e.g. protocol <-> Protocol)
-                log.debug("could not find value via tt2fd-mapping - trying to get value via lowerCaseComparison of keys");
+                log.severe("could not find value via tt2fd-mapping - trying to get value via lowerCaseComparison of keys");
                 for (let cv_key of Object.keys(param.cv)) {
                     if (key.toLowerCase() === cv_key.toLowerCase()) {
-                        log.debug("found value!");
+                        log.severe("found value!");
                         current = param.cv[cv_key];
                         break;
                     }
@@ -375,7 +372,7 @@ const updateMart = function (param) {
 };
 
 const getMultipleOptionsFromArray = function (collectedData) {
-    log.info(`getMultipleOptionsFromArray: `, collectedData);
+    log.severe(`getMultipleOptionsFromArray: `, collectedData);
     let result = "";
     for (let opt of collectedData.dv) {
         result += `--${collectedData.name} ${opt} `
@@ -384,7 +381,7 @@ const getMultipleOptionsFromArray = function (collectedData) {
 };
 
 const getMultipleOptionsFromString = function (collectedData) {
-    log.info(`getMultipleOptionsFromString: `, collectedData);
+    log.severe(`getMultipleOptionsFromString: `, collectedData);
     if (collectedData.dv) {
         return `--${collectedData.name} ${collectedData.dv}`;
     } else {
@@ -393,15 +390,15 @@ const getMultipleOptionsFromString = function (collectedData) {
 };
 
 const buildDockerCompose = function () {
-    log.info("building compose command:");
+    log.info("building compose command:...");
     let command = "docker-compose -f docker-compose.yml";
     if (fs.existsSync("./docker-compose.ci.yml")) {
-        log.info("docker-compose.ci.yml exists");
+        log.debug("docker-compose.ci.yml exists");
         command += " -f docker-compose.ci.yml";
     } else {
-        log.info("no docker-compose.ci.yml - using docker-compose.yml");
+        log.debug("no docker-compose.ci.yml - using docker-compose.yml");
     }
-    log.info(`compose-command is "${command}"`);
+    log.info(`... finished.compose-command is "${command}"`);
     return command;
 };
 

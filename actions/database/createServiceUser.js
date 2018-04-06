@@ -21,9 +21,8 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
     if(!config['svcUserPassword'] ){
         const password = await proxy.executeCommand_L(`openssl rand -base64 32`);
-        log.debug("generated password: ", password);
+        log.severe(`generated password: ${password.substring(0,5)}[...]`);
         config['svcUserPassword'] = password;
-
     }
 
     const query = `SELECT * FROM auth.UserAuth WHERE id = '${config['svcUserName']}'`;

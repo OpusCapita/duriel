@@ -59,7 +59,7 @@ module.exports = class EnvProxy {
             .then(() => this.lookupService('mysql'))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
             .then(() => this)
-            .catch((err) => log.error("init error: %o", err));
+            .catch((err) => log.error("init error: ", err));
     };
 
     /**
@@ -669,18 +669,18 @@ module.exports = class EnvProxy {
      * Returns a promise on a ready to use proxy instance
      */
     createProxiedTunnel(proxyKey, targetHostName, targetPort) {
-        log.info("creating proxy " + proxyKey + " pointing to " + targetHostName + ":" + targetPort + "...");
+        log.info(`creating proxy ${proxyKey} pointing to ${targetHostName}:${targetPort}...`);
         const proxy = {};
         proxy.name = proxyKey;
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {
-            log.info("proxySrv for " + targetHostName + ":" + targetPort + " handling client request, remote port = " + conn.remotePort);
+            log.info(`proxySrv for ${targetHostName}:${targetPort} handling client request, remote port = ${conn.remotePort}`);
             conn.on('end', () => {
-                log.debug('proxySrv client disconnected from socket');
+                log.severe('proxySrv client disconnected from socket');
             });
             conn.on('close', () => {
-                log.debug('proxySrv client socket closed');
+                log.severe('proxySrv client socket closed');
             });
 
             log.debug(`connecting client to proxyStream, remote address ${conn.remoteAddress} remote port ${conn.remotePort}`);
@@ -705,7 +705,7 @@ module.exports = class EnvProxy {
                         conn.pipe(stream);
                     }
                 });
-            log.severe("client " + conn.remotePort + " attached to " + proxyKey + " proxyStream");
+            log.severe(`client ${conn.remotePort} attached to ${proxyKey} proxyStream`);
         });
 
         proxy.server.maxConnections = 1;
@@ -720,7 +720,7 @@ module.exports = class EnvProxy {
                     reject(err);
                 }
                 proxy.port = proxy.server.address().port;
-                log.error(proxyKey + 'proxy server bound to ', proxy.port);
+                log.debug(`${proxyKey} proxy server bound to ${proxy.port}`);
                 resolve(proxy);
             });
         });
