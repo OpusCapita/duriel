@@ -50,7 +50,7 @@ module.exports = class EnvProxy {
                 agent: process.env.SSH_AUTH_SOCK
             };
 
-            log.debug("connecting to %o", ssh_config);
+            log.debug("connecting to:", ssh_config);
             this.sshconn.connect(ssh_config);
         });
 

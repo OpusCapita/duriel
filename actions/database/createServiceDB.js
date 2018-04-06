@@ -102,8 +102,7 @@ function loadTaskTemplate() {
     if (!fs.existsSync('./task_template_mapped.json')) {
         throw new Error("could not find task_template.json");
     }
-    const taskTemplateContent = fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'});
-    const taskTemplate = JSON.parse(JSON.parse(taskTemplateContent));   // TODO: wtf? like... ??!
+    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));   // TODO: wtf? like... ??!
     log.info("successfully loaded task_template_json");
     return taskTemplate;
 }

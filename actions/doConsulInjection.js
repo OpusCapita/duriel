@@ -7,7 +7,7 @@ const fs = require('fs');
 module.exports = async function (config, proxy) {
     log.info(`Starting to service-values into consul...`);
     log.info("loading task_template...");
-    const taskTemplate = JSON.parse(JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'})));
+    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));
     log.info("...finished downloading");
     log.debug("loadTaskTemplate: ", taskTemplate);
 
