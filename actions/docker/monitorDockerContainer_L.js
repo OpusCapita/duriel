@@ -22,7 +22,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 result.message = `no container found for service ${serviceName}`;
                 throw new Error(JSON.stringify(result));
             }
-            log.debug("current-container-state: " + JSON.stringify(containers, null, 2));
+            log.debug("current-container-state: ", containers);
             for (let service of containers) {
                 if (service.status === "healthy") {
                     result.message = `service is healthy after ${attempt} attempts`;
