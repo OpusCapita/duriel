@@ -36,7 +36,7 @@ module.exports = class EnvProxy {
         this.sshconn = new Client();
         let initSsh = new Promise((resolve, reject) => {
             this.sshconn.on('ready', (err) => {
-                console.log("ssh connection to " + this.config.admin_address + " established");
+                log.info("ssh connection to " + this.config.admin_address + " established");
                 resolve(this.sshconn);
             });
             this.sshconn.on('error', function (err) {
@@ -50,7 +50,7 @@ module.exports = class EnvProxy {
                 agent: process.env.SSH_AUTH_SOCK
             };
 
-            console.log("connecting to %o", ssh_config);
+            log.debug("connecting to %o", ssh_config);
             this.sshconn.connect(ssh_config);
         });
 
@@ -59,7 +59,7 @@ module.exports = class EnvProxy {
             .then(() => this.lookupService('mysql'))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
             .then(() => this)
-            .catch((err) => console.log("init error: %o", err));
+            .catch((err) => log.error("init error: %o", err));
     };
 
     /**
@@ -272,7 +272,7 @@ module.exports = class EnvProxy {
                         const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
-                            if (regexResult && regexResult.length > 0){
+                            if (regexResult && regexResult.length > 0) {
                                 log.debug("adding secret!: ", regexResult[0].substring(0, 5));
                                 fetchedSecrets.push(regexResult[0]);
                             } else {
@@ -280,11 +280,11 @@ module.exports = class EnvProxy {
                             }
                         }
                     } catch (error) {
-                        console.error(error);
+                        log.error(`error while fetching secret from container ${container.containerId}`, error);
                     }
                 }
             } catch (error) {
-                console.error(error);
+                log.error(`error while fetching secret from task '${task.node}'`, error);
             }
         }
         return fetchedSecrets.filter(it => it); // filter out empty entries
@@ -515,13 +515,13 @@ module.exports = class EnvProxy {
             let response = "";
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
-                    console.error('SECOND :: exec error: ', err);
+                    log.error('SECOND :: exec error: ', err);
                     return reject(err);
                 }
                 stream.on('end', () => {
                     return resolve(response);
                 }).on('data', function (data) {
-                    if(loggingStream){
+                    if (loggingStream) {
                         loggingStream(data.toString());
                     }
                     response += data.toString();
@@ -554,8 +554,7 @@ module.exports = class EnvProxy {
         return new Promise((resolve, reject) =>
             exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
                 if (error) {
-                    console.error(`stderr: ${stderr}`);
-                    // console.error(`exec error: ${error}`);
+                    log.error(`stderr: ${stderr}`);
                     return reject(error);
                 }
                 return resolve(stdout);
@@ -605,15 +604,14 @@ module.exports = class EnvProxy {
      * returns promise on an array like [ip,port]
      */
     lookupService(serviceName) {
-        console.log("looking up service " + serviceName + "...");
+        log.info("looking up service " + serviceName + "...");
         return this.queryConsul('/v1/catalog/service/' + serviceName)
             .then(data => {
-                console.log(serviceName + ' looked up: ' + data[0].Address);
+                log.debug(serviceName + ' looked up: ' + data[0].Address);
                 return Promise.resolve([data[0].Address, data[0].ServicePort]);
             })
             .catch(error => {
-                console.log("error looking up " + serviceName);
-                console.log(error);
+                log.error(`error looking up '${serviceName}'`, error);
                 throw error;
             });
     }
@@ -629,7 +627,7 @@ module.exports = class EnvProxy {
                 return response.data;
             })
             .catch(error => {
-                console.log("error making http call to tunneled consul, %o", error);
+                log.error("error making http call to tunneled consul:", error);
                 return this.sshconn.e;
             });
     }
@@ -648,7 +646,7 @@ module.exports = class EnvProxy {
                 return Promise.resolve(response.data);
             })
             .catch(error => {
-                console.log("error making http call to tunneled consul, %o", error);
+                log.error("error making http call to tunneled consul", error);
                 return Promise.reject(this.sshconn.e);
             });
     }
@@ -671,21 +669,21 @@ module.exports = class EnvProxy {
      * Returns a promise on a ready to use proxy instance
      */
     createProxiedTunnel(proxyKey, targetHostName, targetPort) {
-        console.log("creating proxy " + proxyKey + " pointing to " + targetHostName + ":" + targetPort + "...");
+        log.info("creating proxy " + proxyKey + " pointing to " + targetHostName + ":" + targetPort + "...");
         const proxy = {};
         proxy.name = proxyKey;
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {
-            // console.log("proxySrv for " + targetHostName + ":" + targetPort + " handling client request, remote port = " + conn.remotePort);
+            log.info("proxySrv for " + targetHostName + ":" + targetPort + " handling client request, remote port = " + conn.remotePort);
             conn.on('end', () => {
-                console.log('proxySrv client disconnected from socket');
+                log.debug('proxySrv client disconnected from socket');
             });
             conn.on('close', () => {
-                console.log('proxySrv client socket closed');
+                log.debug('proxySrv client socket closed');
             });
 
-            // console.log("connecting client to proxyStream, remote address " + conn.remoteAddress + ", remote port " + conn.remotePort);
+            log.debug(`connecting client to proxyStream, remote address ${conn.remoteAddress} remote port ${conn.remotePort}`);
 
             this.sshconn.forwardOut('localhost',
                 this.proxyServers[proxyKey].port,
@@ -693,36 +691,36 @@ module.exports = class EnvProxy {
                 targetPort,
                 (err, stream) => {
                     if (err) {
-                        console.log("forwarding failed: " + err);
+                        log.error("forwarding failed: ", err);
                         this.sshconn.end();
                     } else {
-                        console.log("proxy forwarding via ssh, piping stream to socket");
+                        log.severe("proxy forwarding via ssh, piping stream to socket");
                         stream.on('end', function (msg) {
-                            console.log('stream end event on proxyStream ' + msg);
+                            log.severe('stream end event on proxyStream', msg);
                         });
                         this.sshconn.on('close', () => {
-                            console.log("sshconn stream closing");
+                            log.severe("sshconn stream closing");
                         });
                         stream.pipe(conn);
                         conn.pipe(stream);
                     }
                 });
-            console.log("client " + conn.remotePort + " attached to " + proxyKey + " proxyStream");
+            log.severe("client " + conn.remotePort + " attached to " + proxyKey + " proxyStream");
         });
 
         proxy.server.maxConnections = 1;
         proxy.server.on('error', (err) => {
-            console.log(proxyKey + "proxy server error : " + err);
+            log.error(proxyKey + "proxy server error : ", err);
         });
 
         return new Promise(function (resolve, reject) {
             proxy.server.listen(0, (err) => {
                 if (err) {
-                    console.log(proxyKey + "proxy server listen failed: " + err);
+                    log.error(proxyKey + "proxy server listen failed: ", err);
                     reject(err);
                 }
                 proxy.port = proxy.server.address().port;
-                console.log(proxyKey + 'proxy server bound to ' + proxy.port);
+                log.error(proxyKey + 'proxy server bound to ', proxy.port);
                 resolve(proxy);
             });
         });
@@ -740,18 +738,18 @@ module.exports = class EnvProxy {
     }
 
     close() {
-        console.log('closing... ');
-        console.log('closing proxies... ');
+        log.debug('closing... ');
+        log.severe('closing proxies... ');
         for (let pxy in this.proxyServers) {
-            console.log(`closing ${pxy}...`);
+            log.severe(`closing ${pxy}...`);
             let proxy = this.proxyServers[pxy];
             proxy.server.close();
-            console.log(`... done.`)
+            log.severe(`... done.`)
         }
-        console.log('closed all proxies');
-        console.log('closing client itself.');
+        log.severe('closed all proxies');
+        log.severe('closing client itself.');
         this.sshconn.end();
-        console.log('... bye bye');
+        log.debug('... bye bye');
         return Promise.resolve();
     }
 
