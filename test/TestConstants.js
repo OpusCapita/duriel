@@ -24,3 +24,7 @@ module.exports = {
         inject: "${value_:env_1}"
     }
 };
+
+const dummyTaskTemplate = {
+
+}

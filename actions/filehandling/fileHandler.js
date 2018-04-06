@@ -32,6 +32,7 @@ async function downloadURL2File(url, targetFile) {
 
 async function loadTaskTemplate(config) {
     if (!fs.existsSync('./task_template.json')) {
+        log.error("no task_template");
         throw new Error("could not find task_template.json");
     }
     const taskTemplate = fs.readFileSync('./task_template.json', {encoding: 'utf8'});
