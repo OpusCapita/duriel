@@ -6,10 +6,14 @@ const constants = require("./TestConstants");
 let config = {};
 
 before();
-require("./FileHandlingsTests").run(config);
-require("./VariableInjectionTests").run(config, constants);
-require("./BaseFunctionTests").run();
-require("./CommandBuilderTests").run();
+try {
+    require("./FileHandlingsTests").run(config);
+    require("./VariableInjectionTests").run(config, constants);
+    require("./BaseFunctionTests").run();
+    require("./CommandBuilderTests").run();
+} catch (e) {
+    console.error(e);
+}
 after();
 
 function before() {

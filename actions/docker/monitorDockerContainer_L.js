@@ -38,8 +38,8 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                 } else {
                     result.message = `status is not in a known: '${service.status}'`
                 }
-                log.info(`current-result: ${JSON.stringify(result)} \n waiting ${interval}ms...`);
             }
+            log.info(`current-result: ${JSON.stringify(result)} \n waiting ${interval / 1000 }sec...`);
         } catch (error) {
             throw new Error(JSON.stringify(error));
         }
