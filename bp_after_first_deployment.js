@@ -36,7 +36,7 @@ const exec = async function () {
         const nextEnv = calculateEnv.secondTargetEnv(config['CIRCLE_BRANCH']);
         log.info(`second deployment will be targeted on '${nextEnv}'`);
         if (nextEnv !== 'none') {
-            // config['INVOKE_DEPLOYMENT'] = true;
+            config['INVOKE_DEPLOYMENT'] = true;
             config['TARGET_ENV'] = nextEnv;
             config['MYSQL_PW'] = getEnvVariables.getDatabasePassword(config);
             log.info(`copying env-info for ${nextEnv} into config...`);
