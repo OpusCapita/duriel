@@ -39,10 +39,6 @@ const exec = async function () {
             config['INVOKE_DEPLOYMENT'] = true;
             config['TARGET_ENV'] = nextEnv;
             config['MYSQL_PW'] = getEnvVariables.getDatabasePassword(config);
-            log.info(`copying env-info for ${nextEnv} into config...`);
-            for (const key in EnvInfo[config['TARGET_ENV']]) {
-                config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
-            }
             log.info(`...done.`);
             if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) { // determines if current branch will create a main-version (e.g. 1.1.1, 1.0.2) or will use dev-taged images
                 config['PREV_VERSION'] = config['VERSION'];

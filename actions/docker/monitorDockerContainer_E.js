@@ -30,6 +30,29 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     return 'failure';
 };
 
+const checkUpdateStatus = async function (config, proxy) {
+    const check = {state: 'unknown'};
+    const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
+    log.severe("docker inspect: ", inspection);
+    let state;
+    try {
+        state = inspection[0]['UpdateStatus']['State'];
+    } catch (error) {
+        log.error("could not fetch update-status", error);
+        return check;
+    }
+    if (state === 'updating') {
+        check.state = 'updating';
+    } else if (['rollback_completed', 'completed'].includes(state)) {
+        check.state = 'success'
+    } else if (check.state === 'paused') {
+        check.state = 'paused';
+    } else if (check.state) {
+        check.state = 'failure';
+    }
+    return check;
+};
+
 const checkCreateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const services = await proxy.getServices_E();
@@ -44,29 +67,6 @@ const checkCreateStatus = async function (config, proxy) {
             check.state = 'error';
         }
     } else {
-        check.state = 'failure';
-    }
-    return check;
-};
-
-const checkUpdateStatus = async function (config, proxy) {
-    const check = {state: 'unknown'};
-    const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
-    log.severe("docker inspect: ", inspection);
-    let state;
-    try {
-        state = inspection[0]['UpdateStatus']['State'];
-    } catch (error) {
-        log.error("could not fetch update-status", error);
-        return check;
-    }
-    if (state === 'updating') {
-        check.state = 'updating';
-    } else if (state === 'completed') {
-        check.state = 'success'
-    } else if (check.state === 'paused') {
-        check.state = 'paused';
-    } else if (check.state) {
         check.state = 'failure';
     }
     return check;

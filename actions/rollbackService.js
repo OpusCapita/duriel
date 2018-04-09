@@ -23,6 +23,8 @@ module.exports = async function (config, proxy) {
         }
         if (!rollbackSuccess || rollbackSuccess !== "success") {
             throw new Error(`service not healthy after rollback`);
+        } else {
+            throw new Error(`deployment failed, but rollback was successful`);
         }
     } catch (error) {
         log.error("error during rollback", error);
