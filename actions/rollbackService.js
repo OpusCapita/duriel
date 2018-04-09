@@ -10,16 +10,17 @@ module.exports = async function (config, proxy) {
         if (!serviceId) {
             throw new Error(`could not fetch serviceId for ${config['serviceName']}`);
         }
-        log.info("executing rollback-command");
         const rollBackCommand = `docker service update --rollback ${config['serviceName']}`;
+        log.info("executing rollback-command", rollBackCommand);
         const commandResponse = await proxy.executeCommand_E(rollBackCommand);
+        log.debug(`Watching if rollback is successful: `, commandResponse);
 
-        log.info(`Watching if rollback is successful: `, commandResponse);
         let rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
         log.info("rollbacksuccess: ", rollbackSuccess);
         if (rollbackSuccess && rollbackSuccess === 'paused') {
             await proxy.executeCommand_E(`docker service update ${serviceId}`);
             rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
+            log.info("rollbacksuccess: ", rollbackSuccess);
         }
         if (!rollbackSuccess || rollbackSuccess !== "success") {
             throw new Error(`service not healthy after rollback`);
@@ -33,7 +34,7 @@ module.exports = async function (config, proxy) {
             await proxy.executeCommand_E(`docker service rm '${config['serviceName']}'`);
             await proxy.removeDockerSecret(`${config['serviceName']}-consul-key`);
             return;
-            }
+        }
         throw error;
     }
 };
