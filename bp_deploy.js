@@ -51,8 +51,8 @@ const exec = async function () {
             process.exit(1);
         }
 
-        if (config['SKIP_SECOND_DEPLOYMENT'] || config['TARGET_ENV'] === 'none') {
-            log.info("skipping deployment.");
+        if (!config['INVOKE_DEPLOYMENT'] || config['TARGET_ENV'] === 'none') {
+            log.info(`skipping deployment. invoke_deployment: ${config['INVOKE_DEPLOYMENT']}, target_env: ${config['TARGET_ENV']}`);
             process.exit(0);
         }
 

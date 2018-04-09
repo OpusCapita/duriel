@@ -11,7 +11,6 @@ const fileHandler = require('./actions/filehandling/fileHandler');
 const getEnvVariables = require("./actions/getEnvVariables");
 const calculateEnv = require("./actions/calculateEnv");
 const dockerHelper = require('./actions/helpers/dockerHelper');
-const buildDocs = require('./actions/buildDocs');
 
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
@@ -33,11 +32,11 @@ const exec = async function () {
         if (BRANCHES_4_DEV_TAG.includes(config['CIRCLE_BRANCH'])) {
             await dockerHelper.pushImage(config['HUB_REPO'], "dev");
         }
-        config['SKIP_SECOND_DEPLOYMENT'] = true;
+        config['INVOKE_DEPLOYMENT'] = false;
         const nextEnv = calculateEnv.secondTargetEnv(config['CIRCLE_BRANCH']);
         log.info(`second deployment will be targeted on '${nextEnv}'`);
         if (nextEnv !== 'none') {
-            // config['SKIP_SECOND_DEPLOYMENT'] = false;
+            // config['INVOKE_DEPLOYMENT'] = true;
             config['TARGET_ENV'] = nextEnv;
             config['MYSQL_PW'] = getEnvVariables.getDatabasePassword(config);
             log.info(`copying env-info for ${nextEnv} into config...`);
@@ -45,10 +44,10 @@ const exec = async function () {
                 config[`${key}`] = EnvInfo[config['andariel_branch']][`${key}`];
             }
             log.info(`...done.`);
-            if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) {
+            if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) { // determines if current branch will create a main-version (e.g. 1.1.1, 1.0.2) or will use dev-taged images
                 config['PREV_VERSION'] = config['VERSION'];
                 config['VERSION'] = calculateVersion.getRawVersion();
-                await dockerHelper.tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION'])
+                await dockerHelper.tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
             }
         }
         fileHandler.saveObject2File(config, config_file_name, true);

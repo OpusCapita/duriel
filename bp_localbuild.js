@@ -36,13 +36,16 @@ const exec = async () => {
 
         await docBuilder(compose_base, config);
 
-        log.info("saving config for later buildprocess-steps");
-        fileHandler.saveObject2File(config, "bp-config.json", true);
-        if (config['TARGET_ENV'] === 'none') {
+        if (config['TARGET_ENV'] !== 'none') {
+            log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);
+            config['INVOKE_DEPLOYMENT'] = true;
+            await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+        } else {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
             process.exit(0);
         }
-        await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
+        log.info("saving config for later buildprocess-steps");
+        fileHandler.saveObject2File(config, "bp-config.json", true);
     } catch (error) {
         log.error("error during local building: ", error);
         process.exit(1);
