@@ -33,7 +33,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
 const checkUpdateStatus = async function (config, proxy) {
     const check = {state: 'unknown'};
     const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
-    log.debug("docker inspect: ", inspection);
+    log.severe("docker inspect: ", inspection);
     let state;
     try {
         state = inspection[0]['UpdateStatus']['State'];
