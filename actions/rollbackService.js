@@ -15,11 +15,11 @@ module.exports = async function (config, proxy) {
         const commandResponse = await proxy.executeCommand_E(rollBackCommand);
         log.debug(`Watching if rollback is successful: `, commandResponse);
 
-        let rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
+        let rollbackSuccess = await monitorDockerContainer(config, proxy, false);
         log.info("rollbacksuccess: ", rollbackSuccess);
         if (rollbackSuccess && rollbackSuccess === 'paused') {
             await proxy.executeCommand_E(`docker service update ${serviceId}`);
-            rollbackSuccess = await monitorDockerContainer(config, proxy, false, serviceId);
+            rollbackSuccess = await monitorDockerContainer(config, proxy, false);
             log.info("rollbacksuccess: ", rollbackSuccess);
         }
         if (!rollbackSuccess || rollbackSuccess !== "success") {
