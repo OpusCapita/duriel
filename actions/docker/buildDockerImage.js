@@ -4,10 +4,23 @@ const log = new EpicLogger();
 const EnvProxy = require('../../EnvProxy');
 const dockerHelper = require('../helpers/dockerHelper');
 
-module.exports = async function (config) {
+async function buildBaseImage(config){
     const proxy = new EnvProxy();
     await dockerHelper.loginLocal(config);
-    log.info("building actual image...");
+    log.info("building base image...");
+    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:base -f Dockerfile.base .`);
+    log.info('... finished');
+}
+
+async function buildImage(config) {
+    const proxy = new EnvProxy();
+    await dockerHelper.loginLocal(config);
+    log.info("building image...");
     await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true .`);
     log.info('... finished');
+};
+
+module.exports = {
+    buildImage: buildImage,
+    buildBaseImage: buildBaseImage
 };
