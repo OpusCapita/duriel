@@ -17,8 +17,8 @@ function getSecondEnv(circle_branch){
     switch (circle_branch){
         case 'master':
             return "master";
-        case "nbp":  // TODO: remove me
-            return "stage";
+        // case "nbp":  // TODO: remove me
+        //     return "stage";
         default:
             return "none";
     }

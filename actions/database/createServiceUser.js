@@ -35,7 +35,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
         log.info(`found ${queryResult[0].length} users`);
         let createdByDBInit = queryResult[0]
             .filter(it => it.createdBy !== db_init_flag);
-        log.debug(`createdByDBInit: ${createdByDBInit}`);
+        log.debug(`createdByDBInit: `, createdByDBInit);
         if (createdByDBInit.length > 0) {
             log.info(`${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);
         } else {
