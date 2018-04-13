@@ -49,7 +49,7 @@ const buildDockerCreate = function (config) {
             }
         }
     }
-    log.debug("added fields: ", addedFields);
+    log.debug("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
     return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']}`;
 };
 
@@ -58,7 +58,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
         log.info("no task_template_mapped found. using simple update mode (only updating to new image");
         return `docker service update --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
     }
-    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}))
+    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));
     const fieldDefs = JSON.parse(fs.readFileSync('./field_defs.json'));
     const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
     const wantedParams = getWantedParams(taskTemplate);
@@ -113,16 +113,16 @@ const buildDockerUpdate = function (config, addSecret = false) {
             }
         }
     }
-    log.info("added fields: ", addedFields);
+    log.info("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
     return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 /**
  * Adds up params for 'production' and 'default'
  * @param taskTemplate
- * @returns {Array<fields for docker-command>}
+ * @returns {Array<string> fields for docker-command}
  */
 const getWantedParams = function (taskTemplate) {
-    log.info("gathering wanted params...");
+    log.debug("gathering wanted params...");
     let result = [];
     if (taskTemplate['production']) {
         log.debug("... adding production keys ...");
@@ -132,7 +132,7 @@ const getWantedParams = function (taskTemplate) {
         log.debug("... adding default keys ...");
         result = result.concat(Object.keys(taskTemplate["default"]));
     }
-    log.info("... finished gathering finished params", result);
+    log.debug("... finished gathering finished params", result);
     return result;
 };
 
@@ -152,7 +152,7 @@ const drillDown = function (dataHolder, path) {
         log.error("path not found");
         return null;
     } else {
-        return drillDown(dataHolder[currentLocation], pathEntries.join('/'))
+        return drillDown(dataHolder[currentLocation], pathEntries.join('/'));
     }
 };
 
@@ -287,7 +287,6 @@ const updateMart = function (param) {
         fd2ttMap[fd_value] = tt_value;
     }
     log.debug(`creating task_template to field_definition mapping:\n'task_template 2 fieldMap' --> ${JSON.stringify(tt2fdMap)}\n'fieldMap 2 task_template' --> ${JSON.stringify(fd2ttMap)}`);
-
 
     if (Array.isArray(param.cv)) {
         param.cv = param.cv[0];

@@ -372,6 +372,27 @@ module.exports = class EnvProxy {
             })
     }
 
+    getNodes_E(){
+        return this.executeCommand_E("docker node ls --format '{{.ID}};{{.Hostname}};{{.Status}};{{.Availability}};{{.ManagerStatus}}'")
+            .then(response => {
+                return response.split('\n').map(
+                    row => {
+                        let split = row.split(semicolon_splitter);
+                        if (split.length >= 4) {
+                            return {
+                                id: split[0],
+                                hostname: split[1],
+                                status: split[2],
+                                availability: split[3],
+                                managerstatus: split[4]
+                            };
+                        }
+                    }
+                )
+            })
+            .then(result => result.filter(it => it));
+    }
+
     /**
      * loads the inputfile and saves it on ENV at target-position
      * @param inputPath
@@ -673,7 +694,7 @@ module.exports = class EnvProxy {
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {
-            log.info(`proxySrv for ${targetHostName}:${targetPort} handling client request, remote port = ${conn.remotePort}`);
+            log.debug(`proxySrv for ${targetHostName}:${targetPort} handling client request, remote port = ${conn.remotePort}`);
             conn.on('end', () => {
                 log.severe('proxySrv client disconnected from socket');
             });
@@ -681,7 +702,7 @@ module.exports = class EnvProxy {
                 log.severe('proxySrv client socket closed');
             });
 
-            log.debug(`connecting client to proxyStream, remote address ${conn.remoteAddress} remote port ${conn.remotePort}`);
+            log.severe(`connecting client to proxyStream, remote address ${conn.remoteAddress} remote port ${conn.remotePort}`);
 
             this.sshconn.forwardOut('localhost',
                 this.proxyServers[proxyKey].port,
