@@ -1,0 +1,18 @@
+{
+  "constraint":{"path":"Spec/TaskTemplate/Placement/Constraints", "type":"mar"},
+  "dns-search":{"path":"Spec/TaskTemplate/ContainerSpec/DNSConfig/Search", "type":"mar"},
+  "env":{"path":"Spec/TaskTemplate/ContainerSpec/Env", "type":"mark"},
+  "host":{"path":"Spec/TaskTemplate/ContainerSpec/Hosts", "type":"marh"},
+  "hostname": {"path":"Spec/TaskTemplate/ContainerSpec/Hostname", "type":"repl"},
+  "log-driver":{"path":"Spec/TaskTemplate/LogDriver/Name", "type":"repl"},
+  "log-opt":{"path":"Spec/TaskTemplate/LogDriver/Options", "type":"frepl"},
+  "mode":{"path":"Spec/Mode", "type":"create"},
+  "mount":{"path":"Spec/TaskTemplate/ContainerSpec/Mounts", "type":"mart", "keyNames":["Target"]},
+  "name":{"path":"Spec/Name", "type":"create"},
+  "publish":{"path":"Spec/EndpointSpec/Ports", "type":"mart", "keyNames":["TargetPort", "Protocol"], "fieldMap":{"Target":"TargetPort", "Mode":"PublishMode","Published":"PublishedPort"}, "rmKeyType":"srcKVCommaSeparated"},
+  "replicas":{"path":"Spec/Mode/Replicated/Replicas", "type":"repl"},
+  "limit-cpu": {"path":"Spec/TaskTemplate/Resources/Limits/NanoCPUs", "mapping": "cpu2nano", "type":"repl"},
+  "limit-memory": {"path":"Spec/TaskTemplate/Resources/Limits/MemoryBytes", "mapping": "custom2bytes", "type":"repl"},
+  "reserve-cpu": {"path": "Spec/TaskTemplate/Resources/Reservations/NanoCPUs", "mapping": "cpu2nano", "type":"repl"},
+  "reserve-memory": {"path": "Spec/TaskTemplate/Resources/Reservations/MemoryBytes","mapping": "custom2bytes", "type":"repl"}
+}

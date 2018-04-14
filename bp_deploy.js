@@ -66,20 +66,6 @@ const exec = async function () {
         await fileHandler.loadTaskTemplate(config);
         log.info("...finished task template");
 
-        const field_defs_url = `https://raw.githubusercontent.com/${config['REPO_PATH']}/field_defs.json`;
-        const field_defs_file = './field_defs.json';
-        try {
-            log.info("loading field_defs.json");
-            await fileHandler.loadPrivateGit2File(field_defs_url, field_defs_file, config)
-                .then(() => {
-                    log.info("finished loading field_defs.json");
-                });
-
-        } catch (err) {
-            log.error(`error while downloading field_defs file`, err);
-            process.exit(1);
-        }
-
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
 

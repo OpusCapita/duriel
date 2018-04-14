@@ -2,11 +2,11 @@
 const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
+const fieldDefs = require('../../fieldDefs');
 
 const buildDockerCreate = function (config) {
     log.info("Building docker create command");
     const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}))
-    const fieldDefs = JSON.parse(fs.readFileSync('./field_defs.json'));
     const wantedParams = getWantedParams(taskTemplate);
 
     const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
@@ -59,7 +59,6 @@ const buildDockerUpdate = function (config, addSecret = false) {
         return `docker service update --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
     }
     const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));
-    const fieldDefs = JSON.parse(fs.readFileSync('./field_defs.json'));
     const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
     const wantedParams = getWantedParams(taskTemplate);
 
