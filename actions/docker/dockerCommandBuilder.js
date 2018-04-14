@@ -92,7 +92,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
                 name: param,
                 cv: currentValue,
                 dv: desiredValue,
-                fieldDef: fieldDefinition
+                fieldDefinition: fieldDefinition
             };
             log.debug(`handling param '${param}'...`);
             switch (type) {
@@ -286,8 +286,8 @@ const updateMark = function (param) {
 
 const updateMart = function (param) {
     let result = "";
-    const fieldMap = param['fieldDef']['fieldMap'];
-    const isCommaSeperatedList = param['fieldDef']['rmKeyType'] === 'srcKVCommaSeparated';
+    const fieldMap = param['fieldDefinition']['fieldMap'];
+    const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
 
     // create map to translate name from task_template to field_defs
     const tt2fdMap = {};
