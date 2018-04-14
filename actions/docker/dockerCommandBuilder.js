@@ -4,6 +4,19 @@ const log = new Logger();
 const fs = require('fs');
 const fieldDefs = require('../../fieldDefs');
 
+const byteMappingValidation = /[0-9]+[KMGT]/;
+const integerExtractor = /[0-9]+/;
+const byteSuffixExtractor = /[KMGT]/;
+const byteSuffixMapping = {
+    K: 1024,
+    M: 1048576,
+    G: 1073741824,
+    T: 1099511627776
+};
+
+const cpuMappingValidation = /[+-]?([0-9]*[.])?[0-9]+/;
+const nanoFactor = 1000000000;
+
 const buildDockerCreate = function (config) {
     log.info("Building docker create command");
     const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}))
@@ -73,18 +86,18 @@ const buildDockerUpdate = function (config, addSecret = false) {
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
             const fieldPath = fieldDefinition['path'];
-            const valueFromServiceConfig = drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
+            const currentValue = drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
             const desiredValue = getDesiredValue(taskTemplate, param, config);
             const collectedData = {
                 name: param,
-                cv: valueFromServiceConfig,
+                cv: currentValue,
                 dv: desiredValue,
                 fieldDef: fieldDefinition
             };
             log.debug(`handling param '${param}'...`);
             switch (type) {
                 case 'repl':
-                    addedFields.push(getMultipleOptionsFromString(collectedData));
+                    addedFields.push(updateRepl(collectedData));
                     break;
                 case 'frepl':
                     addedFields.push(getMultipleOptionsFromArray(collectedData));
@@ -376,6 +389,33 @@ const getMultipleOptionsFromArray = function (collectedData) {
         result += `--${collectedData.name} ${opt} `
     }
     return result;
+};
+
+const updateRepl = function (collectedData) {
+    if (collectedData.fieldDefinition.mapping) {
+        if (collectedData.fieldDefinition.mapping === "custom2bytes") {
+            if (!new RegExp(byteMappingValidation).test(collectedData.dv)) {
+                throw new Error(`Task_Template contains invalid field for byte-mapping: '${collectedData.dv}'`);
+            }
+            const integerPart = new RegExp(integerExtractor).exec(collectedData.dv)[0];
+            const suffixPart = new RegExp(byteSuffixExtractor).exec(collectedData.dv)[0];
+            const mappedValue = integerPart * byteSuffixMapping[suffixPart];
+            if (collectedData.cv && collectedData.cv === mappedValue) {
+                log.debug(`value for ${collectedData.name} did not change - skipping!`);
+                collectedData.dv = null;
+            }
+        } else if (collectedData.fieldDefinition.mapping === "cpu2nano") {
+            if (!new RegExp(cpuMappingValidation).test(collectedData.dv)) {
+                throw new Error(`Task_Template contains invalid field for cpu-limit-mapping: '${collectedData.dv}'`);
+            }
+            const mappedValue = collectedData.dv * nanoFactor;
+            if (collectedData.cv && collectedData.cv === mappedValue) {
+                log.debug(`value for ${collectedData.name} did not change - skipping!`);
+                collectedData.dv = null;
+            }
+        }
+    }
+    return getMultipleOptionsFromString(collectedData);
 };
 
 const getMultipleOptionsFromString = function (collectedData) {
