@@ -264,12 +264,16 @@ module.exports = class EnvProxy {
         const fetchedSecrets = [];
         const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
         for (let task of serviceTasks) {
+            log.debug(`fetching in task: `, task);
             try {
                 const containers = await this.getContainersOfService_N(task.node, serviceName, true);
+                log.debug(`iterating over containsers of node: `, task.node);
                 for (let container of containers) {
+                    log.debug(`doing container '${container.containerId}'`);
                     try {
                         const command = `docker exec ${container.containerId} cat /run/secrets/${secretName}`;
                         const secret = await this.executeCommand_N(task.node, command, true);
+                        log.debug("secret command response: ", secret);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
                             if (regexResult && regexResult.length > 0) {
