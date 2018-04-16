@@ -176,6 +176,7 @@ module.exports = class EnvProxy {
             command += `'${cmd}'`;
         else
             command += `${cmd}`;
+        log.debug(command);
         return this.executeCommand_E(command, sudo);
     }
 
