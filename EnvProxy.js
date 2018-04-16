@@ -176,7 +176,6 @@ module.exports = class EnvProxy {
             command += `'${cmd}'`;
         else
             command += `${cmd}`;
-        log.debug(command);
         return this.executeCommand_E(command, sudo);
     }
 
@@ -274,7 +273,6 @@ module.exports = class EnvProxy {
                     try {
                         const command = `docker exec ${container.containerId} cat /run/secrets/${secretName}`;
                         const secret = await this.executeCommand_N(task.node, command, true);
-                        log.debug("secret command response: ", secret);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
                             if (regexResult && regexResult.length > 0) {
