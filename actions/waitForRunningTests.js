@@ -10,6 +10,10 @@ module.exports = async function (config, proxy) {
         log.info("This service needs no e2e testing");
         return;
     }
+    if(['develop', 'master'].includes(config['CIRCLE_BRANCH'])){
+        log.info("this branch does not support e2e testing");
+        return;
+    }
     const testStatus = await getTestStatus(config, proxy);
     if (!testStatus) {
         throw new Error("Could not get test build status!");
