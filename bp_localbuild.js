@@ -18,6 +18,7 @@ const exec = async () => {
     try {
         const config = getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
+        await dockerHelper.loginLocal(config);
         await dockerCompose(compose_base, "pull");
         await buildDockerImage.buildImage(config);
         await dockerCompose(compose_base, "up -d");
