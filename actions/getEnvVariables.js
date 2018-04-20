@@ -6,7 +6,7 @@ const calculateEnv = require('./calculateEnv');
 
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
-const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN']; // TODO: SHA1 & Token are identical
+const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'andariel_branch']; // TODO: SHA1 & Token are identical
 /**
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
@@ -45,7 +45,9 @@ module.exports = function () {
         }
     }
     log.info(`calculating env-depending variables...`);
-    config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
+    if (!config['andariel_branch']) {
+        config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
+    }
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
     config['TARGET_ENV'] = calculateEnv.firstTargetEnv(config['CIRCLE_BRANCH']);
     config['MYSQL_PW'] = getDatabasePassword(config);
@@ -56,15 +58,15 @@ module.exports = function () {
     return config;
 };
 
-function calculateRepoPath(andariel_branch, circle_branch){
+function calculateRepoPath(andariel_branch, circle_branch) {
     let result = `OpusCapita/andariel/${andariel_branch}`;
-    if(circle_branch === 'master'){
+    if (circle_branch === 'master') {
         result = "OpusCapita/andariel/master";
     }
     return result;
 }
 
-function getDatabasePassword (config) {
+function getDatabasePassword(config) {
     const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     if (process.env[valueKey]) {
         log.severe(`env_var ${valueKey} set successfully.`);
