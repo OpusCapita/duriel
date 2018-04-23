@@ -58,7 +58,7 @@ const exec = async function () {
 
         log.info(`copying data from envInfo into config`);
         for (const key in EnvInfo[config['TARGET_ENV']]) {
-            log.info(`copying ${key}`);
+            log.debug(`copying ${key}`);
             config[`${key}`] = EnvInfo[config['TARGET_ENV']][`${key}`];
         }
 
