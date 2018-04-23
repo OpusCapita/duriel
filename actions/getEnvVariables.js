@@ -53,6 +53,7 @@ module.exports = function () {
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['VERSION'] = calculateVersion.getDevTag(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
+    config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 
     return config;
@@ -107,9 +108,11 @@ class BaseConfig {
 
 module.exports.getBaseConfigObject = getBaseConfigObject;
 
+function getE2EBranch(circleBranch) {
+    return circleBranch === "master" ? "master" : "develop";
+}
 
-
-
+module.exports.getE2EBranch = getE2EBranch;
 
 
 

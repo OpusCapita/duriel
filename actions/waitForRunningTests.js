@@ -28,7 +28,7 @@ const getTestStatus = async function (config, proxy) {
     if (!config['CIRCLE_TOKEN']) {
         log.error("CIRCLE_TOKEN not set, failing build");
     }
-    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/tree/${config['CIRCLE_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
+    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
     log.info(url);
     const apiResponse = await request.get(url)
         .set('Accept', 'application/json')
