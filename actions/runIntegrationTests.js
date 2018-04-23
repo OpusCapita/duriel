@@ -2,6 +2,7 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const helper = require('./helpers/utilHelper');
+const request = require('superagent');
 
 module.exports = async function (config, proxy) {
     const attempts = 10, interval = 5000;
@@ -17,11 +18,8 @@ module.exports = async function (config, proxy) {
             .filter(entry => entry['Status'] === 'passing')
             .length;
         if (passingChecks > 0 && passingChecks === totalChecks) {
-            log.info(`all ${totalChecks} are passing! - service is healthy!`);
-            return true;
-        } else if (passingChecks > 0) {
-            log.warn(`${passingChecks} of ${totalChecks} checks are passing - service is healthy`);
-            return true;
+            log.info(`${passingChecks} of ${totalChecks} checks are passing! - service is healthy!`);
+            return checkAccessability(config);
         } else {
             log.info(`0 checks are passing - waiting for ${interval}ms.`);
             await helper.snooze(interval);
@@ -31,4 +29,18 @@ module.exports = async function (config, proxy) {
     return false;
 };
 
-
+/**
+ * calls {targetEnv}/bnp
+ * @param config
+ * @returns success: body of the response, failure: null
+ */
+async function checkAccessability(config) {
+    const testUrl = `${config['public_scheme']}://${config['public_hostname']}:${config['public_port']}/bnp/`;
+    log.debug("url for testing accessability:", testUrl);
+    return await request.get(testUrl)
+        .then(res => res.body)
+        .catch(error => {
+            log.error("error durring accessability test: ", error.message);
+            return null;
+        })
+}

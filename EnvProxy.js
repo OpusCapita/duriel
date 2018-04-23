@@ -375,7 +375,7 @@ module.exports = class EnvProxy {
             })
     }
 
-    getNodes_E(){
+    getNodes_E() {
         return this.executeCommand_E("docker node ls --format '{{.ID}};{{.Hostname}};{{.Status}};{{.Availability}};{{.ManagerStatus}}'")
             .then(response => {
                 return response.split('\n').map(
