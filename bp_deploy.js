@@ -15,7 +15,7 @@ const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
-const waitForTests = require('./actions/waitForRunningTests');
+const e2eTester = require('./actions/e2eTester');
 const setupServiceUser = require('./actions/database/createServiceUser');
 const dockerHelper = require('./actions/helpers/dockerHelper');
 const rollback = require('./actions/rollbackService');
@@ -133,10 +133,10 @@ const exec = async function () {
         await dockerHelper.loginEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
-        const testToken = await waitForTests.prepareE2ETests(config, proxy);
+        const testToken = await e2eTester.prepareE2ETests(config, proxy);
 
         if(testToken && testToken['testStatus'] === 'running'){
-            const waitToken = await waitForTests.waitForTest(config);
+            const waitToken = await e2eTester.waitForTest(config);
             log.debug(`e2e token after waiting for test: `, waitToken);
         }
 
@@ -148,7 +148,7 @@ const exec = async function () {
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
-            await waitForTests.removeSyncToken(config, proxy, testToken['syncToken']);
+            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             await rollback(config, proxy);
         } else {
             log.info(`Monitoring exited with status: '${monitorResult}'`);
@@ -156,11 +156,11 @@ const exec = async function () {
 
         if (testToken['syncToken']) {
             log.info("Removing syncToken from CircleCi");
-            await waitForTests.removeSyncToken(config, proxy, testToken['syncToken']);
-            const e2eTestStatus = await waitForTests.getTestStatus(config, proxy);
+            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
+            const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
             if (testToken['testNumber'] !== e2eTestStatus.testNumber) {
-                await waitForTests.triggerE2ETest(config);    // add rollback on failure?
-                await waitForTests.waitForTest(config)
+                await e2eTester.triggerE2ETest(config);    // add rollback on failure?
+                await e2eTester.waitForTest(config)
             }
         }
 
