@@ -133,23 +133,35 @@ const exec = async function () {
         await dockerHelper.loginEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
-        const syncToken = await waitForTests(config, proxy);
+        const testToken = await waitForTests.prepareE2ETests(config, proxy);
+
+        if(testToken && testToken['testStatus'] === 'running'){
+            const waitToken = await waitForTests.waitForTest(config);
+            log.debug(`e2e token after waiting for test: `, waitToken);
+        }
+
         log.info(`executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(dockerCommand);
         log.debug("command execution got response: ", commandResponse);
-
         log.info("monitoring service after command-execution");
-        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
 
+        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
+            await waitForTests.removeSyncToken(config, proxy, testToken['syncToken']);
             await rollback(config, proxy);
         } else {
             log.info(`Monitoring exited with status: '${monitorResult}'`);
         }
-        if (syncToken) {
+
+        if (testToken['syncToken']) {
             log.info("Removing syncToken from CircleCi");
-            await waitForTests.removeSyncToken(config, proxy, syncToken);
+            await waitForTests.removeSyncToken(config, proxy, testToken['syncToken']);
+            const e2eTestStatus = await waitForTests.getTestStatus(config, proxy);
+            if (testToken['testNumber'] !== e2eTestStatus.testNumber) {
+                await waitForTests.triggerE2ETest(config);    // add rollback on failure?
+                await waitForTests.waitForTest(config)
+            }
         }
 
         await setupServiceUser(config, proxy, false);
