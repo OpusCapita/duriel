@@ -40,6 +40,9 @@ async function checkAccessability(config) {
     return await request.get(testUrl)
         .then(res => res.body)
         .catch(error => {
+            if(error.status === 302){
+                return "successfully found redirect hell";
+            }
             log.error("error durring accessability test: ", error.message);
             return null;
         })
