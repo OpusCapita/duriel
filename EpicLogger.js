@@ -16,7 +16,7 @@ class EpicLogger {
     }
 
     static getEnvLogLevel() {
-        return process.env.epicLogLevel ? process.env.epicLogLevel : "debug";
+        return process.env.epicLogLevel ? process.env.epicLogLevel : "info";
     }
 
     log(level, message, error, obj) {
