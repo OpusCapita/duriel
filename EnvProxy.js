@@ -641,10 +641,10 @@ module.exports = class EnvProxy {
     /**
      * returns json response from consul
      */
-    queryConsul(apiCall) {
+    async queryConsul(apiCall) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
-        return axios.get('http://localhost:' + proxy.port + apiCall)
+        return await axios.get('http://localhost:' + proxy.port + apiCall)
             .then((response) => {
                 return response.data;
             })
@@ -660,10 +660,10 @@ module.exports = class EnvProxy {
      * @param value
      * @returns http-response of consul | Promise.reject(error)
      */
-    addKeyValueToConsul(key, value) {
+    async addKeyValueToConsul(key, value) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
-        return axios.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
+        return await axios.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
             .then((response) => {
                 return Promise.resolve(response.data);
             })
@@ -678,8 +678,8 @@ module.exports = class EnvProxy {
      * @param key
      * @returns value as String | Promise.reject
      */
-    getKeyValue(key) {
-        return this.queryConsul(`/v1/kv/${key}?raw`);
+    async getKeyValue(key) {
+        return await this.queryConsul(`/v1/kv/${key}?raw`);
     }
 
     /**

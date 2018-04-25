@@ -32,12 +32,11 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     log.info(`3 result: foundServiceTable: ${foundServiceTable}, foundServiceUser: ${foundServiceUser}`);
 
-    log.info("4.1 creating service-database");
+
     if (!foundServiceTable) {
+        log.info("4.1 creating service-database");
         const createDBQuery = `CREATE DATABASE \`${config['serviceName']}\`;`;
         await queryExecuter(config, proxy, createDBQuery);
-    } else {
-        log.info("4.1 skipping - table exists already.")
     }
     log.info("4.1 successfully created service-database");
 
@@ -48,6 +47,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         const consulPasswords = await proxy.getKeyValue(`${config['serviceName']}/db-init/password`);
         const consulPassword = consulPasswords[0];
         db_password = consulPassword['Value'];
+        log.info(consulPasswords);
+        log.info(consulPassword);
+        log.info(db_password);
     } catch (error) {
         log.error("error while getting service-password from consul: ", error);
     }
@@ -56,10 +58,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         db_password = await proxy.executeCommand_L(`openssl rand -base64 32`);
         injectIntoConsul = true;
     }
-    log.info("4.2 finished getting database password");
 
-    log.info("4.3 creating service-database-user");
     if (!foundServiceUser) {
+        log.info("4.3 creating service-database-user");
         const createUserQuery = `CREATE USER '${config['serviceName']}'@'%' IDENTIFIED BY '${db_password}';
                                  GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';
                                  FLUSH PRIVILEGES;`;
@@ -67,10 +68,9 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     } else {
         log.info("4.3 skipping. - user already exists");
     }
-    log.info("4.3 successfully created service-database-user");
 
-    log.info("4.4 forcing service-database-user update");
     if (forceUserCreate) {
+        log.info("4.4 forcing service-database-user update");
         const userPwQuery = `select count(*) as count from mysql.user where user = '${config['serviceName']}' and password('${db_password}') = authentication_string;`;
         const userPwQueryResult = await queryExecuter(config, proxy, userPwQuery);
         if (0 === userPwQueryResult[0][0].count) {
