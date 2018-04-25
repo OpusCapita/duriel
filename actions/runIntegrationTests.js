@@ -19,7 +19,7 @@ module.exports = async function (config, proxy) {
             .length;
         if (passingChecks > 0 && passingChecks === totalChecks) {
             log.info(`${passingChecks} of ${totalChecks} checks are passing! - service is healthy!`);
-            return checkAccessability(config);
+            return await checkAccessability(config);
         } else {
             log.info(`0 checks are passing - waiting for ${interval}ms.`);
             await helper.snooze(interval);
