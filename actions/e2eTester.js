@@ -122,7 +122,7 @@ const triggerE2ETest = async function (config) {
         .set('Content-Type', 'application/json')
         .send(data)
         .then(res => new Promise(((resolve, reject) => {
-                log.info("successfully triggert e2e-test");
+                log.info("successfully triggert e2e-test", res.body);
                 return resolve(res);
             }))
         );
