@@ -62,7 +62,6 @@ const getTestStatus = async function (config) {
         log.error("CIRCLE_TOKEN not set, failing build");
     }
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
-    log.info(url);
     const apiResponse = await request.get(url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
@@ -123,7 +122,7 @@ const triggerE2ETest = async function (config) {
         .set('Content-Type', 'application/json')
         .send(data)
         .then(res => new Promise(((resolve, reject) => {
-                log.info("successfully triggert e2e-test", res.body);
+                log.debug("successfully triggert e2e-test", res.body);
                 return resolve(res);
             }))
         );
