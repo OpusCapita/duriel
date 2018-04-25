@@ -18,10 +18,10 @@ const helper = require('./helpers/utilHelper');
 const waitForTest = async function (config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {
         const currentStatus = await getTestStatus(config);
-        if(['running', 'queued'].includes(currentStatus.status)){
+        if (['running', 'queued'].includes(currentStatus.status)) {
             log.info(`current status of test #${currentStatus.testNumber}: '${currentStatus.status}', waiting ${interval / 1000} seconds...`);
             await helper.snooze(interval);
-        } else if(['success', 'fixed'].includes(currentStatus.status)){
+        } else if (['success', 'fixed'].includes(currentStatus.status)) {
             log.info(`current status of test #${currentStatus.testNumber}: '${currentStatus.status}'. SUCCESS!`);
             return currentStatus;
         } else {
@@ -97,10 +97,12 @@ const addSyncToken = async function (config, proxy, tokenName) {
 };
 
 const removeSyncToken = async function (config, proxy, syncToken) {
+    log.info(`removing syncToken: '${syncToken}' from CircleCi`);
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/envvar/${syncToken}?circle-token=${config['CIRCLE_TOKEN']}`;
     await request.delete(url)
-        .send(data)
+        .set('Content-Type', 'application/json')
         .then(res => new Promise(((resolve, reject) => {
+                log.debug('deleted syncToken successfully');
                 return resolve(res);
             }))
         );

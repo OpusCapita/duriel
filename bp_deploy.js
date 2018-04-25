@@ -155,7 +155,6 @@ const exec = async function () {
         }
 
         if (testToken['syncToken']) {
-            log.info("Removing syncToken from CircleCi");
             await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
             if (testToken['testNumber'] !== e2eTestStatus.testNumber) {
