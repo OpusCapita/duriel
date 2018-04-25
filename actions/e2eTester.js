@@ -116,8 +116,7 @@ const triggerE2ETest = async function (config) {
             "TARGET_ENV": config['$targetEnv']
         }
     };
-
-    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['CIRCLE_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}`;
+    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}`;
     await request.post(url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')

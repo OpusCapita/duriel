@@ -157,7 +157,8 @@ const exec = async function () {
         if (testToken['syncToken']) {
             await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
-            if (testToken['testNumber'] !== e2eTestStatus.testNumber) {
+            if (testToken['testNumber'] !== e2eTestStatus['testNumber']) {
+                log.info(`last e2e test was not the one we were waiting for last:'${e2eTestStatus['testNumber']}', waiting for: '${testToken['testNumber']}'`);
                 await e2eTester.triggerE2ETest(config);    // add rollback on failure?
                 await e2eTester.waitForTest(config)
             }
