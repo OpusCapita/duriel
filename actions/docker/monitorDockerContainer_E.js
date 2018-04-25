@@ -13,17 +13,17 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
-        log.info(`Checking service-health ${i}/${attempts} - current state: '${serviceHealth.state}'`);
         if (['success'].includes(serviceHealth.state)) {
-            log.info("success! service up and running!");
+            log.info(`${i}/${attempts} - service up and running'`);
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
-            log.info(`current status is: '${serviceHealth.state}'. waiting a ${interval / 1000} sec and checking again!`);
+            log.info(`${i}/${attempts} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
             await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
+            log.warn(`${i}/${attempts} - - current state: ${serviceHealth.state}`);
             return 'paused';
         } else {
-            log.error(`${serviceHealth.state}`);
+            log.error(`${i}/${attempts} - current state: ${serviceHealth.state}`);
             return 'failure';
         }
     }
