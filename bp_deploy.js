@@ -64,7 +64,7 @@ const exec = async function () {
 
         log.info("loading task template...");
         await fileHandler.loadTaskTemplate(config);
-        log.info("...finished task template");
+        log.debug("...finished task template");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
@@ -92,10 +92,9 @@ const exec = async function () {
             log.error("error while fetching service information", error);
         }
         await fileHandler.saveObject2File(serviceInformation, './service_config.json', true);
-        log.info("saved service information into 'service_config.json'");
+        log.debug("saved service information into 'service_config.json'");
         let dockerCommand;
         let isCreateMode = serviceInformation && serviceInformation.length === 0;
-        log.info(`creating dockerCommand in ${isCreateMode ? 'CreateMode' : 'UpdateMode' }`);
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.existsSync('./task_template_mapped.json')) {

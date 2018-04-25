@@ -42,7 +42,7 @@ async function loadTaskTemplate(config) {
     const injectorResult = variableInjector(JSON.stringify(taskTemplate), config);
     log.debug("Trying to parse edited data back to JSON");
     JSON.parse(injectorResult);
-    log.info("Writing mapped task_template.json");
+    log.debug("Writing mapped task_template.json");
     fs.writeFileSync("./task_template_mapped.json", JSON.parse(injectorResult), {encoding: 'utf8'});
     return injectorResult;
 }

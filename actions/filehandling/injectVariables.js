@@ -29,7 +29,7 @@ module.exports = function (input, config) {
         let varOrigin = varName;
 
         if (varName.includes(envMarker)) {
-            log.info(`injecting environment '${targetEnv}' for envMarker '${envMarker}'`);
+            log.severe(`injecting environment '${targetEnv}' for envMarker '${envMarker}'`);
             varOrigin = varOrigin.replace(envMarker, targetEnv);
         }
 

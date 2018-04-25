@@ -32,14 +32,14 @@ module.exports = async function (config, proxy, checkOnly = true) {
         log.info(`${config['svcUserName']} was not found in DB`);
         injectUser = true;
     } else {
-        log.info(`found ${queryResult[0].length} users`);
+        log.debug(`found ${queryResult[0].length} users`);
         let createdByDBInit = queryResult[0]
             .filter(it => it.createdBy !== db_init_flag);
         log.debug(`createdByDBInit: `, createdByDBInit);
         if (createdByDBInit.length > 0) {
-            log.info(`${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);
+            log.debug(`${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);
         } else {
-            log.info(`${config['svcUserName']} exists, created by ${db_init_flag}, updating`);
+            log.debug(`${config['svcUserName']} exists, created by ${db_init_flag}, updating`);
             injectUser = true;
         }
     }
