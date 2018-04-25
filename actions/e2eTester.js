@@ -61,7 +61,7 @@ const getTestStatus = async function (config) {
     if (!config['CIRCLE_TOKEN']) {
         log.error("CIRCLE_TOKEN not set, failing build");
     }
-    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
+    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
     log.info(url);
     const apiResponse = await request.get(url)
         .set('Accept', 'application/json')
@@ -84,13 +84,14 @@ const getTestStatus = async function (config) {
 
 const addSyncToken = async function (config, proxy, tokenName) {
     log.info(`adding syncToken: '${tokenName}'`);
-    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/envvar?circle-token=${config['CIRCLE_TOKEN']}`;
+    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar?circle-token=${config['CIRCLE_TOKEN']}`;
     const data = {name: tokenName, value: ""};
     await request.post(url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
         .send(data)
         .then(res => new Promise(((resolve, reject) => {
+            log.debug('add syncToken response: ', res.body);
                 return resolve(res);
             }))
         );
@@ -98,11 +99,11 @@ const addSyncToken = async function (config, proxy, tokenName) {
 
 const removeSyncToken = async function (config, proxy, syncToken) {
     log.info(`removing syncToken: '${syncToken}' from CircleCi`);
-    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/businessnetwork/envvar/${syncToken}?circle-token=${config['CIRCLE_TOKEN']}`;
+    const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar/${syncToken}?circle-token=${config['CIRCLE_TOKEN']}`;
     await request.delete(url)
         .set('Content-Type', 'application/json')
         .then(res => new Promise(((resolve, reject) => {
-                log.debug('deleted syncToken successfully');
+                log.debug('deleted syncToken successfully', res.body);
                 return resolve(res);
             }))
         );
