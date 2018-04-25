@@ -121,7 +121,7 @@ const exec = async function () {
                 config['serviceSecret'] = secrets.serviceSecret;
                 config['serviceId'] = secrets.serviceId;
             } else {
-                log.info("service secret retrieved from running instance.");
+                log.debug("service secret retrieved from running instance.");
                 config['serviceSecret'] = fetchedSecrets[0];
             }
             dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);

@@ -125,7 +125,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
             }
         }
     }
-    log.info("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
+    log.debug("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
     return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
 };
 /**
