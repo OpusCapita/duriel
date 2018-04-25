@@ -52,8 +52,8 @@ const prepareE2ETests = async function (config, proxy) {
     await addSyncToken(config, proxy, syncToken);
     return {
         syncToken: syncToken,
-        testNumber: testStatus.nextTestNumber,
-        testStatus: testStatus.status
+        testStatus: testStatus.status,
+        testNumber: testStatus.nextTestNumber
     };
 };
 
@@ -85,7 +85,7 @@ const addSyncToken = async function (config, proxy, tokenName) {
     log.info(`adding syncToken: '${tokenName}'`);
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar?circle-token=${config['CIRCLE_TOKEN']}`;
     const data = {name: tokenName, value: ""};
-    await request.post(url)
+    return await request.post(url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
         .send(data)
@@ -99,7 +99,7 @@ const addSyncToken = async function (config, proxy, tokenName) {
 const removeSyncToken = async function (config, proxy, syncToken) {
     log.info(`removing syncToken: '${syncToken}' from CircleCi`);
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar/${syncToken}?circle-token=${config['CIRCLE_TOKEN']}`;
-    await request.delete(url)
+    return await request.delete(url)
         .set('Content-Type', 'application/json')
         .then(res => new Promise(((resolve, reject) => {
                 log.debug('deleted syncToken successfully', res.body);
@@ -117,7 +117,7 @@ const triggerE2ETest = async function (config) {
         }
     };
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}`;
-    await request.post(url)
+    return await request.post(url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
         .send(data)
