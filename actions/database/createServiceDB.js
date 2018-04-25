@@ -37,8 +37,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         log.info("4.1 creating service-database");
         const createDBQuery = `CREATE DATABASE \`${config['serviceName']}\`;`;
         await queryExecuter(config, proxy, createDBQuery);
+        log.info("4.1 successfully created service-database");
     }
-    log.info("4.1 successfully created service-database");
 
     log.info("4.2 getting database password");
     let db_password = null;
@@ -60,8 +60,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
                                  GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';
                                  FLUSH PRIVILEGES;`;
         await queryExecuter.executeMultiLineQuery(config, proxy, createUserQuery);
-    } else {
-        log.info("4.3 skipping. - user already exists");
     }
 
     if (forceUserCreate) {
@@ -76,20 +74,17 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         } else {
             log.info("4.4 no need to update user. skipping");
         }
+        log.info("4.4 successfully updated service-database-user");
     }
-    log.info("4.4 successfully updated service-database-user");
 
-    log.info("4.5 injecting data into consul");
     if (injectIntoConsul) {
+        log.info("4.5 injecting data into consul");
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/password`, db_password));
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']));
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/database`, config['serviceName']));
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data));
         log.info("4.5 keys injected.")
-    } else {
-        log.info("4.5 skipping - data already in consul");
     }
-    log.info("4.5 finished injecting data into consul");
 
 };
 

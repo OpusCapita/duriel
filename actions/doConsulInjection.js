@@ -57,6 +57,6 @@ const gatherInjectionVariables = function (taskTemplate, config) {
             }
         }
     }
-    log.info('... finished gathering consul injection variables: ', Object.keys(result));
+    log.debug('... finished gathering consul injection variables: ', Object.keys(result));
     return result;
 };
