@@ -8,6 +8,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
     const proxy = new EnvProxy();
     const result = {success: undefined, message: `Starting to check health of ${serviceName}`};
     for (let attempt = 1; attempt <= attempts; attempt++) {
+        const logBase = `${helper.padLeft(attempt, '0', 2)}/${attempts}`;
         try {
             if (attempt === attempts && !result.success) {
                 result.success = false;
@@ -24,12 +25,12 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
             log.debug("current-container-state: ", containers);
             for (let service of containers) {
                 if (service.status === "healthy") {
-                    log.info(`${attempt}/${attempts} - status is healthy`);
+                    log.info(`${logBase} - status is healthy`);
                     result.message = `service is healthy after ${attempt} attempts`;
                     result.success = true;
                     return result
                 } else if (service.status === "unhealthy") {
-                    log.error(`${attempt}/${attempts} - status is unhealthy`);
+                    log.error(`${logBase} - status is unhealthy`);
                     result.message = `service is unhealthy! attempt: ${attempt}`;
                     result.success = false;
                     throw new Error(JSON.stringify(result));
@@ -39,7 +40,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     result.message = `status is not in a known: '${service.status}'`
                 }
             }
-            log.info(`${helper.padLeft(attempt, '0', 2)}/${attempts} - current-result: ${JSON.stringify(result)} waiting ${interval / 1000 }sec...`);
+            log.info(`${logBase} - current-result: ${JSON.stringify(result)} waiting ${interval / 1000 }sec...`);
         } catch (error) {
             throw new Error(JSON.stringify(error));
         }

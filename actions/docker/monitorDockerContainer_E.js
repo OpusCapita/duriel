@@ -6,6 +6,7 @@ const helper = require("../helpers/utilHelper");
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
     for (let i = 1; i <= attempts; i++) {
+        const logBase = `${helper.padLeft(i, '0', 2)}/${attempts}`;
         let serviceHealth = {};
         if (isCreateMode) {
             serviceHealth = await checkCreateStatus(config, proxy)
@@ -13,16 +14,16 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
         if (['success'].includes(serviceHealth.state)) {
-            log.info(`${helper.padLeft(i, '0', 2)}/${attempts} - service up and running'`);
+            log.info(`${logBase} - service up and running'`);
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
-            log.info(`${helper.padLeft(i, '0', 2)}/${attempts} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
+            log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
             await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
-            log.warn(`${helper.padLeft(i, '0', 2)}/${attempts} - - current state: ${serviceHealth.state}`);
+            log.warn(`${logBase} - - current state: ${serviceHealth.state}`);
             return 'paused';
         } else {
-            log.error(`${helper.padLeft(i, '0', 2)}/${attempts} - current state: ${serviceHealth.state}`);
+            log.error(`${logBase} - current state: ${serviceHealth.state}`);
             return 'failure';
         }
     }

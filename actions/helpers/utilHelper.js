@@ -18,7 +18,7 @@ const flattenArray = function (array) {
 };
 
 const padLeft = function (input, character, length) {
-    if (!character || !length) {
+    if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
     input = `${input}`;
