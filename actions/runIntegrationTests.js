@@ -6,9 +6,9 @@ const request = require('superagent');
 
 module.exports = async function (config, proxy) {
     const attempts = 10, interval = 5000;
-    log.info("run integration tests...");
+    log.info("running integration tests...");
     for (let attempt = 1; attempt <= attempts; attempt++) {
-        log.info(`running test no. ${attempt} of ${attempts}...`);
+        log.info(`${helper.padLeft(attempt, '0', 2)}/${attempts}...`);
         const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']);
         const totalChecks = helper.flattenArray(consulApiResponse.map(entry => entry.Checks))
             .filter(entry => entry['ServiceName'] === config['serviceName'])

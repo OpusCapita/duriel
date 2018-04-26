@@ -18,7 +18,7 @@ const helper = require('./helpers/utilHelper');
 const waitForTest = async function (config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {
         const currentStatus = await getTestStatus(config);
-        const logBase = `${helper.padLeft(attempt, 0, 2)}/${attempts}: status of test #${currentStatus.testNumber} is '${currentStatus.status}'`;
+        const logBase = `${helper.padLeft(attempt, '0', 2)}/${attempts}: status of test #${currentStatus.testNumber} is '${currentStatus.status}'`;
         if (['running', 'queued'].includes(currentStatus.status)) {
             log.info(`${logBase}, waiting ${interval / 1000} seconds...`);
             await helper.snooze(interval);

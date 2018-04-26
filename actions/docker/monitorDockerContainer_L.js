@@ -39,7 +39,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     result.message = `status is not in a known: '${service.status}'`
                 }
             }
-            log.info(`${helper.padLeft(attempt, 0, 2)}/${attempts} - current-result: ${JSON.stringify(result)} waiting ${interval / 1000 }sec...`);
+            log.info(`${helper.padLeft(attempt, '0', 2)}/${attempts} - current-result: ${JSON.stringify(result)} waiting ${interval / 1000 }sec...`);
         } catch (error) {
             throw new Error(JSON.stringify(error));
         }
