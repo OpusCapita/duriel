@@ -1,7 +1,6 @@
 'use strict';
 const Logger = require('../../EpicLogger');
 const log = new Logger();
-const fs = require('fs');
 const helper = require("../helpers/utilHelper");
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
@@ -14,16 +13,16 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
         if (['success'].includes(serviceHealth.state)) {
-            log.info(`${i}/${attempts} - service up and running'`);
+            log.info(`${helper.padLeft(i, 0, 2)}/${attempts} - service up and running'`);
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
-            log.info(`${i}/${attempts} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
+            log.info(`${helper.padLeft(i, 0, 2)}/${attempts} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
             await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
-            log.warn(`${i}/${attempts} - - current state: ${serviceHealth.state}`);
+            log.warn(`${helper.padLeft(i, 0, 2)}/${attempts} - - current state: ${serviceHealth.state}`);
             return 'paused';
         } else {
-            log.error(`${i}/${attempts} - current state: ${serviceHealth.state}`);
+            log.error(`${helper.padLeft(i, 0, 2)}/${attempts} - current state: ${serviceHealth.state}`);
             return 'failure';
         }
     }

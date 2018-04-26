@@ -128,15 +128,16 @@ const exec = async function () {
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
 
-
         await dockerHelper.loginEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
         const testToken = await e2eTester.prepareE2ETests(config, proxy);
-
-        if(testToken && testToken['testStatus'] === 'running'){
-            const waitToken = await e2eTester.waitForTest(config);
-            log.debug(`e2e token after waiting for test: `, waitToken);
+        if (testToken) {
+            log.info(`Preparing E2E result:`, testToken);
+            if (testToken['testStatus'] === 'running') {
+                const waitToken = await e2eTester.waitForTest(config);
+                log.debug(`e2e token after waiting for test: `, waitToken);
+            }
         }
 
         log.info(`executing dockerCommand ... `);

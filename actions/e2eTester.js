@@ -18,14 +18,15 @@ const helper = require('./helpers/utilHelper');
 const waitForTest = async function (config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {
         const currentStatus = await getTestStatus(config);
+        const logBase = `${helper.padLeft(attempt, 0, 2)}/${attempts}: status of test #${currentStatus.testNumber} is '${currentStatus.status}'`;
         if (['running', 'queued'].includes(currentStatus.status)) {
-            log.info(`current status of test #${currentStatus.testNumber}: '${currentStatus.status}', waiting ${interval / 1000} seconds...`);
+            log.info(`${logBase}, waiting ${interval / 1000} seconds...`);
             await helper.snooze(interval);
         } else if (['success', 'fixed'].includes(currentStatus.status)) {
-            log.info(`current status of test #${currentStatus.testNumber}: '${currentStatus.status}'. SUCCESS!`);
+            log.info(`${logBase}. SUCCESS!`);
             return currentStatus;
         } else {
-            log.error(`current status of test #${currentStatus.testNumber}: '${currentStatus.status}'`);
+            log.error(`${logBase}, FAILURE!`);
             throw new Error(currentStatus);
         }
 
@@ -53,7 +54,8 @@ const prepareE2ETests = async function (config, proxy) {
     return {
         syncToken: syncToken,
         testStatus: testStatus.status,
-        testNumber: testStatus.nextTestNumber
+        testNumber: testStatus.nextTestNumber,
+        lastTest: testStatus.testNumber
     };
 };
 

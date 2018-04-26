@@ -17,7 +17,19 @@ const flattenArray = function (array) {
     }, []);
 };
 
+const padLeft = function (input, character, length) {
+    if (!character || !length) {
+        return "wrong usage! (input, character, length)";
+    }
+    input = `${input}`;
+    while (input.length < length) {
+        input = character + input;
+    }
+    return input;
+};
+
 module.exports = {
     snooze: snooze,
-    flattenArray: flattenArray
+    flattenArray: flattenArray,
+    padLeft: padLeft
 };
