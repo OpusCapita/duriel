@@ -9,10 +9,10 @@ let result;
 module.exports.iterateRepos = iterateRepos;
 module.exports.createUpdateRepo = createUpdateRepo;
 
-createUpdateRepo("dummy", "/home/gr4per", "develop")
-.catch( (err) =>  {
-  console.error("process failed");
-});
+//createUpdateRepo("dummy", "/home/gr4per", "develop")
+//.catch( (err) =>  {
+//  console.error("process failed");
+//});
 
 /**
  * Will check local path if repo already there, if not will clone it first
@@ -21,7 +21,7 @@ createUpdateRepo("dummy", "/home/gr4per", "develop")
  */
 async function createUpdateRepo(reponame, localPath, branchname) {
   repoPath = localPath + "/" + reponame;
-  fileExists(repoPath)
+  return fileExists(repoPath)
   .then( (exists) => {
     console.log(repoPath + " exists");
     return Promise.resolve();
