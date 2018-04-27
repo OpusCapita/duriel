@@ -1,14 +1,16 @@
 'use strict';
 const fs = require('fs');
+
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('./EnvProxy');
-
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
+
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
 const buildDocs = require('./actions/buildDocs');
 const versionHandler = require('./actions/helpers/versionHelper');
+const dockerCommandBuilder = require("./actions/docker/dockerCommandBuilder");
 
 module.exports = async function () {
     log.info("Running after prod deploy script");
@@ -24,6 +26,7 @@ module.exports = async function () {
         log.error("integration tests not successful - rollback!");
         await rollback(config, proxy);
     }
-    await buildDocs();
+    const compose_base = dockerCommandBuilder.dockerComposeBase();
+    await buildDocs(compose_base, config, true);
     await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 };
