@@ -21,6 +21,7 @@
   "homepage": "https://github.com/OpusCapita/duriel#readme",
   "dependencies": {
     "axios": "^0.17.1",
+    "superagent": "^3.8.2",
     "bluebird": "^3.5.1",
     "extend": "^3.0.1",
     "mysql2": "^1.5.1",
