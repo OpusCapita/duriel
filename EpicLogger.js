@@ -16,13 +16,13 @@ class EpicLogger {
     }
 
     static getEnvLogLevel() {
-        return process.env.epicLogLevel ? process.env.epicLogLevel : "info";
+        return process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
     }
 
     static getColors(){
         return {
             RESET: "\x1b[0m",
-            RED: "\x1b[31m",        
+            RED: "\x1b[31m",
             YELLOW : "\x1b[33m",
             GREEN :"\x1b[32m",
             CYAN: "\x1b[36m",
