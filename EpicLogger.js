@@ -1,11 +1,11 @@
 class EpicLogger {
     constructor() {
         this.logLevel = EpicLogger.getEnvLogLevel();
-        this.severe = (msg, obj) => this.log('severe', msg, null, obj);
-        this.debug = (msg, obj) => this.log('debug', msg, null, obj);
-        this.info = (msg, obj) => this.log('info', msg, null, obj);
-        this.warn = msg => this.log('warn', msg);
-        this.error = (msg, error) => this.log('error', msg, error);
+        this.severe = (msg, obj) => this.log('severe', msg, null, obj, EpicLogger.getColors().CYAN);
+        this.debug = (msg, obj) => this.log('debug', msg, null, obj, EpicLogger.getColors().GREEN);
+        this.info = (msg, obj) => this.log('info', msg, null, obj, EpicLogger.getColors().WHITE);
+        this.warn = (msg, obj) => this.log('warn', msg, null, obj, EpicLogger.getColors().YELLOW);
+        this.error = (msg, error) => this.log('error', msg, error, null, EpicLogger.getColors().RED);
         this.log = this.log.bind(this);
     }
 
@@ -19,7 +19,18 @@ class EpicLogger {
         return process.env.epicLogLevel ? process.env.epicLogLevel : "info";
     }
 
-    log(level, message, error, obj) {
+    static getColors(){
+        return {
+            RESET: "\x1b[0m",
+            RED: "\x1b[31m",        
+            YELLOW : "\x1b[33m",
+            GREEN :"\x1b[32m",
+            CYAN: "\x1b[36m",
+            WHITE: "\x1b[37m"
+        }
+    }
+
+    log(level, message, error, obj, color) {
         if (EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
             return;
         }
@@ -27,7 +38,7 @@ class EpicLogger {
         if (obj) {
             logValue += `\n${EpicLogger.convert2ReadableString(obj)}`;
         }
-        console.log("%s - %s - %s", EpicLogger.formatDate2String(new Date()), level, logValue);
+        console.log(`${color}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue);
         if (error) {
             console.error(error);
         }
