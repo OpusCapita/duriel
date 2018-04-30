@@ -1,5 +1,6 @@
 const gitHelper = require("./GitHubHelper.js");
-const supportedLanguages = ["de", "en"];
+const supportedLanguages = {"de":"en", "en":null, "sv":"en", "fi":"en"};
+const util = require("util");
 const fs = require("fs");
 const path = require('path');
 const child_process = require('child_process');
@@ -11,6 +12,7 @@ const exportToExcel = require("./TranslationExcelExport.js");
  */
 let translations = {};
 let localRepoPath = "";
+let skipPull = false;
 
 init()
 .then( () => getRepos() )
@@ -41,15 +43,15 @@ async function init() {
 }
 
 async function writeTranslationsToDisk(translationMap) {
-  var json = JSON.stringify(translationMap, null, 4); 
-  await exportToExcel(translationMap, "en", "de");
-  return new Promise( (resolve, reject) => {
-    fs.writeFile('translations.json', json, (err) => {
-      if(err) reject(err);
-      console.log("translations saved!");
-      resolve();
-    });  
-  });
+    for(let toLanguageId in supportedLanguages) {  
+      let fromLanguageId = supportedLanguages[toLanguageId];
+      if(fromLanguageId) {
+        console.log("exporting excel for translation from " + fromLanguageId + " to " + toLanguageId + "...");
+        await exportToExcel(translationMap, fromLanguageId, toLanguageId);
+      }
+    }
+    console.log("translations exported!");
+    return Promise.resolve();
 }
 
 /**
@@ -60,28 +62,27 @@ async function writeTranslationsToDisk(translationMap) {
 async function collectTranslationsFromRepos(repos) {
 
     // check out each repo locally
-    repos = ['bnp','auth'];
+    //repos = ['einvoice-send'];
     console.log(repos);
     for(let repo of repos) {
-        console.log("localRepoPath = " + localRepoPath);
-        await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
+        if(!skipPull)await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
         await extractTranslations( localRepoPath+"/"+repo, (componentId, key, languageId, value) => {
-        let serviceTranslations = translations[repo];
-        if(!serviceTranslations) serviceTranslations = translations[repo] = {};
-        let componentTranslations = serviceTranslations[componentId];
-        if(!componentTranslations) componentTranslations = serviceTranslations[componentId] = {};
-        let keyTranslations = componentTranslations[key];
-        if(!keyTranslations) keyTranslations = componentTranslations[key] = {};
-        let existingValue = keyTranslations[languageId];
-        if(existingValue) {
-          console.error("duplicate value for " + fullKey + ": existing " + existingValue + ", new: " + key);
-          throw "duplicate";
-        }
-        keyTranslations[languageId] = value;
-      });
+            let serviceTranslations = translations[repo];
+            if(!serviceTranslations) serviceTranslations = translations[repo] = {};
+            let componentTranslations = serviceTranslations[componentId];
+            if(!componentTranslations) componentTranslations = serviceTranslations[componentId] = {};
+            let keyTranslations = componentTranslations[key];
+            if(!keyTranslations) keyTranslations = componentTranslations[key] = {};
+            let existingValue = keyTranslations[languageId];
+            if(existingValue) {
+              console.error("duplicate value for " + fullKey + ": existing " + existingValue + ", new: " + key);
+              throw "duplicate";
+            }
+            keyTranslations[languageId] = value;
+        });
     }
 
-    console.log("finished, translations: ", translations);
+    console.log("finished, translations: ", util.inspect(translations, {showHidden: false, depth: null}));
     return Promise.resolve(translations);
 }
 
@@ -89,12 +90,12 @@ async function collectTranslationsFromRepos(repos) {
  * Iterates repo recursively, considering only i18n directories for file processing and therein only
  * files with name format $languageId.js, where $languageId is additionally checked against supported languages.
  * Matching files are dynamically required and assumed to export a flat map with key/value pairs.
- * The translations are collected via registerTranslationCallback using 
+ * The translations are collected via registerTranslation using 
  *   * languageId taken from filename
  *   * componentId taken from path, i.e. the relative path inside the repo to the i18n dir of the file, with slashes replaced by dots
  *   * key and value taken from the actual translation map in the file
  */
-async function extractTranslations(path, registerTranslationCallback) {
+async function extractTranslations(path, registerTranslation) {
   let ignoreList = [".git", ".circleci", "test", "usecases", "wiki"];
   console.log("extracting translations, path=" + path);
   fromDir( path, 
@@ -106,7 +107,8 @@ async function extractTranslations(path, registerTranslationCallback) {
            }, 
            (filename) => {
              let extension = filename.substring(filename.lastIndexOf(".")+1, filename.length);
-             return (( extension == "js") || extension == "json" ) && supportedLanguages.indexOf(filename.substring(filename.length-extension.length-3, filename.length-extension.length-1)) > -1;
+             let languageId = filename.substring(filename.length-extension.length-3, filename.length-extension.length-1);
+             return ( extension == "js" || extension == "json" ) && supportedLanguages.hasOwnProperty(languageId) ;
            }, 
            (filename) => {
              console.log("identified translation file: " + filename);
@@ -115,9 +117,14 @@ async function extractTranslations(path, registerTranslationCallback) {
              console.log("languageId = " + languageId + ", componentId = " + componentId);
              let extension = filename.substring(filename.lastIndexOf(".")+1, filename.length);
              let translations = require(filename);
-             translations = flattenObject(translations);
-             for(tkey in translations) {
-                 registerTranslationCallback(componentId, tkey, languageId, translations[tkey]);
+             try {
+                 translations = flattenObject(translations);
+                 for(tkey in translations) {
+                     registerTranslation(componentId, tkey, languageId, translations[tkey]);
+                 }
+             }
+             catch(err) {
+                 console.error("Unable to flatten translation map " + filename);
              }
            }
          );
@@ -128,7 +135,10 @@ function flattenObject(obj) {
 	
     for (let i in obj) {
         if (!obj.hasOwnProperty(i)) continue;
-        if ((typeof obj[i]) == 'object') {
+        if (obj[i] instanceof Function) {
+          throw "format error: translation map has function properties";
+        }
+        else if ((typeof obj[i]) == 'object') {
             let flatObject = flattenObject(obj[i]);
             for (let x in flatObject) {
                 if (!flatObject.hasOwnProperty(x)) continue;
@@ -161,7 +171,7 @@ function fromDir(startPath, recurseIntoDir, processFilesInDir, fileFilter, fileP
         var filename=path.join(startPath,files[i]);
         var stat = fs.lstatSync(filename);
         if (stat.isDirectory() && recurseIntoDir(filename)  ){
-          console.log("recursing into " + files[i]);
+//          console.log("recursing into " + files[i]);
           fromDir(filename,recurseIntoDir, processFilesInDir, fileFilter, fileProcessor); //recurse
         }
         else if (processFilesInDir(startPath) && fileFilter(filename)) fileProcessor(filename);

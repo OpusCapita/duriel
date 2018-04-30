@@ -27,9 +27,8 @@ module.exports = function(translationMap, from, to) {
     ws.cell(1,2).string("componentId").style(headerStyle);
     ws.cell(1,3).string("key").style(headerStyle);
     ws.cell(1,4).string("status").style(headerStyle);
-    ws.cell(1,5).string("direction").style(headerStyle);
-    ws.cell(1,6).string("languageId").style(headerStyle);
-    ws.cell(1,7).string("text").style(headerStyle);
+    ws.cell(1,5).string(from).style(headerStyle);
+    ws.cell(1,6).string(to).style(headerStyle);
     ws.row(1).freeze();
     ws.column(1).setWidth(15);
     ws.column(2).setWidth(25);
@@ -43,22 +42,34 @@ module.exports = function(translationMap, from, to) {
         for(let componentId in serviceTranslations) {
             let componentTranslations = serviceTranslations[componentId];
             for (let tkey in componentTranslations) {
-                ws.cell(row, 1, row+1, 1, true).string(serviceName);
-                ws.cell(row, 2, row+1, 2, true).string(componentId);
-                ws.cell(row, 3, row+1, 3, true).string(tkey);
+                ws.cell(row, 1).string(serviceName);
+                ws.cell(row, 2).string(componentId);
+                ws.cell(row, 3).string(tkey);
                 let tstatus = "missing";
                 let toValue = componentTranslations[tkey][to];
-                if(toValue) tstatus = "translated";
+                let srcValue = componentTranslations[tkey][from];
+                if(toValue && toValue.length > 0)  {
+                    tstatus = "translated";
+                    ws.cell(row, 6).string(toValue);
+                    if(!srcValue) { // dest value, but no src value
+                        console.error("dest value but no src value in " + from + " for key " + tkey + " (serviceName = " + serviceName + ", component = " + componentId + ")");
+                    }
+                    else {
+                        ws.cell(row, 5).string(srcValue);
+                    }
+                }
+                else {
+                    if(!srcValue) { // neither src nor dest value
+                        console.log("no src nor dest value in " + from + " for key " + tkey + " (serviceName = " + serviceName + ", component = " + componentId + ")");
+                    }
+                    else {
+                        ws.cell(row, 5).string(srcValue);
+                    }
+                }
 
-                ws.cell(row, 4, row+1, 4, true).string(tstatus);
-                ws.cell(row, 5).string("from");
-                ws.cell(row, 6).string(from);
-                ws.cell(row, 7).string(componentTranslations[tkey][from]);
+                ws.cell(row, 4).string(tstatus);
 
-                ws.cell(row+1, 5).string("to");
-                ws.cell(row+1, 6).string(to);
-                if(toValue) ws.cell(row+1, 7).string(toValue);
-                row+=2;
+                row+=1;
             }
         }
     }
