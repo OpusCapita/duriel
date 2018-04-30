@@ -76,7 +76,14 @@ module.exports = function(translationMap, from, to) {
     
 
     let fileName = 'Translations_' + to + '.xlsx';
-    wb.write(fileName);
+    wb.write(fileName, function (err, stats) {
+	if (err) {
+		console.error(err);
+	}
+        else {
+            console.log(stats); // Prints out an instance of a node.js fs.Stats object
+        }
+    });
     return Promise.resolve(fileName);
 }
 
