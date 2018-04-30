@@ -1,0 +1,282 @@
+{
+    "bnp.src.client.containers.Welcome.page.title": {
+        "de": "Willkommen",
+        "en": "Welcome"
+    },
+    "bnp.src.client.containers.Welcome.title": {
+        "de": "Service Konfiguration",
+        "en": "Service Configuration"
+    },
+    "bnp.src.client.containers.Welcome.text": {
+        "de": "Vielen Dank, dass Sie sich für das OpusCapita Business Netzwerk entschieden haben. Sie können nun die zur Verfügung stehenden Dienste konfigurieren und nutzen.\n\nDer Konfigurations-Assistent wird Sie durch den Konfigurationsprozess leiten und alle Informationen abfragen, die für den ausgewählten Dienst benötigt werden.",
+        "en": "Thank you for choosing OpusCapita Business Network! To integrate buyers, suppliers and other business partners Business Network service needs to be conﬁgured.\n\nThis is a setup service to help you get up and running. Setup service will involve information depending on the services you select."
+    },
+    "bnp.src.client.containers.Welcome.label.dontShowAgain": {
+        "de": "nicht erneut anzeigen",
+        "en": "Do not show this page again."
+    },
+    "bnp.src.client.containers.Welcome.button.start": {
+        "de": "Start",
+        "en": "Start"
+    },
+    "bnp.src.client.containers.Welcome.notification.saved": {
+        "de": "Konfiguration wurde erfolgreich gespeichert.",
+        "en": "Configuration has been successfully saved."
+    },
+    "bnp.src.client.containers.BuyerDashboard.page.title": {
+        "de": "Einkäufer Dashboard",
+        "en": "Buyer dashboard"
+    },
+    "bnp.src.client.containers.BuyerInformation.page.title": {
+        "de": "Käufereditor",
+        "en": "Buyer editor"
+    },
+    "bnp.src.client.containers.BuyerInformation.notExists": {
+        "de": "Der Käufer existiert nicht! Bitte registrieren Sie sich erst.",
+        "en": "Buyer does not exist! Please register first."
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.company": {
+        "de": "Unternehmen",
+        "en": "Company"
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.organization": {
+        "de": "Organigramm",
+        "en": "Organization Chart"
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.address": {
+        "de": "Adressen",
+        "en": "Address"
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.contact": {
+        "de": "Ansprechpartner",
+        "en": "Contact"
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.bankAccount": {
+        "de": "Bankkonten",
+        "en": "Bank account"
+    },
+    "bnp.src.client.containers.CompanyProfile.tab.userAccessApproval": {
+        "de": "Zugriffsberechtigung",
+        "en": "Access Approval"
+    },
+    "bnp.src.client.containers.CompanyProfile.form.unsavedChanges.title": {
+        "de": "Nicht gespeicherte Änderungen",
+        "en": "Unsaved Changes"
+    },
+    "bnp.src.client.containers.CompanyProfile.form.unsavedChanges.text": {
+        "de": "Sie haben Ihre Einträge nicht gespeichert. Wenn Sie fortfahren, gehen diese verloren. Wollen Sie ohne zu speichern fortfahren?",
+        "en": "You did not save your entries. Do you want to proceed without saving?"
+    },
+    "bnp.src.client.containers.CustomerList.createCustomer": {
+        "de": "Kunde erstellen",
+        "en": "Create Customer"
+    },
+    "bnp.src.client.containers.SupplierList.createSupplier": {
+        "de": "Lieferant erstellen",
+        "en": "Create Supplier"
+    },
+    "bnp.src.client.containers.SellerDashboard.page.title": {
+        "de": "Verkäufer Dashboard",
+        "en": "Seller dashboard"
+    },
+    "bnp.src.client.containers.SellerDashboard.profileStrength.heading": {
+        "de": "Unternehmensprofil Stärke",
+        "en": "Company Profile Strength"
+    },
+    "bnp.src.client.containers.SellerDashboard.profileStrength.editButton": {
+        "de": "Unternehmensprofil",
+        "en": "Company Profile"
+    },
+    "bnp.src.client.containers.SellerDashboard.profileStrength.content": {
+        "de": "Hier können Sie Ihr Profil vervollständigen. Damit profitieren Sie von einer besseren Sichtbarkeit im Business Netzwerk mit neuen Geschäftschancen.",
+        "en": "Continue to fill your profile in order to benefit from better visibility in the network and get more business opportunities."
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.heading": {
+        "de": "Verbindungen",
+        "en": "Connections"
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.connect": {
+        "de": "Verbinden",
+        "en": "Connect"
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.notConnectedStatus": {
+        "de": "Nicht verbunden",
+        "en": "Not Connected"
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.connectingStatus": {
+        "de": "In Konfiguration",
+        "en": "Connecting"
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.connectedStatus": {
+        "de": "Verbunden",
+        "en": "Connected"
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.loading": {
+        "de": "Laden...",
+        "en": "Loading..."
+    },
+    "bnp.src.client.containers.SellerDashboard.connections.content": {
+        "de": "Das Business Netzwerk erlaubt die Verwendung unterschiedlicher Dienste zur elektronischen Vernetzung Ihrer Rechnungsdokumente und Sie profitieren von den Synergien einer zentralen Managementkonsole.",
+        "en": "By connecting additional services offered by the business network, you can benefit from synergies and provide you with a central management console for all your documents."
+    },
+    "bnp.src.client.containers.SupplierInformation.page.title": {
+        "de": "Lieferanteneditor",
+        "en": "Supplier editor"
+    },
+    "bnp.src.client.containers.SupplierInformation.notExists": {
+        "de": "Der Lieferant existiert nicht! Bitte registrieren Sie sich erst.",
+        "en": "Supplier does not exist! Please register first."
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormButton.return": {
+        "de": "Nachbesserung anfordern",
+        "en": "Request data correction"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormButton.sendToCustomer": {
+        "de": "Bearbeitung abschließen und um Freigabe bitten",
+        "en": "Finish data entry and request approval"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormButton.sendToCustomerConfirmation": {
+        "de": "Wollen Sie die Bearbeitung Ihrer Daten wirklich abschließen? Sobald Sie die Daten zur Freigabe senden, ist keine weitere Bearbeitung mehr möglich!",
+        "en": "Do you really want to finish data entry? As soon as you send the data for approval, no more editing will be possible."
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormButton.backToList": {
+        "de": "Zurück zur Übersicht",
+        "en": "Back to list"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormButton.backToServiceConfig": {
+        "de": "Zurück zur Service-Konfiguration",
+        "en": "Back to service configuration"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLabel.rejectionReason.label": {
+        "de": "Bitte geben Sie hier die Gründe an, weshalb Sie die Lieferantendaten nicht genehmigen",
+        "en": "Please state your reasons for rejecting data provided by the supplier"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLabel.ok": {
+        "de": "OK",
+        "en": "OK"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLabel.icotermsDescription": {
+        "de": "Beschreibung der Incoterms",
+        "en": "Description of Incoterms"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLabel.graphic": {
+        "de": "Grafik",
+        "en": "graphic"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLabel.successSendToCustomer": {
+        "de": "Sie haben Ihre Unternehmensdaten erfolgreich bearbeitet. Sobald die Freigabe erfolgt ist, werden Sie per E-Mail darüber informiert.",
+        "en": "Entry of data was successful. As soon as your data has been approved, you will be informed via email."
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormHeader.rejectionReason": {
+        "de": "Grund der Ablehnung",
+        "en": "Rejection reason"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLink.header": {
+        "de": "In diesem Abschnitt können Sie die allgemeinen Lieferbedingungen für unsere Läger herunterladen.",
+        "en": "The following section contains the current version of our Warehouse Terms and Conditions."
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLink.ladenbau": {
+        "de": "Allgemeine Lieferbedingungen Ladenbau",
+        "en": "General Terms of Delivery for Store Construction Warehouses"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLink.regional": {
+        "de": "Allgemeine Lieferbedingungen Regional- und Zentralläger",
+        "en": "General Terms of Delivery for Regional and Central Warehouses"
+    },
+    "bnp.src.client.containers.SupplierInformation.ApplicationFormLink.graphic": {
+        "de": "Diese ${separation} verdeutlicht die Bedeutung der Incoterms.",
+        "en": "This ${separation} depicts the meaning of the Incoterms."
+    },
+    "bnp.src.client.containers.SupplierRegistrationForm.page.title": {
+        "de": "Lieferantenregistrierung",
+        "en": "Supplier registration"
+    },
+    "bnp.src.client.containers.SupplierRegistrationForm.supplierExists": {
+        "de": "Der Lieferant existiert bereits.",
+        "en": "The supplier already exist."
+    },
+    "bnp.src.client.containers.SupplierDirectory.page.title": {
+        "de": "Lieferantenverzeichnis",
+        "en": "Supplier directory"
+    },
+    "bnp.src.client.containers.SupplierDirectory.head": {
+        "de": "Lieferantensuche",
+        "en": "Search for suppliers"
+    },
+    "bnp.src.client.containers.UserList.page.title": {
+        "de": "Benutzerliste",
+        "en": "User list"
+    },
+    "bnp.src.client.containers.UserList.head": {
+        "de": "Benutzerliste",
+        "en": "User list"
+    },
+    "bnp.src.client.containers.UserList.createUser": {
+        "de": "Benutzer erstellen",
+        "en": "Create User"
+    },
+    "bnp.src.client.containers.UserCreate.createUser": {
+        "de": "Benutzer erstellen",
+        "en": "Create User"
+    },
+    "bnp.src.client.containers.UserCreate.select.supplier": {
+        "de": "Lieferant wählen",
+        "en": "Select Supplier"
+    },
+    "bnp.src.client.containers.UserCreate.select.customer": {
+        "de": "Kunde wählen",
+        "en": "Select Customer"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.page.title": {
+        "de": "Benutzereditor",
+        "en": "User editor"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.back": {
+        "de": "Zurück",
+        "en": "Back"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.tabs.profile": {
+        "de": "Profil",
+        "en": "Profile"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.tabs.roles": {
+        "de": "Rolen",
+        "en": "Roles"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.unsavedChangesConfirmation.title": {
+        "de": "Sicherheitsabfrage",
+        "en": "Confirmation"
+    },
+    "bnp.src.client.containers.UserAdmin.Editor.unsavedChangesConfirmation.message": {
+        "de": "Es sind ungesicherte Änderungen vorhanden. Möchten Sie trotzdem fortfahren?",
+        "en": "You have unsaved changes. Do you want to proceed?"
+    },
+    "bnp.src.client.containers.AclEditor.page.title": {
+        "de": "ACL Editor",
+        "en": "Acl editor"
+    },
+    "bnp.src.client.containers.AclEditor.authority.heading": {
+        "de": "Authority-ID",
+        "en": "Authority identifier"
+    },
+    "bnp.src.client.containers.AclEditor.permissions.heading": {
+        "de": "Berechtigungs-ID",
+        "en": "Permissions"
+    },
+    "bnp.src.client.containers.RedisCommander.page.title": {
+        "de": "Redis Commander",
+        "en": "Redis Commander"
+    },
+    "bnp.src.client.containers.CatalogUpload.catalogUpload": {
+        "de": "Katalog-Upload",
+        "en": "Catalog Upload"
+    },
+    "bnp.src.client.containers.CatalogUpload.selectCustomer": {
+        "de": "Wählen Sie bitte den Kunden",
+        "en": "Please select the customer "
+    },
+    "bnp.src.client.containers.CatalogUpload.openCatalogUpload": {
+        "de": "Direkter Einsprung",
+        "en": "Go to Catalog Upload"
+    }
+}
