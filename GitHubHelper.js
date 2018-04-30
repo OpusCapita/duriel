@@ -137,7 +137,7 @@ async function iterateRepos(topics) {
     console.log("nextPage: ", nextPage);
     if(!nextPage) {
       console.log("all pages iterated");
-      break;
+      return Promise.resolve(repos);
     }
     nextPageUrl = nextPage.substring(nextPage.indexOf("<")+1, nextPage.lastIndexOf(">"));
     console.log("link: " + nextPage);
@@ -145,6 +145,5 @@ async function iterateRepos(topics) {
     page++;
     //if(page > 1) break;
   }
-  return repos;
 }
 
