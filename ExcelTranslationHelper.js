@@ -27,9 +27,9 @@ async function importFromExcel(directory, supportedLanguages, allTranslations) {
             var filename=path.join(directory,files[i]);
             var stat = fs.lstatSync(filename);
             if (!stat.isDirectory() && filename.endsWith(".xlsx") && files[i].startsWith("Translations_")) {
-                console.log("reading file " + filename);
+//                console.log("reading file " + filename);
                 let languageId = files[i].substring(13, files[i].length-5);
-                console.log("languageId = " + languageId);
+//                console.log("languageId = " + languageId);
                 await importExcelFile(filename, languageId, allTranslations);
             }
         }
@@ -49,15 +49,15 @@ async function importExcelFile(filename, languageId, allTranslations) {
     worksheet.eachRow(function(row, rowNumber) {
         //console.log("row=", row.values);
         if (rowNumber < 2) return; // skip header row
-        if(rowNumber %10 == 0) { console.log("processing row " + rowNumber); }
+//        if(rowNumber %10 == 0) { console.log("processing row " + rowNumber); }
         if(row.values[1] != serviceName) {
-            console.log("updating serviceName from " + serviceName + " to " + row.values[1]);
+//            console.log("updating serviceName from " + serviceName + " to " + row.values[1]);
             serviceName = row.values[1];
             serviceTranslations = allTranslations[serviceName];
             if(!serviceTranslations) serviceTranslations = allTranslations[serviceName] = {};
         }
         if(row.values[2] != componentId) {
-            console.log("updating componentId from " + componentId + " to " + row.values[2]);
+//            console.log("updating componentId from " + componentId + " to " + row.values[2]);
             componentId = row.values[2];
             componentTranslations = serviceTranslations[componentId];
             if(!componentTranslations) componentTranslations = serviceTranslations[componentId] = {};
