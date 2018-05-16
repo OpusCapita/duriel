@@ -22,7 +22,7 @@ module.exports = async function (config, proxy) {
                 log.warn(`...will not insert empty value for '${key}'`);
             } else {
                 log.debug(`... injecting '${key}' to consul`);
-                await proxy.addKeyValueToConsul(key, injectionValues[key]);
+                await proxy.addKeyValueToConsul(`${key}`, `${injectionValues[key]}`);
                 log.debug(`... done.`);
             }
         } catch (error) {
