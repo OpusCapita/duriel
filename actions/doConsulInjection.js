@@ -26,7 +26,7 @@ module.exports = async function (config, proxy) {
                 log.debug(`... done.`);
             }
         } catch (error) {
-            log.error('error while injecting kv-pairs to consul!');
+            log.warn('error while injecting kv-pairs to consul!', error);
         }
     }
 };
