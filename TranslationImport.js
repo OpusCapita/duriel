@@ -18,6 +18,7 @@ init()
 async function applyTranslationsToServices(allTranslations) {
     console.log("all files imported"); 
     for (let serviceName in allTranslations) {
+        if(serviceName != "sales-invoice") continue;
         let serviceTranslations = allTranslations[serviceName];
 
         console.log("applying to service " + serviceName);
@@ -66,8 +67,7 @@ async function writeJSONBundle(componentFolder, languageId, translations) {
         prevTarget[keyPiece] = translations[key][languageId];
     }
     console.log("payload = " + payload);
-    fs.writeFileSync(componentFolder + "/" + languageId + ".json", util.inspect(payload, {depth:null}));
-    process.exit(1);
+    fs.writeFileSync(componentFolder + "/" + languageId + ".json", JSON.stringify(payload, null, 4)); //process.exit(1);
 }
 
 async function writeIndexJs(componentFolder, supportedLanguages) {
