@@ -18,6 +18,10 @@ const exec = async function () {
     log.info("Running after deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
+    if(!config){
+        log.info("no config file could be loaded - ending step");
+        return;
+    }
     log.info("loaded config-file!");
     try {
         log.info("connecting to environment...");

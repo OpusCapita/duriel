@@ -16,6 +16,10 @@ module.exports = async function () {
     log.info("Running after prod deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
+    if(!config){
+        log.info("no config file could be loaded - ending step");
+        return;
+    }
 
     if(!config['INVOKE_DEPLOYMENT']){ // flag from bp_after_first_deployment.js script
         log.info("skipping - no prod deployment was done.");

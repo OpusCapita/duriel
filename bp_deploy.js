@@ -25,9 +25,9 @@ const exec = async function () {
     try {
         const config_file_name = "bp-config.json";
         const config = loadConfigFile(config_file_name);
-        if (!config) {
-            log.error(`config missing!`);
-            process.exit(1);
+        if(!config){
+            log.info("no config file could be loaded - ending step");
+            return;
         }
 
         let paramsMissing = false;
