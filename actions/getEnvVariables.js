@@ -73,6 +73,9 @@ function getDatabasePassword(config) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return process.env[valueKey];
     } else {
+        if(config['TARGET_ENV'] === 'none'){
+            return "none";
+        }
         throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
