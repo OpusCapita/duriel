@@ -23,7 +23,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("1 getting table schemas");
     const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
     const schemaQueryResult = await queryExecuter(config, proxy, schemaQuery);
-    const foundServiceTable = schemaQueryResult[0].filter(row => row.schemaName === config['serviceName']).length > 0;
+    const foundServiceTable = schemaQueryResult[0].length > 0;
 
     log.info("2 getting service-db-users");
     const userQuery = `SELECT COUNT(*) as count FROM mysql.user WHERE User = '${config['serviceName']}';`;
