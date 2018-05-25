@@ -2,6 +2,9 @@
 const fileHandler = require('./fileHandler');
 const getEnvVariables = require('../getEnvVariables');
 
+const EpicLogger = require('../../EpicLogger');
+const log = new EpicLogger();
+
 module.exports = function (fileName) {
     try {
         const dataFromFile = fileHandler.loadFile2Object(fileName);
