@@ -41,7 +41,7 @@ module.exports = function (input, config) {
         }
 
         log.debug(`injecting ${replacement} for ${regexResult}`);
-        input = input.replace(regexResult, replacement.trim());
+        input = input.replace(regexResult, `${replacement}`.trim());
         regexResult = regExp.exec(input);
     }
     if (missingConfigVars.length > 0) {
