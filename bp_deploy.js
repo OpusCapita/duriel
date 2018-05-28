@@ -94,7 +94,8 @@ const exec = async function () {
         await fileHandler.saveObject2File(serviceInformation, './service_config.json', true);
         log.debug("saved service information into 'service_config.json'");
         let dockerCommand;
-        let isCreateMode = serviceInformation && serviceInformation.length === 0;
+        const isCreateMode = serviceInformation && serviceInformation.length === 0;
+        config['isCreateMode'] = isCreateMode;
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.existsSync('./task_template_mapped.json')) {
