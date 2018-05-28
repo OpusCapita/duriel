@@ -148,15 +148,15 @@ const exec = async function () {
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
-            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
+            if (testToken && testToken['syncToken'])
+                await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             await rollback(config, proxy);
         } else {
             log.info(`Monitoring exited with status: '${monitorResult}'`);
         }
 
         if (testToken && testToken['syncToken']) {
-            if (testToken && testToken['syncToken'])
-                await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
+            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
             log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${testToken ? testToken['testNumber'] : ''}'`);
             if (testToken['testNumber'] !== e2eTestStatus['testNumber']) {
