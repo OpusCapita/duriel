@@ -25,7 +25,7 @@ const exec = async function () {
     try {
         const config_file_name = "bp-config.json";
         const config = loadConfigFile(config_file_name);
-        if(!config){
+        if (!config) {
             log.info("no config file could be loaded - ending step");
             return;
         }
@@ -155,7 +155,8 @@ const exec = async function () {
         }
 
         if (testToken && testToken['syncToken']) {
-            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
+            if (testToken && testToken['syncToken'])
+                await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
             log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${testToken ? testToken['testNumber'] : ''}'`);
             if (testToken['testNumber'] !== e2eTestStatus['testNumber']) {
