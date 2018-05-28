@@ -24,7 +24,7 @@ const exec = async () => {
         await dockerCompose(compose_base, "up -d");
 
         try {
-            await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 20, 5000);    // 20 attempts with 5 sec intervals
+            await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 30, 5000);    // 30 attempts with 5 sec intervals
         } catch (error) {
             log.error("service not healthy!", error);
             await outputContainerLogs();
