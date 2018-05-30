@@ -35,7 +35,7 @@ const waitForTest = async function (config, attempts = 240, interval = 5000) {
 
 const prepareE2ETests = async function (config, proxy) {
     log.info("Preparing E2ETesting...");
-    const includedServices = ['kong', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
+    const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
     if (!includedServices.includes(config['serviceName'].toLowerCase())) {
         log.info("This service needs no e2e testing");
         return;
