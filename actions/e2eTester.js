@@ -26,8 +26,12 @@ const waitForTest = async function (config, attempts = 240, interval = 5000) {
             log.info(`${logBase}. SUCCESS!`);
             return currentStatus;
         } else {
-            log.error(`${logBase}, FAILURE!`);
-            throw new Error(currentStatus);
+            log.error(`${logBase}, FAILURE!`, currentStatus);
+            if(config['"e2e_skip"']) {
+                return;
+            } else {
+                throw new Error(currentStatus);
+            }
         }
 
     }
@@ -35,8 +39,7 @@ const waitForTest = async function (config, attempts = 240, interval = 5000) {
 
 const prepareE2ETests = async function (config, proxy) {
     log.info("Preparing E2ETesting...");
-    // const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
-    const includedServices = [];
+    const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
     if (!includedServices.includes(config['serviceName'].toLowerCase())) {
         log.info("This service needs no e2e testing");
         return;

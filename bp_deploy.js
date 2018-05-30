@@ -163,8 +163,8 @@ const exec = async function () {
             if (testToken['testNumber'] !== e2eTestStatus['testNumber']) {
                 log.info(`last e2e test was not the one we were waiting for. triggering new e2e test run!`);
                 await e2eTester.triggerE2ETest(config);    // add rollback on failure?
-                await e2eTester.waitForTest(config)
             }
+            await e2eTester.waitForTest(config)
         }
 
         await setupServiceUser(config, proxy, false);
