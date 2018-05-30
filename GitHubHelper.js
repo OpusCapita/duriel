@@ -9,6 +9,13 @@ let result;
 module.exports.iterateRepos = iterateRepos;
 module.exports.createUpdateRepo = createUpdateRepo;
 
+run();
+
+async function run() {
+  let repos = await iterateRepos([["andariel", "microservice"]])
+  console.log(JSON.stringify(repos));
+}
+
 //createUpdateRepo("dummy", "/home/gr4per", "develop")
 //.catch( (err) =>  {
 //  console.error("process failed");
