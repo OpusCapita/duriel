@@ -1,10 +1,11 @@
 const gitHelper = require("./GitHubHelper.js");
-const supportedLanguages = {"de":"en", "en":null, "sv":"en", "fi":"en"};
+const supportedLanguages = require("./supportedLanguages");
 const util = require("util");
 const fs = require("fs");
 const path = require('path');
 const child_process = require('child_process');
-const exportToExcel = require("./TranslationExcelExport.js");
+const exportToExcel = require("./ExcelTranslationHelper").exportToExcel
+
 /**
  * This is a map service-name { componentPath: {translationkey: { languageKey: value, languageKey2: value }}}
  * we can create a csv out of it by splitting the key in three parts: service-name; filename; translationKey; 
@@ -18,7 +19,6 @@ init()
 .then( () => getRepos() )
 .then( (repos) => collectTranslationsFromRepos(repos) )
 .then( (translations) => writeTranslationsToDisk(translations));
-
 
 async function init() {
   return new Promise( (resolve, reject) => { 
