@@ -5,7 +5,7 @@ const helper = require('./helpers/utilHelper');
 const request = require('superagent');
 
 module.exports = async function (config, proxy) {
-    const attempts = 10, interval = 5000;
+    const attempts = 30, interval = 5000;
     log.info("running integration tests...");
     for (let attempt = 1; attempt <= attempts; attempt++) {
         log.info(`${helper.padLeft(attempt, '0', 2)}/${attempts}...`);
@@ -17,7 +17,7 @@ module.exports = async function (config, proxy) {
             .filter(entry => entry['ServiceName'] === config['serviceName'])
             .filter(entry => entry['Status'] === 'passing')
             .length;
-        if (passingChecks > 0 && passingChecks === totalChecks) {
+        if ((passingChecks > 0 && passingChecks === totalChecks) || totalChecks === 0) {
             log.info(`${passingChecks} of ${totalChecks} checks are passing! - service is healthy!`);
             return await checkAccessability(config);
         } else {
