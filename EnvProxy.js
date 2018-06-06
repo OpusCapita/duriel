@@ -378,6 +378,19 @@ module.exports = class EnvProxy {
             })
     }
 
+    async getServiceInspect_E(serviceName){
+        try {
+            const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect ${serviceName}`));
+            if((serviceInformation && serviceInformation.length === 0) || !serviceInformation){
+                log.warn("no service information in docker for service: " + serviceName);
+                return;
+            }
+            return serviceInformation;
+        } catch (error) {
+            log.error("error while fetching service information", error);
+        }
+    }
+
     getNodes_E() {
         return this.executeCommand_E("docker node ls --format '{{.ID}};{{.Hostname}};{{.Status}};{{.Availability}};{{.ManagerStatus}}'")
             .then(response => {
@@ -544,6 +557,7 @@ module.exports = class EnvProxy {
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
                     log.error('SECOND :: exec error: ', err);
+                    log.warn("output before error: ", response);
                     return reject(err);
                 }
                 stream.on('end', () => {

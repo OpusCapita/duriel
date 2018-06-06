@@ -85,16 +85,12 @@ const exec = async function () {
         }
 
         log.info("loading service informations"); // docker service inspect
-        let serviceInformation;
-        try {
-            serviceInformation = JSON.parse(await proxy.executeCommand_E(`docker service inspect ${config['CIRCLE_PROJECT_REPONAME']}`));     // TODO: throwa error instead of false
-        } catch (error) {
-            log.error("error while fetching service information", error);
-        }
+        const serviceInformation = await proxy.getServiceInspect_E(config['CIRCLE_PROJECT_REPONAME']);
         await fileHandler.saveObject2File(serviceInformation, './service_config.json', true);
         log.debug("saved service information into 'service_config.json'");
+
         let dockerCommand;
-        const isCreateMode = !serviceInformation || (serviceInformation && serviceInformation.length === 0);
+        const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
