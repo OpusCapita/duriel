@@ -59,7 +59,10 @@ module.exports = class EnvProxy {
             .then(() => this.lookupService('mysql'))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
             .then(() => this)
-            .catch((err) => log.error("init error: ", err));
+            .catch((err) => {
+                log.error("init error: ", err);
+                throw err;
+            });
     };
 
     /**
