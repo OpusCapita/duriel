@@ -17,7 +17,7 @@ module.exports = async function (config, proxy) {
             .filter(entry => entry['ServiceName'] === config['serviceName'])
             .filter(entry => entry['Status'] === 'passing')
             .length;
-        if ((passingChecks > 0 && passingChecks === totalChecks) || totalChecks === 0) {
+        if (passingChecks === totalChecks) {
             log.info(`${passingChecks} of ${totalChecks} checks are passing! - service is healthy!`);
             return await checkAccessability(config);
         } else {

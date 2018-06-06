@@ -22,7 +22,7 @@ module.exports = async function (compose_base, config, commit = false) {
         try {
             await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
         } catch (error) {
-            log.error("error during clong wiki", error);
+            log.warn("error during clong wiki", error);
             return;
         }
         await proxy.changePermission_L("777 -R", "wiki", true);
