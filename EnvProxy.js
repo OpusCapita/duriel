@@ -270,7 +270,11 @@ module.exports = class EnvProxy {
             log.debug(`fetching in task: `, task);
             try {
                 const containers = await this.getContainersOfService_N(task.node, serviceName, true);
-                log.debug(`iterating over containsers of node: `, task.node);
+                const containerInfo = containers.map(it => `{name: ${it.name}, image: ${it.image}}`);
+                log.debug(`iterating over containsers [${containerInfo.join(', ')}] of node: `, task.node);
+                if(!containerInfo.length){
+                    log.warn("No Containers found. This is strange... Did you try to disconnect your router for 2-3 min?", containers)
+                }
                 for (let container of containers) {
                     log.debug(`doing container '${container.containerId}'`);
                     try {
