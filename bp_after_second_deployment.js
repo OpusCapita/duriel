@@ -37,7 +37,4 @@ const exec = async function () {
     await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 };
 
-exec().catch(err => {
-    log.error("error", err);
-    throw err
-});
+exec()
