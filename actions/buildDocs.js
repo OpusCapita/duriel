@@ -39,6 +39,8 @@ module.exports = async function (compose_base, config, commit = false) {
             if (!changedFiles || changedFiles !== "") {
                 log.info("no files changed!");
             } else {
+                log.info("changed files: ", changedFiles);
+                await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
                 await gitHelper.addAll();
                 await gitHelper.commit('updated documentation. [ci skip]');
                 await gitHelper.push();

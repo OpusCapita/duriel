@@ -5,6 +5,7 @@ const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('./EnvProxy');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
+const gitHelper = require('./actions/helpers/gitHelper');
 
 const runIntegrationTests = require('./actions/runIntegrationTests');
 const rollback = require('./actions/rollbackService');
@@ -32,6 +33,7 @@ const exec = async function () {
     }
     const compose_base = dockerCommandBuilder.dockerComposeBase();
     await buildDocs(compose_base, config, true);
+    await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
     await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 };
 

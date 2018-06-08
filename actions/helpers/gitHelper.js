@@ -17,6 +17,7 @@ module.exports = {
 
 
 async function addFiles(files) {
+    log.info(`git: add '${files}'`);
     if (!Array.isArray(files)) {
         files = [files]
     }
@@ -26,14 +27,17 @@ async function addFiles(files) {
 }
 
 async function addAll() {
+    log.info("git: adding all files.");
     return await executeCommand(`git add --all .`)
 }
 
 async function commit(commitMessage) {
+    log.info("git: committing!");
     return await executeCommand(`git commit -m '${commitMessage}'`);
 }
 
 async function tag(tag, push) {
+    log.info(`git: adding tag '${tag}'`)
     await executeCommand(`git tag -a '${tag}' -m '${tag}'`);
     if (push) {
         return pushTags();
@@ -41,14 +45,17 @@ async function tag(tag, push) {
 }
 
 async function push() {
+    log.info('git: push');
     return await executeCommand("git push");
 }
 
 async function pushTags() {
+    log.info('git: pushing tags!');
     return await executeCommand("git push --tags")
 }
 
 async function status() {
+    log.info('git: status');
     return await executeCommand("git status");
 }
 
