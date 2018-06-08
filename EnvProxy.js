@@ -205,7 +205,15 @@ module.exports = class EnvProxy {
         if (!service)
             throw new Error('service missing');
         return this.getContainers_N(node, onlyRunning)
-            .then(result => result.filter(it => it.name.startsWith(service)))
+            .then(result => {
+                log.debug(`containers of node ${node}`, result);
+                return result;
+            })
+            .then(result => result.filter(it => it.name.includes(service))) //TODO: sauber implementieren!
+            .then(result => {
+                log.debug(`containers of service ${service} on node ${node}`, result);
+                return result;
+            })
     }
 
     /**
@@ -266,7 +274,6 @@ module.exports = class EnvProxy {
     async readDockerSecretOfService_E(serviceName, secretName) {
         const fetchedSecrets = [];
         const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
-        log.debug("serviceTasks: ", serviceTasks);
         for (let task of serviceTasks) {
             log.debug(`fetching in task: `, task);
             try {
