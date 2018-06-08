@@ -12,7 +12,7 @@ const buildDocs = require('./actions/buildDocs');
 const versionHandler = require('./actions/helpers/versionHelper');
 const dockerCommandBuilder = require("./actions/docker/dockerCommandBuilder");
 
-module.exports = async function () {
+const exec = async function () {
     log.info("Running after prod deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
@@ -34,3 +34,5 @@ module.exports = async function () {
     await buildDocs(compose_base, config, true);
     await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 };
+
+exec();
