@@ -166,7 +166,7 @@ module.exports = class EnvProxy {
      * @param sudo
      * @returns {*}
      */
-    executeCommand_N(node, cmd, surroundWithQuotes = false, sudo = false) {
+    async executeCommand_N(node, cmd, surroundWithQuotes = false, sudo = false) {
         if (!node)
             throw new Error('node missing');
         if (!cmd)
@@ -200,12 +200,12 @@ module.exports = class EnvProxy {
      * @param onlyRunning
      * @returns {PromiseLike<T>}
      */
-    getContainersOfService_N(node, service, onlyRunning = false) {
+    async getContainersOfService_N(node, service, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
         if (!service)
             throw new Error('service missing');
-        return this.getContainers_N(node, onlyRunning)
+        return await this.getContainers_N(node, onlyRunning)
             .then(result => {
                 log.debug(`containers of node ${node}`, result);
                 return result;
@@ -223,10 +223,10 @@ module.exports = class EnvProxy {
      * @param onlyRunning
      * @returns {PromiseLike<T>}
      */
-    getContainers_N(node, onlyRunning = false) {
+    async getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
-        return this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
+        return await this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => {
                     log.debug(`docker ps response on node '${node}'`, response);
                     return response.split('\n').map(
