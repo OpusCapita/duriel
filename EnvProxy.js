@@ -266,6 +266,7 @@ module.exports = class EnvProxy {
     async readDockerSecretOfService_E(serviceName, secretName) {
         const fetchedSecrets = [];
         const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
+        log.debug("serviceTasks: ", serviceTasks);
         for (let task of serviceTasks) {
             log.debug(`fetching in task: `, task);
             try {
@@ -311,6 +312,7 @@ module.exports = class EnvProxy {
             throw new Error('service missing');
         return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
             .then(response => {
+                log.debug(`docker service ps ${service}`, response);
                 return response.split('\n').map(
                     row => {
                         let split = row.split(semicolon_splitter);
@@ -329,6 +331,9 @@ module.exports = class EnvProxy {
                     }
                 );
             }).then(nodes => nodes.filter(it => it !== undefined))
+            .then(nodes => {
+                log.debug("tasks for service " + service, nodes)
+            })
     }
 
     /**
