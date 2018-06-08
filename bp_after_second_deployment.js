@@ -16,12 +16,12 @@ const exec = async function () {
     log.info("Running after prod deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
-    if(!config){
+    if (!config) {
         log.info("no config file could be loaded - ending step");
         return;
     }
 
-    if(!config['INVOKE_DEPLOYMENT']){ // flag from bp_after_first_deployment.js script
+    if (!config['INVOKE_DEPLOYMENT']) { // flag from bp_after_first_deployment.js script
         log.info("skipping - no prod deployment was done.");
         process.exit(0);
     }
@@ -35,4 +35,7 @@ const exec = async function () {
     await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 };
 
-exec();
+exec().catch(err => {
+    log.error("error", err);
+    throw err
+});
