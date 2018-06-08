@@ -11,7 +11,8 @@ module.exports = {
     push: push,
     pushTags: pushTags,
     status: status,
-    setCredentials: setCredentials
+    setCredentials: setCredentials,
+    checkForChanges: checkForChanges
 };
 
 
@@ -24,7 +25,7 @@ async function addFiles(files) {
     }
 }
 
-async function addAll(){
+async function addAll() {
     return await executeCommand(`git add --all .`)
 }
 
@@ -34,7 +35,7 @@ async function commit(commitMessage) {
 
 async function tag(tag, push) {
     await executeCommand(`git tag -a '${tag}' -m '${tag}'`);
-    if(push){
+    if (push) {
         return pushTags();
     }
 }
@@ -56,7 +57,16 @@ async function executeCommand(command) {
     return await proxy.executeCommand_L(command);
 }
 
-async function setCredentials(user, mail){
+async function checkForChanges() {
+    try {
+        let changedFiles = await executeCommand("git ls-files -m");
+        return changedFiles.replace(/(\r\n\t|\n|\r\t)/gm, "").replace(" ", "");
+    } catch (err) {
+        log.error("error", err);
+    }
+}
+
+async function setCredentials(user, mail) {
     log.info(`setting git-credentials: user: ${user}, email: ${mail}`);
     await executeCommand(`git config --global user.name ${user}`);
     await executeCommand(`git config --global user.email ${mail}`);

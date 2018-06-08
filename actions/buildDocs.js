@@ -28,16 +28,21 @@ module.exports = async function (compose_base, config, commit = false) {
         await proxy.changePermission_L("777 -R", "wiki", true);
         try {
             await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
-        }catch (error) {
+        } catch (error) {
             log.error("error during creating documentation", error);
             return;
         }
         await proxy.changeCommandDir_L("wiki");
         if (commit) {
             log.info("committing and pushing changes of documentation");
-            await gitHelper.addAll();
-            await gitHelper.commit('updated documentation. [ci skip]');
-            await gitHelper.push();
+            const changedFiles = await gitHelper.checkForChanges();
+            if (!changedFiles || changedFiles !== "") {
+                await gitHelper.addAll();
+                await gitHelper.commit('updated documentation. [ci skip]');
+                await gitHelper.push();
+            } else {
+                log.info("no files changed!");
+            }
         } else {
             const gitStatus = await gitHelper.status();
             log.info("git would commit doc changes:", gitStatus);
