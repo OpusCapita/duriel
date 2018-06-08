@@ -179,6 +179,7 @@ module.exports = class EnvProxy {
             command += `'${cmd}'`;
         else
             command += `${cmd}`;
+        log.severe("executing command", command);
         return this.executeCommand_E(command, sudo);
     }
 
@@ -209,7 +210,7 @@ module.exports = class EnvProxy {
                 log.debug(`containers of node ${node}`, result);
                 return result;
             })
-            .then(result => result.filter(it => it.name.includes(service))) //TODO: sauber implementieren!
+            .then(result => result.filter(it => it.name.toLowerCase().startsWith(service.toLowerCase()))) //TODO: sauber implementieren!
             .then(result => {
                 log.debug(`containers of service ${service} on node ${node}`, result);
                 return result;
@@ -226,22 +227,28 @@ module.exports = class EnvProxy {
         if (!node)
             throw new Error('node missing');
         return this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
-            .then(response => response.split('\n').map(
-                row => {
-                    let split = row.split(semicolon_splitter);
-                    if (split.length > 5) {
-                        return {
-                            containerId: split[0],
-                            name: split[1],
-                            image: split[2],
-                            command: split[3],
-                            status: this.parseContainerStatus(split[4]),
-                            ports: split[5].split(comma_splitter),
-                            node: node
-                        };
-                    }
+            .then(response => {
+                    log.debug(`docker ps response on node '${node}'`, response);
+                    return response.split('\n').map(
+                        row => {
+                            log.debug("docker ps entry: ", row);
+                            let split = row.split(semicolon_splitter);
+                            if (split.length > 5) {
+                                return {
+                                    containerId: split[0],
+                                    name: split[1],
+                                    image: split[2],
+                                    command: split[3],
+                                    status: this.parseContainerStatus(split[4]),
+                                    ports: split[5].split(comma_splitter),
+                                    node: node
+                                };
+                            } else {
+                                log.severe("skipping row", row)
+                            }
+                        }
+                    )
                 }
-                )
             ).then(result => result.filter(it => it !== undefined))
     }
 
@@ -280,7 +287,7 @@ module.exports = class EnvProxy {
                 const containers = await this.getContainersOfService_N(task.node, serviceName, true);
                 const containerInfo = containers.map(it => `{name: ${it.name}, image: ${it.image}}`);
                 log.debug(`iterating over containsers [${containerInfo.join(', ')}] of node: `, task.node);
-                if(!containerInfo.length){
+                if (!containerInfo.length) {
                     log.warn("No Containers found. This is strange... Did you try to disconnect your router for 2-3 min?", containers)
                 }
                 for (let container of containers) {
@@ -395,10 +402,10 @@ module.exports = class EnvProxy {
             })
     }
 
-    async getServiceInspect_E(serviceName){
+    async getServiceInspect_E(serviceName) {
         try {
             const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect ${serviceName}`));
-            if((serviceInformation && serviceInformation.length === 0) || !serviceInformation){
+            if ((serviceInformation && serviceInformation.length === 0) || !serviceInformation) {
                 log.warn("no service information in docker for service: " + serviceName);
                 return;
             }
