@@ -37,11 +37,11 @@ module.exports = async function (compose_base, config, commit = false) {
             log.info("committing and pushing changes of documentation");
             const changedFiles = await gitHelper.checkForChanges();
             if (!changedFiles || changedFiles !== "") {
+                log.info("no files changed!");
+            } else {
                 await gitHelper.addAll();
                 await gitHelper.commit('updated documentation. [ci skip]');
                 await gitHelper.push();
-            } else {
-                log.info("no files changed!");
             }
         } else {
             const gitStatus = await gitHelper.status();
