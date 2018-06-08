@@ -16,7 +16,7 @@ function getFirstEnv(circle_branch){
 function getSecondEnv(circle_branch){
     switch (circle_branch){
         case 'master':
-            return "master";
+            return "prod";
         // case "nbp":  // TODO: remove me
         //     return "stage";
         default:
