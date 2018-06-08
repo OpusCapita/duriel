@@ -32,7 +32,7 @@ module.exports.stage = extend(true, {}, default_config, {
 module.exports.prod = extend(true, {}, default_config, {
     admin_user: 'dmm',
     public_ip: '13.81.203.28',
-  admin_address: '13.81.203.28',
+  admin_address: 'bnp-admin-pr2.westeurope.cloudapp.azure.com',
   public_hostname: 'bnp-prod1-inactive.westeurope.cloudapp.azure.com'
 });
 
