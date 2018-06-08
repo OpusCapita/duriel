@@ -333,6 +333,7 @@ module.exports = class EnvProxy {
             }).then(nodes => nodes.filter(it => it !== undefined))
             .then(nodes => {
                 log.debug("tasks for service " + service, nodes)
+                return nodes;
             })
     }
 
