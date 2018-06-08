@@ -572,7 +572,7 @@ module.exports = class EnvProxy {
      * @param sudo
      * @param loggingStream -
      */
-    executeCommand_E(command, sudo = false) {
+    async executeCommand_E(command, sudo = false) {
         if (sudo) {
             command = 'sudo ' + command;
         }
