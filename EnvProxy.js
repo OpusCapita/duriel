@@ -299,7 +299,7 @@ module.exports = class EnvProxy {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
                             if (regexResult && regexResult.length > 0) {
                                 log.debug("adding secret!: ", regexResult[0].substring(0, 5));
-                                if(fetchedSecrets.includes(regexResult[0])){
+                                if(!fetchedSecrets.includes(regexResult[0])){
                                     fetchedSecrets.push(regexResult[0]);
                                 }
                             } else {
