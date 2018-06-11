@@ -285,6 +285,7 @@ const updateMark = function (param) {
 };
 
 const updateMart = function (param) {
+    log.debug("handling mart", param);
     let result = "";
     const fieldMap = param['fieldDefinition']['fieldMap'];
     const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
@@ -312,7 +313,11 @@ const updateMart = function (param) {
         let dv_entries = desiredValue;
 
         if (isCommaSeperatedList) {
+            log.debug("value is comma seperated!");
             dv_entries = desiredValue.split(',');      // not comma seperated zum array umformen? denglish ftw...
+            log.debug("splitting result", dv_entries);
+        } else {
+            log.debug("value is not comma seperated");
         }
 
         const dv_value_map = {};
