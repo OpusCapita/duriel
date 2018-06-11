@@ -28,8 +28,77 @@ const padLeft = function (input, character, length) {
     return input;
 };
 
+function isEqual(obj1, obj2){
+    if (Array.isArray(obj1) && Array.isArray(obj1)) {
+        for (const arrayEntry1 of obj1) {
+            for (const arrayEntry2 of obj2) {
+                if (!isEqual(arrayEntry1, arrayEntry2)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    } else if (!obj1 && !obj2) { // both null-like
+        return true;
+    } else
+    if (typeof obj1 === 'string' && typeof obj2 === 'string') { // compare strings
+        return obj1 === obj2
+    } else if (!isNaN(obj1) && isFinite(obj1 && !isNaN(obj2) && isFinite(obj2))) { // compare numbers
+        return obj1 === obj2
+    } else if (typeof obj1 === 'object' && typeof obj2 === 'object') {
+        for (const field1 of Object.keys(obj1)) {
+            if (!isEqual(obj1[field1], obj2[field1])) {
+                return false;
+            }
+        }
+        for (const field2 of Object.keys(obj2)) {
+            if (!isEqual(obj1[field2], obj2[field2])) {
+                return false;
+            }
+        }
+        return true;
+    } else if (typeof obj1 ===  typeof obj2) {
+        return obj1 === obj2;
+    } else {
+        return false;
+    }
+}
+
+function deepContains(array, obj){
+    for(const entry of array){
+        if(isEqual(entry, obj))
+            return true;
+    }
+    return false;
+}
+
+function arrayMinus(array1, array2){
+    const result = [];
+    for (const entry1 of array1) {
+        if(!deepContains(array2, entry1)){
+            result.push(entry1);
+        }
+    }
+    return result;
+}
+
+function arrayIntersect(array1, array2) {
+    const result = [];
+    for (const entry1 of array1) {
+        for (const entry2 of array2) {
+            if (isEqual(entry1, entry2))
+                result.push(entry1);
+        }
+    }
+    return result;
+}
+
+
 module.exports = {
     snooze: snooze,
     flattenArray: flattenArray,
-    padLeft: padLeft
+    padLeft: padLeft,
+    arrayMinus: arrayMinus,
+    arrayIntersect: arrayIntersect,
+    objectIsEqual: isEqual
 };

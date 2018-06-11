@@ -3,6 +3,7 @@ const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 const fieldDefs = require('../../fieldDefs');
+const util = require("../helpers/utilHelper");
 
 const byteMappingValidation = /[0-9]+[KMGT]/;
 const integerExtractor = /[0-9]+/;
@@ -293,6 +294,7 @@ const updateMark = function (param) {
 const updatePublish = function (param) {
     const fieldMap = param['fieldDefinition']['fieldMap'];
     // create map to translate name from task_template to field_defs
+    const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
 
     const tt2fdMap = {};
     const fd2ttMap = {};
@@ -336,59 +338,20 @@ const updatePublish = function (param) {
     log.info("translatedCV is: ", translatedCV);
     log.info("translatedDV is: ", translatedDV);
 
-    const pairsForAdding = [];
-    const pairsForRemoving = [];
-
-    log.info("collecting dv for adding");
-
-    for(let dv of translatedDV){
-        const identicalCv = translatedCV.filter(cv => {
-            log.debug("comparing", dv);
-            log.debug("and", cv);
-            let identical = true;
-            for(let field of Object.keys(dv)){
-                identical &= cv[field] && cv[field] == dv[field];
-            }
-            log.debug(`compare-result: ${identical}`);
-            return identical;
-        });
-        log.debug("found identical setting: ", identicalCv);
-        if(!identicalCv || !identicalCv.length ){
-            pairsForAdding.push(dv);
-        }
-    }
-
-    log.info("collecting cv for removing");
-
-    for(let cv of translatedCV){                // TODO: extract that into a intersect funtion... hate js
-        const identicalDv = translatedDV.filter(dv => {
-            log.debug("comparing", cv);
-            log.debug("and", dv);
-            let identical = true;
-            for(let field of Object.keys(dv)){
-                log.severe(`comparing ${cv[field]} and ${dv[field]}`);
-                identical &= dv[field] && cv[field] == dv[field];   // hate js
-            }
-            log.debug(`compare-result: ${identical}`);
-            return identical;
-        });
-        log.debug("found identical setting: ", identicalDv);
-
-        if(!identicalDv || !identicalDv.length ){
-            pairsForRemoving.push(cv);
-        }
-    }
-
-    log.debug("pairs4adding", pairsForAdding);
-    log.debug("pairs4Removing", pairsForRemoving);
+    const pairsForAdding = util.arrayMinus(translatedDV, translatedCV);
+    const pairsForRemoving = util.arrayMinus(translatedCV, translatedDV);
+    
+    log.debug("pairs4adding: ", pairsForAdding);
+    log.debug("pairs4Removing: ", pairsForRemoving);
+    log.debug("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
 
     let command = "";
     for(let dv of pairsForAdding){
-        command += ` --${param.name}-add ${Object.keys(dv).map(it => `${it}=${dv[it]}`).join(',')}`;
+        command += ` --${param.name}-add ${Object.keys(dv).sort().map(it => `${it}=${dv[it]}`).join(',')}`;
     }
 
     for(let cv of pairsForRemoving){
-        command += ` --${param.name}-remove ${Object.keys(cv).map(it => `${it}=${cv[it]}`).join(',')}`;
+        command += ` --${param.name}-remove ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
     }
 
     return command;
