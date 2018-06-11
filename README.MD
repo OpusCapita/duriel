@@ -24,3 +24,9 @@
 
 - develop/nbp => deployment on "develop"
 - master => deployment on "stage", then deployment on "prod"
+
+## behaviour flags
+
+- 'e2e_skip' => ignore result of e2e-tests
+- 'second_deployment_skip' => only first deployment stept will be done
+- 'andariel_loglevel' => loglevel

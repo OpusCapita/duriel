@@ -13,7 +13,7 @@ module.exports = {
 
 function calculateDevTag(config){
     const versionFileContent = readVersionFile();
-    return `${versionFileContent}-${config.get('CIRCLE_BRANCH') === 'master' ? 'rc' : 'dev'}-${config.get('CIRCLE_BUILD_NUM')}`;
+    return `${versionFileContent.trim()}-${config.get('CIRCLE_BRANCH') === 'master' ? 'rc' : 'dev'}-${config.get('CIRCLE_BUILD_NUM')}`;
 }
 
 
