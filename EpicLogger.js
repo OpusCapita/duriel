@@ -5,7 +5,7 @@ class EpicLogger {
         this.debug = (msg, obj) => this.log('debug', msg, null, obj, EpicLogger.getColors().GREEN);
         this.info = (msg, obj) => this.log('info', msg, null, obj, EpicLogger.getColors().WHITE);
         this.warn = (msg, obj) => this.log('warn', msg, null, obj, EpicLogger.getColors().YELLOW);
-        this.error = (msg, error) => this.log('error', msg, error, null, EpicLogger.getColors().RED);
+        this.error = (msg, error, obj) => this.log('error', msg, error, obj, EpicLogger.getColors().RED);
         this.log = this.log.bind(this);
     }
 

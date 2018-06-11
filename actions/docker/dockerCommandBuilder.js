@@ -118,9 +118,6 @@ const buildDockerUpdate = function (config, addSecret = false) {
                 case 'marh':
                     addedFields.push(updateMarh(collectedData));
                     break;
-                case 'publish':
-                    addedFields.push(updatePublish(collectedData));
-                    break;
                 case 'update':
                     log.debug("ignoring update-type, skipping.");
                     break;
@@ -291,7 +288,7 @@ const updateMark = function (param) {
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
-const updatePublish = function (param) {
+const updateMart = function (param) {
     const fieldMap = param['fieldDefinition']['fieldMap'];
     // create map to translate name from task_template to field_defs
     const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
@@ -340,7 +337,7 @@ const updatePublish = function (param) {
 
     const pairsForAdding = util.arrayMinus(translatedDV, translatedCV);
     const pairsForRemoving = util.arrayMinus(translatedCV, translatedDV);
-    
+
     log.debug("pairs4adding: ", pairsForAdding);
     log.debug("pairs4Removing: ", pairsForRemoving);
     log.debug("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
@@ -355,109 +352,6 @@ const updatePublish = function (param) {
     }
 
     return command;
-};
-
-const updateMart = function (param) {
-    let result = "";
-    const fieldMap = param['fieldDefinition']['fieldMap'];
-    const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
-
-    // create map to translate name from task_template to field_defs
-    const tt2fdMap = {};
-    const fd2ttMap = {};
-    if (fieldMap) {
-        for (let key of Object.keys(fieldMap)) {
-            const tt_value = key.toLowerCase();
-            const fd_value = fieldMap[key];
-            tt2fdMap[tt_value] = fd_value;
-            fd2ttMap[fd_value] = tt_value;
-        }
-    }
-    log.debug(`creating task_template to field_definition mapping:\n'task_template 2 fieldMap' --> ${JSON.stringify(tt2fdMap)}\n'fieldMap 2 task_template' --> ${JSON.stringify(fd2ttMap)}`);
-
-    if (Array.isArray(param.cv)) {
-        param.cv = param.cv[0];
-    }
-
-    let pairs4remove = [];
-    let pairs4insert = [];
-    for (let desiredValue of param.dv) {
-        let dv_entries = desiredValue;
-
-        if (isCommaSeperatedList) {
-            log.debug("value is comma seperated!");
-            dv_entries = desiredValue.split(',');      // not comma seperated zum array umformen? denglish ftw...
-            log.debug("splitting result", dv_entries);
-        } else {
-            log.debug("value is not comma seperated");
-        }
-
-        const dv_value_map = {};
-        for (let dv_entry of dv_entries) {
-            const dv_entry_split = dv_entry.split('=');
-            let dv_entry_key = dv_entry_split[0];
-            dv_value_map[dv_entry_key] = dv_entry_split[1];
-        }
-        // // collecting non required current values
-        Object.keys(param.cv)
-            .filter(it => fd2ttMap[it] && !Object.keys(dv_value_map).includes(fd2ttMap[it]))    // is there a mapping?
-            .forEach(it => pairs4remove.push({name: fd2ttMap[it], value: null}));
-
-        for (let key in dv_value_map) {
-            let current = param.cv[tt2fdMap[key]];
-            if (!current) { // value could be unmapped (e.g. protocol <-> Protocol)
-                log.severe("could not find value via tt2fd-mapping - trying to get value via lowerCaseComparison of keys");
-                for (let cv_key of Object.keys(param.cv)) {
-                    if (key.toLowerCase() === cv_key.toLowerCase()) {
-                        log.severe("found value!");
-                        current = param.cv[cv_key];
-                        break;
-                    }
-                }
-                if (!current) {
-                    log.warn("could not find value via lowerCaseComparison!")
-                }
-                current = `${current}`;
-            }
-
-            const desired = `${dv_value_map[key]}`;
-            log.debug(`${key} --> current: '${current}', desired: '${desired}'`);
-            if (current != desired) {   // !== returns idiotic non-valid results '3016' !== '3016' --> true
-                log.severe(`param '${key}' need to be updated`);
-                pairs4insert.push({name: key, value: dv_value_map[key]});
-            } else if (!current) {
-                log.severe(`param '${key}' is new`);
-                pairs4insert.push({name: key, value: dv_value_map[key]})
-            } else {
-                log.severe(`param '${key}' has not changed its value`);
-            }
-        }
-    }
-    log.debug("going to create command params from: ", pairs4insert);
-
-    pairs4insert = pairs4insert.map(entry => `${entry.name}=${entry.value}`);
-    pairs4remove = pairs4remove.map(entry => `${entry.name}=${entry.value}`);
-
-
-    if (isCommaSeperatedList) {
-        if (pairs4remove.length > 0) {
-            result += ` --${param.name}-rm ${pairs4remove.join(',')}`;
-        }
-        if (pairs4insert.length > 0) {
-            result += ` --${param.name}-add ${pairs4insert.join(',')}`;
-        }
-    } else {
-        if (pairs4remove.length > 0) {
-            result += pairs4remove.map(it => `--${param.name}-rm ${it}`).join(" ");
-        }
-        if (pairs4insert.length > 0) {
-            result += pairs4insert.map(it => `--${param.name}-add ${it}`).join(" ");
-        }
-    }
-    for (let entry of pairs4insert) {
-        log.info(entry);
-    }
-    return result;
 };
 
 const getMultipleOptionsFromArray = function (collectedData) {

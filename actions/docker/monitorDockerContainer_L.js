@@ -30,7 +30,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
                     result.success = true;
                     return result
                 } else if (service.status === "unhealthy") {
-                    log.error(`${logBase} - status is unhealthy`);
+                    log.error(`${logBase} - status is unhealthy`, null,  service);
                     result.message = `service is unhealthy! attempt: ${attempt}`;
                     result.success = false;
                     throw new Error(JSON.stringify(result));
@@ -42,7 +42,8 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
             }
             log.info(`${logBase} - current-result: ${JSON.stringify(result)} waiting ${interval / 1000 }sec...`);
         } catch (error) {
-            throw new Error(JSON.stringify(error));
+            log.error("this is not good", error);
+            throw error;
         }
         await helper.snooze(interval);
     }
