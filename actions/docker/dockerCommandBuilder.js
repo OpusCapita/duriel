@@ -292,11 +292,13 @@ const updateMart = function (param) {
     // create map to translate name from task_template to field_defs
     const tt2fdMap = {};
     const fd2ttMap = {};
-    for (let key of Object.keys(fieldMap)) {
-        const tt_value = key.toLowerCase();
-        const fd_value = fieldMap[key];
-        tt2fdMap[tt_value] = fd_value;
-        fd2ttMap[fd_value] = tt_value;
+    if(fieldMap) {
+        for (let key of Object.keys(fieldMap)) {
+            const tt_value = key.toLowerCase();
+            const fd_value = fieldMap[key];
+            tt2fdMap[tt_value] = fd_value;
+            fd2ttMap[fd_value] = tt_value;
+        }
     }
     log.debug(`creating task_template to field_definition mapping:\n'task_template 2 fieldMap' --> ${JSON.stringify(tt2fdMap)}\n'fieldMap 2 task_template' --> ${JSON.stringify(fd2ttMap)}`);
 
@@ -345,7 +347,6 @@ const updateMart = function (param) {
             log.debug(`${key} --> current: '${current}', desired: '${desired}'`);
             if (current != desired) {   // !== returns idiotic non-valid results '3016' !== '3016' --> true
                 log.severe(`param '${key}' need to be updated`);
-                // pairs4remove.push({name: key, value: dv_value_map[key]}); //add params are implicit updates
                 pairs4insert.push({name: key, value: dv_value_map[key]});
             } else if (!current) {
                 log.severe(`param '${key}' is new`);
