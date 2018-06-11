@@ -5,7 +5,8 @@ const fs = require('fs');
 
 module.exports = function () {
     if (!fs.existsSync('./package.json')) {
-        throw new Error("could not find package.json");
+        log.warn("could not find package.json");
+        return false;
     }
     const packageJson = fs.readFileSync('./package.json', {encoding: 'utf8'});
     log.info("loaded package.json successfully.");
