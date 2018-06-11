@@ -39,6 +39,9 @@ const buildDockerCreate = function (config) {
                 case 'mart':
                     addedFields.push(getMultipleOptionsFromArray(collectedData));
                     break;
+                case 'publish':
+                    addedFields.push(getMultipleOptionsFromArray(collectedData));
+                    break;
                 case 'mark':
                     addedFields.push(getMultipleOptionsFromArray(collectedData));
                     break;
@@ -113,6 +116,9 @@ const buildDockerUpdate = function (config, addSecret = false) {
                     break;
                 case 'marh':
                     addedFields.push(updateMarh(collectedData));
+                    break;
+                case 'publish':
+                    addedFields.push(updatePublish(collectedData));
                     break;
                 case 'update':
                     log.debug("ignoring update-type, skipping.");
@@ -284,8 +290,112 @@ const updateMark = function (param) {
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
+const updatePublish = function (param) {
+    const fieldMap = param['fieldDefinition']['fieldMap'];
+    // create map to translate name from task_template to field_defs
+
+    const tt2fdMap = {};
+    const fd2ttMap = {};
+    for (let key of Object.keys(fieldMap)) {
+        const tt_value = key.toLowerCase();
+        const fd_value = fieldMap[key];
+        tt2fdMap[tt_value] = fd_value;
+        fd2ttMap[fd_value] = tt_value;
+    }
+
+    log.info("translating currentValue");
+    const translatedCV = param.cv.map(it => {
+        const result = {};
+        for (let key of Object.keys(it)) {
+            log.debug("cv-entry: ", key);
+            const translatedKey = fd2ttMap[key];
+            if (translatedKey) {
+                result[translatedKey] = it[key];
+            } else {
+                log.warn("no mapping for field " + key);
+                result[key.toLowerCase()] = it[key];
+            }
+        }
+        return result;
+    });
+
+    log.info("translating desiredValue");
+    const translatedDV = [];
+    for (let currentDV of param.dv) {
+        log.debug("handlinv dv: ", currentDV);
+        const entry = {};
+        const splitByField = currentDV.split(',');
+        for (let field of splitByField) {
+            log.severe("field of dv: ", field);
+            const splitByKV = field.split("=");
+            entry[splitByKV[0]] = splitByKV[1];
+        }
+        translatedDV.push(entry);
+    }
+
+    log.info("translatedCV is: ", translatedCV);
+    log.info("translatedDV is: ", translatedDV);
+
+    const pairsForAdding = [];
+    const pairsForRemoving = [];
+
+    log.info("collecting dv for adding");
+
+    for(let dv of translatedDV){
+        const identicalCv = translatedCV.filter(cv => {
+            log.debug("comparing", dv);
+            log.debug("and", cv);
+            let identical = true;
+            for(let field of Object.keys(dv)){
+                identical &= cv[field] && cv[field === dv[field]];
+            }
+            log.debug("compare-result: ", identical);
+            return identical;
+        });
+        log.debug("found identical setting: ", identicalCv);
+
+        if(!identicalCv || !identicalCv.length ){
+            pairsForAdding.push(dv);
+        }
+    }
+
+    log.info("collecting cv for removing");
+
+    for(let cv of translatedCV){
+        const identicalDv = translatedDV.filter(dv => {
+            log.debug("comparing", cv);
+            log.debug("and", dv);
+            let identical = true;
+            for(let field of Object.keys(dv)){
+                identical &= dv[field] && dv[field === dv[field]];
+            }
+            log.debug("compare-result: ", identical);
+            return identical;
+        });
+        log.debug("found identical setting: ", identicalDv);
+
+        if(!identicalDv || !identicalDv.length ){
+            pairsForRemoving.push(cv);
+        }
+    }
+
+    log.debug("pairs4adding", pairsForAdding);
+    log.debug("pairs4Removing", pairsForRemoving);
+
+
+    let command = "";
+    for(let dv of pairsForAdding){
+        command += ` --${param.name}-add ${Object.keys(dv).map(it => `${it}=${dv[it]}`).join(',')}`;
+    }
+
+    for(let cv of pairsForRemoving){
+        command += ` --${param.name}-remove ${Object.keys(cv).map(it => `${it}=${cv[it]}`).join(',')}`;
+    }
+
+    return command;
+};
+
 const updateMart = function (param) {
-    log.debug("handling mart", param);
     let result = "";
     const fieldMap = param['fieldDefinition']['fieldMap'];
     const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
@@ -293,7 +403,7 @@ const updateMart = function (param) {
     // create map to translate name from task_template to field_defs
     const tt2fdMap = {};
     const fd2ttMap = {};
-    if(fieldMap) {
+    if (fieldMap) {
         for (let key of Object.keys(fieldMap)) {
             const tt_value = key.toLowerCase();
             const fd_value = fieldMap[key];
