@@ -347,7 +347,7 @@ const updatePublish = function (param) {
             log.debug("and", cv);
             let identical = true;
             for(let field of Object.keys(dv)){
-                identical &= cv[field] && cv[field] === dv[field];
+                identical &= cv[field] && cv[field] == dv[field];
             }
             log.debug(`compare-result: ${identical}`);
             return identical;
@@ -360,13 +360,14 @@ const updatePublish = function (param) {
 
     log.info("collecting cv for removing");
 
-    for(let cv of translatedCV){
+    for(let cv of translatedCV){                // TODO: extract that into a intersect funtion... hate js
         const identicalDv = translatedDV.filter(dv => {
             log.debug("comparing", cv);
             log.debug("and", dv);
             let identical = true;
             for(let field of Object.keys(dv)){
-                identical &= dv[field] && dv[field] === dv[field];
+                log.severe(`comparing ${cv[field]} and ${dv[field]}`);
+                identical &= dv[field] && cv[field] == dv[field];   // hate js
             }
             log.debug(`compare-result: ${identical}`);
             return identical;
@@ -380,7 +381,6 @@ const updatePublish = function (param) {
 
     log.debug("pairs4adding", pairsForAdding);
     log.debug("pairs4Removing", pairsForRemoving);
-
 
     let command = "";
     for(let dv of pairsForAdding){
