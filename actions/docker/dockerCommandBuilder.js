@@ -370,7 +370,7 @@ const updatePublish = function (param) {
                 identical &= dv[field] && dv[field === dv[field]];
             }
             log.debug("compare-result: ", identical);
-            return identical;
+            return !identical;
         });
         log.debug("found identical setting: ", identicalDv);
 
