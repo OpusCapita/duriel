@@ -375,7 +375,13 @@ module.exports = class EnvProxy {
                         }
                     }
                 );
-            }).then(nodes => nodes.filter(it => it !== undefined))
+            }).then(nodes => {
+                if(!nodes || !nodes.length){
+                    log.warn("no nodes found... this is strange...", nodes);
+                    return [];
+                }
+                return nodes.filter(it => it !== undefined)
+            })
     }
 
     /**
