@@ -347,13 +347,12 @@ const updatePublish = function (param) {
             log.debug("and", cv);
             let identical = true;
             for(let field of Object.keys(dv)){
-                identical &= cv[field] && cv[field === dv[field]];
+                identical &= cv[field] && cv[field] === dv[field];
             }
-            log.debug("compare-result: ", identical);
+            log.debug(`compare-result: ${identical}`);
             return identical;
         });
         log.debug("found identical setting: ", identicalCv);
-
         if(!identicalCv || !identicalCv.length ){
             pairsForAdding.push(dv);
         }
@@ -367,10 +366,10 @@ const updatePublish = function (param) {
             log.debug("and", dv);
             let identical = true;
             for(let field of Object.keys(dv)){
-                identical &= dv[field] && dv[field === dv[field]];
+                identical &= dv[field] && dv[field] === dv[field];
             }
-            log.debug("compare-result: ", identical);
-            return !identical;
+            log.debug(`compare-result: ${identical}`);
+            return identical;
         });
         log.debug("found identical setting: ", identicalDv);
 
