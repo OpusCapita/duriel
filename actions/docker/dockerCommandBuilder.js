@@ -309,10 +309,10 @@ const updateMart = function (param) {
             log.debug("cv-entry: ", key);
             const translatedKey = fd2ttMap[key];
             if (translatedKey) {
-                result[translatedKey] = it[key];
+                result[translatedKey] = `${it[key]}`;   // Forcing it to be a String.
             } else {
                 log.warn("no mapping for field " + key);
-                result[key.toLowerCase()] = it[key];
+                result[key.toLowerCase()] = `${it[key]}`;
             }
         }
         return result;
