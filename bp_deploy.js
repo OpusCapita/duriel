@@ -143,7 +143,7 @@ const exec = async function () {
         log.debug("command execution got response: ", commandResponse);
         log.info("monitoring service after command-execution");
 
-        if(commandResponse.trim() !== config['CIRCLE_PROJECT_REPONAME']){
+        if(!commandResponse || commandResponse.trim() !== config['CIRCLE_PROJECT_REPONAME']){
             throw new Error("command response is not the reponame, this means docker did not accept the command but also did not throw an error...");
         }
 
