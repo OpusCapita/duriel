@@ -140,7 +140,7 @@ const exec = async function () {
         log.info(`Login for Docker: '${config['DOCKER_USER']}', executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
-        if(!commandResponse){
+        if(!commandResponse ){
             throw new Error("no response for docker command");
         }
         const loginSucceded = commandResponse.includes("Login Succeeded");

@@ -42,7 +42,7 @@ async function onEnv (config, proxy){
         proxy = await new EnvProxy().init(config);
         createdProxy = true;
     }
-    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`));
+    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`, true).catch(err => log.warn("could not login in docker", err)));
     if(createdProxy){
         proxy.close();
     }

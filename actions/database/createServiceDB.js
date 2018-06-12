@@ -46,7 +46,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     try {
         db_password = await proxy.getKeyValue(`${config['serviceName']}/db-init/password`);
     } catch (error) {
-        log.error("error while getting service-password from consul: ", error);
+        log.warn("error while getting service-password from consul: ", error);
     }
     if (!db_password) {
         log.info("4.2 no database-password was stored in consul. creating a new one!");
