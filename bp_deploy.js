@@ -70,6 +70,7 @@ const exec = async function () {
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
+        await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = await dependsOnServiceClient();
         if (!config['dependsOnServiceClient']) {
@@ -125,8 +126,6 @@ const exec = async function () {
         }
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
-
-        await dockerHelper.loginEnv(config, proxy);
         config['DS2'] = dockerCommand;
 
         const testToken = await e2eTester.prepareE2ETests(config, proxy);
