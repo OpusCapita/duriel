@@ -19,7 +19,11 @@ const exec = async () => {
         const config = getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerHelper.loginLocal(config);
-        await dockerCompose(compose_base, "pull");
+        try{
+            await dockerCompose(compose_base, "pull");
+        } catch (e) {
+            log.warn("docker pull did not exit successfull. is your service new? then everything is fine :)", e);
+        }
         await buildDockerImage.buildImage(config);
         await dockerCompose(compose_base, "up -d");
 
