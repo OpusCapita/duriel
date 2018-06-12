@@ -29,6 +29,9 @@ const padLeft = function (input, character, length) {
 };
 
 function isEqual(obj1, obj2){
+    if(obj1 === obj2){
+        return true;    // let js do it's magic...
+    }
     if (Array.isArray(obj1) && Array.isArray(obj1)) {
         for (const arrayEntry1 of obj1) {
             for (const arrayEntry2 of obj2) {
