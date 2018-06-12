@@ -29,9 +29,6 @@ const padLeft = function (input, character, length) {
 };
 
 function isEqual(obj1, obj2){
-    if(obj1 === obj2){
-        return true;    // let js do it's magic...
-    }
     if (Array.isArray(obj1) && Array.isArray(obj1)) {
         for (const arrayEntry1 of obj1) {
             for (const arrayEntry2 of obj2) {
@@ -43,11 +40,6 @@ function isEqual(obj1, obj2){
         return true;
     } else if (!obj1 && !obj2) { // both null-like
         return true;
-    } else
-    if (typeof obj1 === 'string' && typeof obj2 === 'string') { // compare strings
-        return obj1 === obj2
-    } else if (!isNaN(obj1) && isFinite(obj1 && !isNaN(obj2) && isFinite(obj2))) { // compare numbers
-        return obj1 === obj2
     } else if (typeof obj1 === 'object' && typeof obj2 === 'object') {
         for (const field1 of Object.keys(obj1)) {
             if (!isEqual(obj1[field1], obj2[field1])) {
@@ -63,7 +55,7 @@ function isEqual(obj1, obj2){
     } else if (typeof obj1 ===  typeof obj2) {
         return obj1 === obj2;
     } else {
-        return false;
+        return obj1 === obj2;
     }
 }
 
