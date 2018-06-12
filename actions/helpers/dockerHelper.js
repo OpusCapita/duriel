@@ -35,14 +35,14 @@ async function tagAndPushImage(image, src, target, push) {
  * @returns nothing
  */
 async function onEnv (config, proxy){
-    log.info(`logging into docker with user ${config['DOCKER_USER']}`);
+    log.debug(`logging into docker with user ${config['DOCKER_USER']}`);
     let createdProxy = false;
     if(!proxy){
         log.warn(`no proxy param - trying to init a proxy`);
         proxy = await new EnvProxy().init(config);
         createdProxy = true;
     }
-    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`, true).catch(err => log.warn("could not login in docker", err)));
+    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`).catch(err => log.warn("could not login in docker")));
     if(createdProxy){
         proxy.close();
     }
@@ -54,7 +54,7 @@ async function onEnv (config, proxy){
  * @returns {Promise<void>}
  */
 async function local(config){
-    log.info(`logging into docker with user ${config['DOCKER_USER']}`);
+    log.debug(`logging into docker with user ${config['DOCKER_USER']}`);
     const proxy = new EnvProxy();
     console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`));
 }
