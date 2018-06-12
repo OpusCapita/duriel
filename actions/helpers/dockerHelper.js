@@ -42,7 +42,7 @@ async function onEnv (config, proxy){
         proxy = await new EnvProxy().init(config);
         createdProxy = true;
     }
-    await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`);
+    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`));
     if(createdProxy){
         proxy.close();
     }
@@ -56,7 +56,7 @@ async function onEnv (config, proxy){
 async function local(config){
     log.info(`logging into docker with user ${config['DOCKER_USER']}`);
     const proxy = new EnvProxy();
-    await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`)
+    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`));
 }
 
 module.exports = {
