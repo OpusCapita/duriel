@@ -137,16 +137,16 @@ const exec = async function () {
             }
         }
 
-        log.info(`executing dockerCommand ... `);
+        log.info(`Login for Docker: '${config['DOCKER_USER']}', executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
         const loginSucceded = commandResponse.includes("Login Succeeded");
         if(!loginSucceded){
             throw new Error("invalid docker login.");
         }
-        
+
         const commandResponseSplit = commandResponse.split("Login Succeeded");
-        const successPart = commandResponseSplit[commandResponse.length -1].trim();
+        const successPart = commandResponseSplit[commandResponseSplit.length -1].trim();
         if(!successPart || successPart.trim() !== config['CIRCLE_PROJECT_REPONAME']){
             throw new Error("command response is not the reponame, this means docker did not accept the command but also did not throw an error...");
         }
