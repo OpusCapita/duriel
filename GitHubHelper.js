@@ -8,6 +8,12 @@ const child_process = require('child_process');
 let result;
 module.exports.iterateRepos = iterateRepos;
 module.exports.createUpdateRepo = createUpdateRepo;
+module.exports.createPR = createPR;
+module.exports.push = push;
+module.exports.branch = branch;
+module.exports.commit = commit;
+module.exports.checkout = checkout;
+module.exports.add = add;
 
 //createUpdateRepo("dummy", "/home/gr4per", "develop")
 //.catch( (err) =>  {
@@ -38,6 +44,42 @@ async function createUpdateRepo(reponame, localPath, branchname) {
   });
 }
 
+/**
+ * Will create new branch on local repo and checks it out
+ */
+async function branch(reponame, localPath, branchname) {
+  repoPath = localPath + "/" + reponame;
+  return fileExists(repoPath)
+  .then( (exists) => {
+    console.log(repoPath + " exists");
+    return Promise.resolve();
+  })
+  .catch( (err) => {
+    let msg = repoPath + " doesnt exist";
+    console.log(msg);
+    return Promise.reject(msg);
+  })
+  .then( () => exec("cd " + localPath + "/" + reponame + "; git branch " + branchname))
+  .then( (output) => checkout(reponame, localPath, branchname) )
+  .catch( (err) => {
+    console.error("unable to create branch  " + branchname + " on " + repoPath + ": \n", err);
+    throw err;
+  });
+}
+
+/**
+ * Will create new pull request to develop
+ */
+async function createPR(reponame, branchname) {
+  let prName = "i18n-update-" + new Date().toISOString();
+  return exec("curl -f -X POST -d '{\"title\":\"" + prName + "\", \"head\":\"" + branchname + "\", \"base\":\"develop\"}' -u " + process.env.GIT_TOKEN + ": -H \"Accept: application/vnd.github.mercy-preview+json\" https://api.github.com/repos/OpusCapita/" + reponame + "/pulls")
+  .then( (output) => { console.log("PR created"); return Promise.resolve(output)} )
+  .catch( (err) => {
+    console.error("unable to create PR " + prName + ": \n", err);
+//    throw err;
+  });
+}
+
 async function exec(command) {
   return new Promise( (resolve, reject) => {
     child_process.exec(command, (err, stdout, stderr) => {
@@ -51,6 +93,23 @@ async function exec(command) {
       }
     });
   });
+}
+
+async function add(reponame, localPath, file) {
+  let addcmd = ".";
+  if(file)
+    addcmd = file;
+  console.log("adding files to " + localPath + "/" + reponame);
+  let output = await exec("cd " + localPath + "/" + reponame + "; git add " + addcmd);
+  console.log("added, output=", output);
+  return output;
+}
+
+async function commit(reponame, localPath, msg) {
+  console.log("committing " + localPath + "/" + reponame);
+  let output = await exec("cd " + localPath + "/" + reponame + "; git commit -am \"" + msg + "\"");
+  console.log("committed, output=", output);
+  return output;
 }
 
 async function clone(reponame, localPath) {
@@ -77,6 +136,16 @@ async function pull(reponame, localPath) {
   console.log("pulling repo " + localPath + "/" + reponame);
   let output = await exec("cd " + localPath + "/" + reponame + "; git pull");
   console.log("pull done, output=", output);
+}
+
+async function push(reponame, localPath, branchname) {
+  let setupstream = "";
+  if(branchname)
+    setupstream = " --set-upstream origin " + branchname;
+  console.log("pushing repo " + localPath + "/" + reponame);
+  let output = await exec("cd " + localPath + "/" + reponame + "; git push" + setupstream);
+  console.log("push done, output=", output);
+  return output;
 }
 
 /**
