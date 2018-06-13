@@ -295,11 +295,13 @@ const updateMart = function (param) {
 
     const tt2fdMap = {};
     const fd2ttMap = {};
-    for (let key of Object.keys(fieldMap)) {
-        const tt_value = key.toLowerCase();
-        const fd_value = fieldMap[key];
-        tt2fdMap[tt_value] = fd_value;
-        fd2ttMap[fd_value] = tt_value;
+    if(fieldMap) {
+        for (let key of Object.keys(fieldMap)) {
+            const tt_value = key.toLowerCase();
+            const fd_value = fieldMap[key];
+            tt2fdMap[tt_value] = fd_value;
+            fd2ttMap[fd_value] = tt_value;
+        }
     }
 
     log.info("translating currentValue");
@@ -327,7 +329,7 @@ const updateMart = function (param) {
         for (let field of splitByField) {
             log.severe("field of dv: ", field);
             const splitByKV = field.split("=");
-            entry[splitByKV[0]] = splitByKV[1];
+            entry[splitByKV[0].toLowerCase()] = splitByKV[1];
         }
         translatedDV.push(entry);
     }
