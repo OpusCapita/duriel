@@ -15,6 +15,8 @@ let translations = {};
 let localRepoPath = "";
 let skipPull = false;
 
+module.exports.flattenObject=flattenObject;
+
 init()
 .then( () => getRepos() )
 .then( (repos) => collectTranslationsFromRepos(repos) )
