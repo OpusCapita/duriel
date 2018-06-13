@@ -228,7 +228,7 @@ module.exports = class EnvProxy {
             throw new Error('node missing');
         return await this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => {
-                    log.debug(`docker ps response on node '${node}'`, response);
+                    log.debug(`docker ps response on node '${node}'`, response ? response : `${response}`);
                     return response.split('\n').map(
                         row => {
                             log.debug("docker ps entry: ", row);
@@ -299,7 +299,7 @@ module.exports = class EnvProxy {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
                             if (regexResult && regexResult.length > 0) {
                                 log.debug("adding secret!: ", regexResult[0].substring(0, 5));
-                                if(!fetchedSecrets.includes(regexResult[0])){
+                                if (!fetchedSecrets.includes(regexResult[0])) {
                                     fetchedSecrets.push(regexResult[0]);
                                 }
                             } else {
@@ -378,7 +378,7 @@ module.exports = class EnvProxy {
                     }
                 );
             }).then(nodes => {
-                if(!nodes || !nodes.length){
+                if (!nodes || !nodes.length) {
                     log.warn("no nodes found... this is strange...", nodes);
                     return [];
                 }
@@ -596,6 +596,8 @@ module.exports = class EnvProxy {
                     return resolve(response);
                 }).on('data', function (data) {
                     response += data.toString();
+                }).on('error', streamError => {
+                    return reject(streamError);
                 });
             });
         });
