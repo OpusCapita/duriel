@@ -12,7 +12,7 @@ module.exports = async function (config, proxy) {
         const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']);
         const serviceChecks = helper.flattenArray(consulApiResponse.map(entry => entry.Checks))
             .filter(entry => entry['ServiceName'] === config['serviceName']);
-        log.info("serviceChecks", serviceChecks);
+        log.severe(`serviceChecks for service ${config['serviceName']}`, serviceChecks);
         const totalChecks = serviceChecks.length;
         const passingChecks = serviceChecks.filter(entry => entry['Status'] === 'passing').length;
         if (passingChecks === totalChecks || config['chris_little_secret']) {
