@@ -585,17 +585,22 @@ module.exports = class EnvProxy {
             command = 'sudo ' + command;
         }
         return new Promise((resolve, reject) => {
-            let response = "";
+            const output = {stdout: [], stderr: []};
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
                     log.error('SECOND :: exec error: ', err);
                     log.warn("output before error: ", response);
                     return reject(err);
                 }
+                stream.stderr.on('data', data => output.stderr.push(data));
+
                 stream.on('end', () => {
-                    return resolve(response);
+                    if (output.stderr.length) {
+                        reject(output.stderr.join(''));
+                    }
+                    return resolve(output.stdout.join(''));
                 }).on('data', function (data) {
-                    response += data.toString();
+                    output.stdout.push(data);
                 }).on('error', streamError => {
                     return reject(streamError);
                 });
