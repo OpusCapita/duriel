@@ -39,9 +39,9 @@ const waitForTest = async function (config, attempts = 240, interval = 5000) {
 };
 
 const prepareE2ETests = async function (config, proxy) {
-    log.info("Preparing E2ETesting...");
+    log.info(`Preparing E2ETesting for service '${config['serviceName']}'...`);
     const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
-    if (!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret') || true) {  //TODO: REMOVE ME REMOVE REMOVE ME, GOD PLS REMOVE ME
+    if (!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret')) {  //TODO: REMOVE ME REMOVE REMOVE ME, GOD PLS REMOVE ME
         log.info("This service needs no e2e testing");
         return;
     }
