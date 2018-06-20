@@ -15,7 +15,7 @@ module.exports.commit = commit;
 module.exports.checkout = checkout;
 module.exports.add = add;
 
-run();
+//run();
 
 async function run() {
   let repos = await iterateRepos([["andariel", "microservice"]])

@@ -42,6 +42,7 @@ async function run(srcPath, destPath) {
   console.log("componentFolder=" + srcFolder); 
   console.log("srcLanguage=" + srcLanguage);
   let flatdata = await flattenObject(srcTranslations);
+  if( ! destPath) destPath = srcFolder;
   await writeJSONBundle(destPath, srcLanguage, srcTranslations);
   console.log("successfully written file...");
 }
