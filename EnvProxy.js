@@ -595,7 +595,9 @@ module.exports = class EnvProxy {
                     return reject(err);
                 }
                 stream.on('end', () => {
-                    log.warn(stdError.join(''));
+                    if(stdError && stdError.length) {
+                        log.warn(stdError.join(''));
+                    }
                     return resolve(response);
                 }).on('data', function (data) {
                     response += data.toString();
