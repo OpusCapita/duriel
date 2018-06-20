@@ -599,6 +599,9 @@ module.exports = class EnvProxy {
                 }).on('error', streamError => {
                     return reject(streamError);
                 });
+                stream.stderr.on('error', error => {
+                    log.warn("something is wrong! ", error);
+                })
             });
         });
     };
