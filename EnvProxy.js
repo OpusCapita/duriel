@@ -48,7 +48,7 @@ module.exports = class EnvProxy {
                 username: this.config.admin_user,
                 agentForward: true,
                 agent: process.env.SSH_AUTH_SOCK,
-                debug: (output) => log.severe(output)
+                // debug: (output) => log.severe(output) // this parameter is so useless...
             };
 
             log.debug("connecting to:", ssh_config);
