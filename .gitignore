@@ -3,3 +3,8 @@ node_modules
 /test/run_deployscript.sh
 /test/run_buildscript.sh
 /package-lock.json
+
+*.swp
+log.txt
+Translations_*.xlsx
+package-lock.json
