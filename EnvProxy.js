@@ -587,6 +587,7 @@ module.exports = class EnvProxy {
         }
         return new Promise((resolve, reject) => {
             let response = "";
+            let stdError = [];
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
                     log.error('SECOND :: exec error: ', err);
@@ -594,6 +595,7 @@ module.exports = class EnvProxy {
                     return reject(err);
                 }
                 stream.on('end', () => {
+                    log.warn(stdError.join(''));
                     return resolve(response);
                 }).on('data', function (data) {
                     response += data.toString();
@@ -601,7 +603,7 @@ module.exports = class EnvProxy {
                     return reject(streamError);
                 });
                 stream.stderr.on('data', error => {
-                    log.warn(error);
+                    stdError.push(error);
                 })
             });
         });
