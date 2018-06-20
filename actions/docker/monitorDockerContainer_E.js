@@ -48,6 +48,7 @@ const checkUpdateStatus = async function (config, proxy) {
     } else if (check.state === 'paused') {
         check.state = 'paused';
     } else if (check.state) {
+        log.warn("no valid state: ", check);
         check.state = 'failure';
     }
     return check;
