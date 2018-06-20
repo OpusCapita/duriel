@@ -35,6 +35,7 @@ function bumpVersion(version, bumpLevel = "patch"){
     if(!version){
         throw new Error("no version given and could not load it from file");
     }
+    version = `${version}`.trim();
     const regex = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
     if (!regex.test(version)) {
         log.error(`${version} cannot be bumped! invalid format`);
