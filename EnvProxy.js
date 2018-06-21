@@ -173,7 +173,7 @@ module.exports = class EnvProxy {
         if (!cmd)
             throw new Error('command missing');
 
-        let command = `ssh ${node}`;
+        let command = `ssh -A ${node}`;
         command += ` ${sudo ? 'sudo' : ''}`;
 
         if (surroundWithQuotes)
@@ -227,12 +227,25 @@ module.exports = class EnvProxy {
     async getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
+        await this.executeCommand_N(node, "pwd")
+            .then(pwd => log.warn("pwd", pwd))
+            .catch(error => log.error("could not write the file", error));
+        await this.executeCommand_N(node, "whoami")
+            .then(pwd => log.warn("whoami", pwd))
+            .catch(error => log.error("could not write the file", error));
+        await this.executeCommand_N(node, 'echo "${SSH_AUTH_SOCK}"')
+            .then(pwd => log.warn("SSH_AUTH_SOCK", pwd))
+            .catch(error => log.error("could not write the file", error));
+        await this.executeCommand_N(node, `echo "connection is present" > /home/dmm/connectionTest.txt`)
+            .catch(error => log.error("could not write the file", error));
+
+
         return await this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => {
-                    log.debug(`docker ps response on node '${node}'`, response ? response : `${response}`);
+                    log.debug(`docker ps response on node '${node}'`, response ? response : `'${response}'`);
                     return response.split('\n').map(
                         row => {
-                            log.debug("docker ps entry: ", row);
+                            log.severe("docker ps entry: ", row);
                             let split = row.split(semicolon_splitter);
                             if (split.length > 5) {
                                 return {
@@ -595,7 +608,7 @@ module.exports = class EnvProxy {
                     return reject(err);
                 }
                 stream.on('end', () => {
-                    if(stdError && stdError.length) {
+                    if (stdError && stdError.length) {
                         log.warn(stdError.join(''));
                     }
                     return resolve(response);
