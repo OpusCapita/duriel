@@ -50,6 +50,8 @@ const checkUpdateStatus = async function (config, proxy) {
     } else if (check.state) {
         log.warn("no valid state: ", check);
         check.state = 'failure';
+    } else {
+        log.warn("no state", state);
     }
     return check;
 };

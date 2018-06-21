@@ -63,11 +63,15 @@ async function bumpAndCommitVersionFile (version, bumpLevel = "patch", commitMes
     fs.writeFileSync(VERSION_FILE, bumpedVersion);
     log.info(`upload changes on VERSION-file to github`);
 
-    await gitHelper.addFiles(VERSION_FILE);
-    await gitHelper.commit(commitMessage);
-    await gitHelper.tag(bumpedVersion);
-    await gitHelper.push();
-    await gitHelper.pushTags();
+    try {
+        await gitHelper.addFiles(VERSION_FILE);
+        await gitHelper.commit(commitMessage);
+        await gitHelper.tag(bumpedVersion);
+        await gitHelper.push();
+        await gitHelper.pushTags();
+    } catch (e) {
+        log.warn("could not bump version", e);
+    }
 }
 
 /**********************************************************/
