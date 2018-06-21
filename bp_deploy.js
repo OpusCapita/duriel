@@ -115,14 +115,15 @@ const exec = async function () {
             const addSecret = fetchedSecrets.length !== 1;
             if (addSecret) {
                 log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
-                const secrets = await generateSecret(true, config, proxy);
-                config['serviceSecret'] = secrets.serviceSecret;
-                config['serviceId'] = secrets.serviceId;
+                //const secrets = await generateSecret(true, config, proxy);
+                //config['serviceSecret'] = secrets.serviceSecret;
+                //config['serviceId'] = secrets.serviceId;
             } else {
                 log.debug("service secret retrieved from running instance.");
                 config['serviceSecret'] = fetchedSecrets[0];
             }
-            dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);
+            // dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);
+            dockerCommand = dockerCommandBuilder.dockerUpdate(config, false); // TODO: remove me
         }
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
