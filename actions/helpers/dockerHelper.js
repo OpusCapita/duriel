@@ -56,7 +56,7 @@ async function onEnv (config, proxy){
 async function local(config){
     log.debug(`logging into docker with user ${config['DOCKER_USER']}`);
     const proxy = new EnvProxy();
-    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`).catch(err => log.warn("could not login in docker"));
+    console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`).catch(err => log.warn("could not login in docker")));
 }
 
 module.exports = {
