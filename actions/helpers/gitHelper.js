@@ -37,7 +37,7 @@ async function commit(commitMessage) {
 }
 
 async function tag(tag, push) {
-    log.info(`git: adding tag '${tag}'`)
+    log.info(`git: adding tag '${tag}'`);
     await executeCommand(`git tag -a '${tag}' -m '${tag}'`);
     if (push) {
         return pushTags();
@@ -46,7 +46,7 @@ async function tag(tag, push) {
 
 async function push() {
     log.info('git: push');
-    return await executeCommand("git push");
+    return await executeCommand("git push origin");
 }
 
 async function pushTags() {
