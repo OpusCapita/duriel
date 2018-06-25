@@ -46,14 +46,14 @@ const exec = async function () {
             log.error(`no env-info for branch '${config['andariel_branch']}' found`);
         }
 
-        if (paramsMissing) {
-            log.error("params are missing! exiting!");
-            process.exit(1);
-        }
-
         if (!config['INVOKE_DEPLOYMENT'] || config['TARGET_ENV'] === 'none') {
             log.info(`skipping deployment. invoke_deployment: ${config['INVOKE_DEPLOYMENT']}, target_env: ${config['TARGET_ENV']}`);
             process.exit(0);
+        }
+
+        if (paramsMissing) {
+            log.error("params are missing! exiting!");
+            process.exit(1);
         }
 
         log.info(`copying data from envInfo into config`);
