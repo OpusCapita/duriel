@@ -23,10 +23,13 @@
 ## branch behaviour
 
 - develop/nbp => deployment on "develop"
-- master => deployment on "stage", then deployment on "prod"
+- master => deployment on "stage", then [if flag is set] deployment on "prod"
 
 ## behaviour flags
 
 - 'e2e_skip' => ignore result of e2e-tests
-- 'second_deployment_skip' => only first deployment stept will be done
+- 'force_second_deployment' => second deployment step will be started
 - 'andariel_loglevel' => loglevel
+
+## known issues
+- some nodes block secreet-reading and the deployment thinks, it need to create a new secret.
