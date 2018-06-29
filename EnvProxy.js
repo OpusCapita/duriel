@@ -227,19 +227,7 @@ module.exports = class EnvProxy {
     async getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
-        await this.executeCommand_N(node, "pwd")
-            .then(pwd => log.warn("pwd", pwd))
-            .catch(error => log.error("could not write the file", error));
-        await this.executeCommand_N(node, "whoami")
-            .then(pwd => log.warn("whoami", pwd))
-            .catch(error => log.error("could not write the file", error));
-        await this.executeCommand_N(node, 'echo "${SSH_AUTH_SOCK}"')
-            .then(pwd => log.warn("SSH_AUTH_SOCK", pwd))
-            .catch(error => log.error("could not write the file", error));
-        await this.executeCommand_N(node, `echo "connection is present" > /home/dmm/connectionTest.txt`)
-            .catch(error => log.error("could not write the file", error));
-
-
+        
         return await this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => {
                     log.debug(`docker ps response on node '${node}'`, response ? response : `'${response}'`);
