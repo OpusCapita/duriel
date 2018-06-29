@@ -258,7 +258,7 @@ const updateMar = function (param) {
                 mappedKV[name].cv = value;
             } else {
                 log.debug(`${name} is not needed any more - removing`);
-                result += ` --${param.name}-rm ${name}`;
+                result += ` --${param.name}-rm "${entry}"`;
             }
         });
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
