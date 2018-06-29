@@ -18,6 +18,8 @@ module.exports = async function (composeBase) {
         await copyTestResult(proxy, composeBase);
     } catch (error) {
         log.error("unit tests unsuccessfully.");
+            await copyTestResult(proxy, composeBase)
+                .catch(error => log.warn("could not copy test-results: ", error));
         throw error;
     }
 };
