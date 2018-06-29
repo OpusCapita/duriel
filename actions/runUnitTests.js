@@ -11,16 +11,6 @@ module.exports = async function (composeBase) {
         log.info("no package.js - skipping npm based unit testing.");
         return;
     }
-    try {
-        const packageJson = require('./package.json');
-        const testScript = packageJson.scripts.test;
-        if(!testScript){
-            log.warn("no test-script insode of package.json");
-            return;
-        }
-    } catch (e) {
-        log.warn("error during loading of test-script", e);
-    }
 
     const proxy = new EnvProxy();
     try {
