@@ -26,7 +26,8 @@ module.exports = async function (composeBase) {
     try {
         log.debug(await proxy.executeCommand_L(`${composeBase} exec -T main npm run test`));
         log.info("unit tests successful.");
-        await copyTestResult(proxy, composeBase);
+        await copyTestResult(proxy, composeBase)
+            .catch(error => log.warn("could not copy test-results: ", error));
     } catch (error) {
         log.error("unit tests unsuccessfully.");
             await copyTestResult(proxy, composeBase)
