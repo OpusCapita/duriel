@@ -7,6 +7,7 @@ module.exports = {
     addFiles: addFiles,
     addAll: addAll,
     tag: tag,
+    checkout: checkout,
     commit: commit,
     push: push,
     pushTags: pushTags,
@@ -70,6 +71,15 @@ async function checkForChanges() {
         return changedFiles.replace(/(\r\n\t|\n|\r\t)/gm, "").replace(" ", "");
     } catch (err) {
         log.error("error", err);
+    }
+}
+
+async function checkout(branch){
+    try{
+        log.info(`git: checkout ${branch}`);
+        return await executeCommand(`git checkout ${branch}`);
+    } catch (e) {
+        log.error(`checkout of branch '${branch}' failed`)
     }
 }
 

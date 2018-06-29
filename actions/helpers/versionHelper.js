@@ -51,6 +51,7 @@ function bumpVersion(version, bumpLevel = "patch"){
 }
 
 async function bumpAndCommitVersionFile (version, bumpLevel = "patch", commitMessage) {
+    await gitHelper.checkout('develop');
     const bumpedVersion = bumpVersion(version, bumpLevel);
     if(!bumpedVersion){
         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
