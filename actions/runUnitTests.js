@@ -3,12 +3,22 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
 const fs = require('fs');
-
+const fileHandler = require('./filehandling/fileHandler');
 
 module.exports = async function (composeBase) {
     log.info(`running unit tests.`);
     if (!fs.existsSync("./package.json")) {
         log.info("no package.js - skipping npm based unit testing.");
+        return;
+    }
+    try {
+        const packageJson = await fileHandler.loadFile2Object("./package.json");
+        if(!packageJson || !packageJson.scripts || !packageJson.scripts.test){
+            log.warn("could not find 'test'-script - skipping tests", e);
+            return;
+        }
+    } catch (e) {
+        log.warn("error while checking to 'test'-script: ", e);
         return;
     }
 
