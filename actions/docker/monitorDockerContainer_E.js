@@ -5,7 +5,9 @@ const helper = require("../helpers/utilHelper");
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
-    for (let i = 1; i <= attempts; i++) {
+    const replicaCount = await getReplicaCount(config, proxy);
+    log.debug("replicaCount is: ", replicaCount);
+    for (let i = 1; i <= attempts *  replicaCount; i++) {
         const logBase = `${helper.padLeft(i, '0', 2)}/${attempts}`;
         let serviceHealth = {};
         if (isCreateMode) {
@@ -17,7 +19,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
             log.info(`${logBase} - service up and running'`);
             return 'success';
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
-            log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval /1000} sec'`);
+            log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval / 1000} sec'`);
             await helper.snooze(interval)
         } else if (['paused'].includes(serviceHealth.state)) {
             log.warn(`${logBase} - - current state: ${serviceHealth.state}`);
@@ -74,3 +76,19 @@ const checkCreateStatus = async function (config, proxy) {
     }
     return check;
 };
+
+async function getReplicaCount(config, proxy) {
+    return await proxy.getServices_E()
+        .then(services => services.filter(service => service.name === config['serviceName'])[0])
+        .then(serviceInfo => {
+            const up = serviceInfo.instances_up;
+            const target = serviceInfo.instances_target;
+            if (up !== target)
+                log.warn(`seems like we are updating an unhealty service... up: ${up} target: ${target}`);
+            return up || 1
+        })
+        .catch(error => {
+            log.warn("error while fetching replicaCount: ", error);
+            return 1;
+        })
+}
