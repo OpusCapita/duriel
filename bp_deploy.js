@@ -23,6 +23,7 @@ const rollback = require('./actions/rollbackService');
 
 const exec = async function () {
     try {
+        require('events').EventEmitter.prototype._maxListeners = 100;
         const config_file_name = "bp-config.json";
         const config = loadConfigFile(config_file_name);
         if (!config) {

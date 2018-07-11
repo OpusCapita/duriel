@@ -16,10 +16,11 @@ const cleanupSystem = require('./actions/cleanupSystem');
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
 const exec = async function () {
+    require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Running after deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
-    if(!config){
+    if (!config) {
         log.info("no config file could be loaded - ending step");
         return;
     }
@@ -48,7 +49,7 @@ const exec = async function () {
             config['TARGET_ENV'] = nextEnv;
             config['MYSQL_PW'] = getEnvVariables.getDatabasePassword(config);
             log.info(`...done.`);
-            if(calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) { // determines if current branch will create a main-version (e.g. 1.1.1, 1.0.2) or will use dev-taged images
+            if (calculateEnv.isMainVersionBranch(config['CIRCLE_BRANCH'])) { // determines if current branch will create a main-version (e.g. 1.1.1, 1.0.2) or will use dev-taged images
                 config['PREV_VERSION'] = config['VERSION'];
                 config['VERSION'] = calculateVersion.getRawVersion();
                 await dockerHelper.tagAndPushImage(config['HUB_REPO'], config['PREV_VERSION'], config['VERSION'], config['VERSION']);
