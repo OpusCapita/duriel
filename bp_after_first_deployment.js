@@ -11,6 +11,7 @@ const fileHandler = require('./actions/filehandling/fileHandler');
 const getEnvVariables = require("./actions/getEnvVariables");
 const calculateEnv = require("./actions/calculateEnv");
 const dockerHelper = require('./actions/helpers/dockerHelper');
+const cleanupSystem = require('./actions/cleanupSystem');
 
 const BRANCHES_4_DEV_TAG = ['develop', 'nbp'];
 
@@ -36,6 +37,9 @@ const exec = async function () {
         if (BRANCHES_4_DEV_TAG.includes(config['CIRCLE_BRANCH'])) {
             await dockerHelper.pushImage(config['HUB_REPO'], "dev");
         }
+
+        await cleanupSystem(proxy, config);
+
         config['INVOKE_DEPLOYMENT'] = false;
         const nextEnv = calculateEnv.secondTargetEnv(config['CIRCLE_BRANCH']);
         log.info(`second deployment will be targeted on '${nextEnv}'`);
@@ -51,6 +55,9 @@ const exec = async function () {
             }
         }
         fileHandler.saveObject2File(config, config_file_name, true);
+
+        cleanupSystem();
+
         proxy.close();
     } catch (error) {
         log.error("Error in first after_deployment", error);
