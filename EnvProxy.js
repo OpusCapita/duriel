@@ -208,7 +208,13 @@ module.exports = class EnvProxy {
             throw new Error('service missing');
         return await this.getContainers_N(node, onlyRunning)
             .then(result => {
-                log.debug(`containers of node ${node}`, result);
+                log.debug(`containers of node ${node}`, result.map(it => {
+                    return {
+                        name: it.name,
+                        image: it.image
+                    }
+                }));
+                log.severe("unformatted containers of node:", result);
                 return result;
             })
             .then(result => result.filter(it => it.name.toLowerCase().startsWith(service.toLowerCase()))) //TODO: sauber implementieren!
@@ -227,10 +233,10 @@ module.exports = class EnvProxy {
     async getContainers_N(node, onlyRunning = false) {
         if (!node)
             throw new Error('node missing');
-        
+
         return await this.executeCommand_N(node, `'docker ps --format "{{.ID}};{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}" --no-trunc ${onlyRunning ? '-f \"status=running\"' : ""}'`) // quotes needed
             .then(response => {
-                    log.debug(`docker ps response on node '${node}'`, response ? response : `'${response}'`);
+                    log.severe(`docker ps response on node '${node}'`, response ? response : `'${response}'`);
                     return response.split('\n').map(
                         row => {
                             log.severe("docker ps entry: ", row);
