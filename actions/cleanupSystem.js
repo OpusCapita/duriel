@@ -10,6 +10,10 @@ module.exports = async function executeCleanup(proxy, config) {
     for (const node of nodes) {
         await proxy.executeCommand_N(node.hostname, "docker system prune -f")
             .then(response => {
+                const filteredInput = response.split(/\r\n|\r|\n/g).filter(it => it.startsWith("Total reclaimed space:"))[0];
+                if (filteredInput) {
+                    log.info(`${node.hostname}: ${filteredInput}`);
+                }
                 log.debug(`cleaned node '${node.hostname}': `, response);
                 const entry = {
                     node: node.hostname,
