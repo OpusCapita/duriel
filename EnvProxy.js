@@ -290,7 +290,7 @@ module.exports = class EnvProxy {
         const fetchedSecrets = [];
         const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
         for (let task of serviceTasks) {
-            log.debug(`fetching in task: `, task);
+            log.debug(`fetching in task: ${task.name}`);
             try {
                 const containers = await this.getContainersOfService_N(task.node, serviceName, true);
                 const containerInfo = containers.map(it => `{name: ${it.name}, image: ${it.image}}`);
@@ -299,19 +299,19 @@ module.exports = class EnvProxy {
                     log.warn("No Containers found. This is strange... Did you try to disconnect your router for 2-3 min?", containers)
                 }
                 for (let container of containers) {
-                    log.debug(`doing container '${container.containerId}'`);
+                    log.severe(`doing container '${container.containerId}'`);
                     try {
                         const command = `docker exec ${container.containerId} cat /run/secrets/${secretName}`;
                         const secret = await this.executeCommand_N(task.node, command, true);
                         if (secret) {
                             const regexResult = new RegExp(/^\S+/).exec(secret);
                             if (regexResult && regexResult.length > 0) {
-                                log.debug("adding secret!: ", regexResult[0].substring(0, 5));
+                                log.severe("adding secret!: ", regexResult[0].substring(0, 5));
                                 if (!fetchedSecrets.includes(regexResult[0])) {
                                     fetchedSecrets.push(regexResult[0]);
                                 }
                             } else {
-                                log.info(`Could not fetch a secret from node: '${task.node}' and container '${container.containerId}'`);
+                                log.warn(`Could not fetch a secret from node: '${task.node}' and container '${container.containerId}'`);
                             }
                         }
                     } catch (error) {
@@ -356,7 +356,13 @@ module.exports = class EnvProxy {
                 );
             }).then(nodes => nodes.filter(it => it !== undefined))
             .then(nodes => {
-                log.debug("tasks for service " + service, nodes)
+                log.debug(`tasks of service '${service}'`, nodes.map(it => {
+                    return {
+                        id: it.id,
+                        node: it.node
+                    }
+                }));
+                log.severe("unformatted tasks: " + service, nodes);
                 return nodes;
             })
     }
