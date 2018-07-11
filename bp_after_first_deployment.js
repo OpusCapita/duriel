@@ -55,9 +55,6 @@ const exec = async function () {
             }
         }
         fileHandler.saveObject2File(config, config_file_name, true);
-
-        cleanupSystem();
-
         proxy.close();
     } catch (error) {
         log.error("Error in first after_deployment", error);
