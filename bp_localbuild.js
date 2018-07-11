@@ -16,6 +16,7 @@ const docBuilder = require('./actions/buildDocs');
 
 const exec = async () => {
     try {
+        require('events').EventEmitter.prototype._maxListeners = 100;
         const config = getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerHelper.loginLocal(config);

@@ -334,15 +334,15 @@ const updateMart = function (param) {
         translatedDV.push(entry);
     }
 
-    log.info("translatedCV is: ", translatedCV);
-    log.info("translatedDV is: ", translatedDV);
+    log.severe("translatedCV is: ", translatedCV);
+    log.severe("translatedDV is: ", translatedDV);
 
     const pairsForAdding = util.arrayMinus(translatedDV, translatedCV);
     const pairsForRemoving = util.arrayMinus(translatedCV, translatedDV);
 
-    log.debug("pairs4adding: ", pairsForAdding);
-    log.debug("pairs4Removing: ", pairsForRemoving);
-    log.debug("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
+    log.severe("pairs4adding: ", pairsForAdding);
+    log.severe("pairs4Removing: ", pairsForRemoving);
+    log.severe("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
 
     let command = "";
     for(let dv of pairsForAdding){

@@ -14,6 +14,7 @@ const versionHandler = require('./actions/helpers/versionHelper');
 const dockerCommandBuilder = require("./actions/docker/dockerCommandBuilder");
 
 const exec = async function () {
+    require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Running after prod deploy script");
     const config_file_name = "bp-config.json";
     const config = loadConfigFile(config_file_name);
