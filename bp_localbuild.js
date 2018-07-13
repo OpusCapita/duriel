@@ -41,9 +41,8 @@ const exec = async () => {
 
         await docBuilder(compose_base, config);
 
-        if (config['TARGET_ENV'] !== 'none') {
+        if (config['TARGET_ENV']) {
             log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);
-            config['INVOKE_DEPLOYMENT'] = true;
             await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
         } else {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);

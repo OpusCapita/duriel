@@ -43,7 +43,6 @@ const exec = async function () {
         }
 
         if (!EnvInfo[config['TARGET_ENV']]) {
-            paramsMissing = true;
             log.info(`no env-info for branch '${config['andariel_branch']}' found`);
             process.exit(0);
         }
