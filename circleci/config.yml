@@ -1,0 +1,69 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/build
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: "prepare buildprocess scripts"
+          command: "chmod +x ./.circleci/bp_prepare.sh ; ./.circleci/bp_prepare.sh"
+      - run:
+          name: "building and testing locally"
+          command: "node ../buildprocess/bp_localbuild.js opuscapita/$CIRCLE_PROJECT_REPONAME"
+      - store_test_results:
+          path: "junit"
+      - run:
+          name: "First Deployment"
+          command: "node ../buildprocess/bp_deploy.js"
+      - run:
+          name: "After First Deployment"
+          command: "node ../buildprocess/bp_after_deployment.js"
+  copy_to_env:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/build
+
+    steps:
+      - checkout
+      - run:
+          name: Mirror Script
+          command: |
+            export andariel_branch=develop
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then export andariel_branch=master; fi
+            curl -f --header "Authorization: token $GIT_TOKEN" https://raw.githubusercontent.com/OpusCapita/andariel/$andariel_branch/mirrorscript.sh > mirrorscript.sh
+            chmod +x mirrorscript.sh
+            ./mirrorscript.sh opuscapita/$CIRCLE_PROJECT_REPONAME $FROM_ENV $TO_ENV $GIT_TOKEN
+  build_base:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/build
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: "prepare buildprocess scripts"
+          command: "chmod +x ./.circleci/bp_prepare.sh ; ./.circleci/bp_prepare.sh"
+      - run:
+          name: "Build Base Image"
+          command: "node ../buildprocess/bp_build_base.js opuscapita/$CIRCLE_PROJECT_REPONAME ;"
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - develop
+                - nbp
+    jobs:
+      - build_base

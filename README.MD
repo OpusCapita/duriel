@@ -1,35 +1,22 @@
 # duriel deployment process
 
-## logging
-
-### available loglevel:
-- severe
-- debug
-- info
-- warn
-- error
-
-### configuration of loglevel:
- add env-variable "andariel-loglevel" to CircleCi.
-
-## e2e
-
-### skipping e2e
-**DON'T USE THIS!**
-
- skip failure of deployment on failing e2e-test by:
- add env-variable "e2e_skip" to CircleCi.
-
 ## branch behaviour
 
-- develop/nbp => deployment on "develop"
-- master => deployment on "stage", then [if flag is set] deployment on "prod"
+| Branch    | TargetEnv |
+|-----------|-----------|
+| feature/* | -         |
+| develop   | develop   |
+| release/* | stage     |
+| hotfix    | prod      |
+| master    | prod      |
 
 ## behaviour flags
 
-- 'e2e_skip' => ignore result of e2e-tests
-- 'force_second_deployment' => second deployment step will be started
-- 'andariel_loglevel' => loglevel
+| Branch    | TargetEnv |
+|-----------|-----------|
+| e2e_skip  | ignore the result of the e2e-tests |
+| andariel_loglevel  | loglevel of outputs (severe, debug, info, warn, error) |
+
 
 ## known issues
 - some nodes block secreet-reading and the deployment thinks, it need to create a new secret.

@@ -2,74 +2,108 @@
 const assert = require("assert");
 const fs = require("fs");
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
-const versionCalculator = require("../actions/helpers/versionHelper");
-const versionHandler = require("../actions/helpers/versionHelper");
+const versionHelper = require("../actions/helpers/versionHelper");
+const calculatEnv = require("../actions/calculateEnv");
 
 const versionFileContent = "0.8.15-a";
-const circleDevBranch = "develop";
-const circleProdBranch = "master";
 const circleBuildNum = 42;
 
 module.exports.run = run;
 
 function run() {
     describe("Base Functions", () => {
-        it("missing VERSION file", () => {
-            assert.throws(() => versionCalculator.getDevTag({}), Error, "no VERSION-File found! exiting!");
-        });
+        // it("missing VERSION file", () => {
+        //     assert.throws(() => versionHelper.getImageTag({}), Error, "no VERSION-File found! exiting!");
+        // });
         it("get Version raw", () => {
             writeVersionFile();
-            const rawVersion = versionCalculator.getRawVersion();
+            const rawVersion = versionHelper.getRawVersion();
             assert.equal(rawVersion, versionFileContent);
             deleteVersionFile();
         });
-        it("calculating version - non-master", async () => {
-            writeVersionFile();
-            const config = getBaseConfigObject({
-                'CIRCLE_BRANCH': circleDevBranch,
-                'CIRCLE_BUILD_NUM': circleBuildNum
+        describe("calculate target-envs", () => {
+            it("calculates target-envs", () => {
+                assert.equal("develop", calculatEnv.getTargetEnv("develop"));
+                assert.equal("stage", calculatEnv.getTargetEnv("release/delPocko"));
+                assert.equal("prod", calculatEnv.getTargetEnv("master"));
+                assert.equal("prod", calculatEnv.getTargetEnv("hotfix/daBanossi"));
+                assert.equal(undefined, calculatEnv.getTargetEnv("feature/kevin"));
+                assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
-            const calculatedVersion = versionCalculator.getDevTag(config);
-            assert.equal(calculatedVersion, `${versionFileContent}-dev-${circleBuildNum}`);
-            deleteVersionFile();
         });
-        it("calculating version - non-master", async () => {
-            writeVersionFile();
-            const config = getBaseConfigObject({
-                'CIRCLE_BRANCH': circleProdBranch,
-                'CIRCLE_BUILD_NUM': circleBuildNum
+
+        describe("calculate image-tags", () => {
+            it("created a feature-tag", () => {
+                writeVersionFile();
+                const config = getBaseConfigObject({
+                    TARGET_ENV: undefined,
+                    CIRCLE_BUILD_NUM: circleBuildNum
+                });
+                assert.equal("0.8.15-a-dev-42", versionHelper.calculateImageTag(config))
             });
-            const calculatedVersion = versionCalculator.getDevTag(config);
-            assert.equal(calculatedVersion, `${versionFileContent}-rc-${circleBuildNum}`);
+
+            it("creates a dev-tag", () => {
+                writeVersionFile();
+                const config = getBaseConfigObject({
+                    TARGET_ENV: "develop",
+                    CIRCLE_BUILD_NUM: circleBuildNum
+                });
+                assert.equal("0.8.15-a-dev-42", versionHelper.calculateImageTag(config))
+            });
+            it("creates a stage-tag", () => {
+                writeVersionFile();
+                const config = getBaseConfigObject({
+                    TARGET_ENV: "stage",
+                    CIRCLE_BUILD_NUM: circleBuildNum
+                });
+                assert.equal("0.8.15-a-rc-42", versionHelper.calculateImageTag(config));
+            });
+            it("creates a hotfix-tag", () => {  // why am i testing this??!
+                writeVersionFile();
+                const config = getBaseConfigObject({
+                    TARGET_ENV: "prod",
+                    CIRCLE_BUILD_NUM: circleBuildNum
+                });
+                assert.equal("0.8.15-a", versionHelper.calculateImageTag(config));
+            });
+            it("creates a prod-tag", () => {
+                writeVersionFile();
+                const config = getBaseConfigObject({
+                    TARGET_ENV: "prod",
+                    CIRCLE_BUILD_NUM: circleBuildNum
+                });
+                assert.equal("0.8.15-a", versionHelper.calculateImageTag(config));
+            });
+
             deleteVersionFile();
         });
         describe("bump version - functions", () => {
             it("bump - major", async () => {
                 const version = "1.2.3-f";
                 const expectation = "2.2.3-f";
-                const bumpedVersion = await versionHandler.getBumpedVersion(version, "major", true);
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "major", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - minor", async () => {
                 const version = "1.2.3-f";
                 const expectation = "1.3.3-f";
-                const bumpedVersion = await versionHandler.getBumpedVersion(version, "minor", true);
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "minor", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - patch", async () => {
                 const version = "1.2.3-f";
                 const expectation = "1.2.4-f";
-                const bumpedVersion = await versionHandler.getBumpedVersion(version, "patch", true);
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "patch", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("incorrect version-format", async () => {
                 const version = "kaputt-42";
-                const bumpedVersion = await versionHandler.getBumpedVersion(version, "patch", true);
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "patch", true);
                 assert.equal(bumpedVersion, undefined)
             });
             it("incorrect bump-format", async () => {
                 const version = "1.1.1";
-                const bumpedVersion = await versionHandler.getBumpedVersion(version, "dropDB", true);
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "dropDB", true);
                 assert.equal(bumpedVersion, undefined)
             });
 
@@ -117,9 +151,10 @@ function run() {
 }
 
 function writeVersionFile() {
-    fs.writeFileSync("./VERSION", versionFileContent);
+    fs.writeFileSync("VERSION", versionFileContent);
 }
 
 function deleteVersionFile() {
-    fs.unlinkSync("./VERSION");
+    if (fs.existsSync("VERSION"))
+        fs.unlinkSync("VERSION");
 }

@@ -6,7 +6,7 @@ const calculateEnv = require('./calculateEnv');
 
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
-const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'andariel_branch', "e2e_skip", "force_second_deployment"]; // TODO: SHA1 & Token are identical
+const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'andariel_branch', "e2e_skip"]; // TODO: SHA1 & Token are identical
 /**
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
@@ -49,9 +49,10 @@ module.exports = function () {
         config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
     }
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
-    config['TARGET_ENV'] = calculateEnv.firstTargetEnv(config['CIRCLE_BRANCH']);
+    config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
+
     config['MYSQL_PW'] = getDatabasePassword(config);
-    config['VERSION'] = calculateVersion.getDevTag(config);
+    config['VERSION'] = calculateVersion.calculateImageTag(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
@@ -68,14 +69,15 @@ function calculateRepoPath(andariel_branch, circle_branch) {
 }
 
 function getDatabasePassword(config) {
+    if(!config['TARGET_ENV']){
+        return "5up€r5€C12ET";
+    }
+    //TODO: check if Service needs DB;
     const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
     if (process.env[valueKey]) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return process.env[valueKey];
     } else {
-        if(config['TARGET_ENV'] === 'none'){
-            return "none";
-        }
         throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }

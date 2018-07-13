@@ -1,1 +1,1 @@
-node ../duriel/bp_after_first_deployment.js
+node ../duriel/bp_after_deployment.js

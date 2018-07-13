@@ -6,18 +6,33 @@ const VERSION_FILE = "VERSION";
 
 module.exports = {
     getRawVersion: readVersionFile,
-    getDevTag: calculateDevTag,
     getBumpedVersion: bumpVersion,
-    bumpAndCommitVersionFile: bumpAndCommitVersionFile
+    bumpAndCommitVersionFile,
+    calculateImageTag
 };
 
-function calculateDevTag(config){
+const envPostfixes = [
+    {rule: env => env === 'develop', postFix: "dev"},
+    {rule: env => env === 'stage', postFix: "rc"},
+    {rule: env => env === 'prod', postFix: undefined},
+    {rule: env => true, postFix: "dev"},
+];
+
+function calculateImageTag(config) {
     const versionFileContent = readVersionFile();
-    return `${versionFileContent.trim()}-${config.get('CIRCLE_BRANCH') === 'master' ? 'rc' : 'dev'}-${config.get('CIRCLE_BUILD_NUM')}`;
+    const targetEnv = config.get('TARGET_ENV');
+    const postFix = envPostfixes.filter(it => it.rule(targetEnv))[0].postFix;
+    const tagParts = [
+        versionFileContent.trim(),
+        postFix,
+        targetEnv !== "prod" ? config.get('CIRCLE_BUILD_NUM') : undefined
+    ]
+        .filter(it => it);
+    return tagParts.join("-");
 }
 
 
-function readVersionFile(){
+function readVersionFile() {
     let versionFileContent;
     if (!fs.existsSync(VERSION_FILE)) {
         log.error('no VERSION-File found! exiting!');
@@ -28,11 +43,11 @@ function readVersionFile(){
     }
 }
 
-function bumpVersion(version, bumpLevel = "patch"){
-    if(!version){
+function bumpVersion(version, bumpLevel = "patch") {
+    if (!version) {
         version = readVersionFile();
     }
-    if(!version){
+    if (!version) {
         throw new Error("no version given and could not load it from file");
     }
     version = `${version}`.trim();
@@ -50,14 +65,14 @@ function bumpVersion(version, bumpLevel = "patch"){
 
 }
 
-async function bumpAndCommitVersionFile (version, bumpLevel = "patch", commitMessage) {
+async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage) {
     await gitHelper.checkout('develop');
     const bumpedVersion = bumpVersion(version, bumpLevel);
-    if(!bumpedVersion){
+    if (!bumpedVersion) {
         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
         return;
     }
-    if(!commitMessage){
+    if (!commitMessage) {
         commitMessage = `${bumpedVersion} [ci skip]`
     }
     log.info("Updating VERSION-file file locally");
@@ -65,11 +80,12 @@ async function bumpAndCommitVersionFile (version, bumpLevel = "patch", commitMes
     log.info(`upload changes on VERSION-file to github`);
 
     try {
+        await gitHelper.tag(bumpedVersion);
+        await gitHelper.pushTags();
+
         await gitHelper.addFiles(VERSION_FILE);
         await gitHelper.commit(commitMessage);
-        await gitHelper.tag(bumpedVersion);
         await gitHelper.push();
-        await gitHelper.pushTags();
     } catch (e) {
         log.warn("could not bump version", e);
     }

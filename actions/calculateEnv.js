@@ -1,35 +1,24 @@
-function getFirstEnv(circle_branch){
-    switch (circle_branch) {
-        case 'master':
-            return "stage";
-        case 'develop':
-            return "develop";
-        case "nbp":  // TODO: remove me
-            return "develop";
-        case 'test':
-            return "test";
-        default:
-            return "none";
-    }
-}
+const EpicLogger = require('../EpicLogger');
+const log = new EpicLogger();
 
-function getSecondEnv(circle_branch){
-    switch (circle_branch){
-        case 'master':
-            return "prod";
-        // case "nbp":  // TODO: remove me
-        //     return "stage";
-        default:
-            return "none";
-    }
-}
+const environmentRules = [
+    {rule: branch => branch === 'nbp', env: "develop"},
+    {rule: branch => branch === 'develop', env: "develop"},
+    {rule: branch => branch.toLowerCase().startsWith("release/"), env: "stage"},
+    {rule: branch => branch === 'master', env: "prod"},
+    {rule: branch => branch.toLowerCase().startsWith("hotfix/"), env: "prod"}
+];
 
-function isMainVersionBranch(branch){
-    return branch === 'master';
+function getTargetEnv(circle_branch) {
+    const matchingRules = environmentRules.filter(it => it.rule(circle_branch));
+    if (matchingRules.length) {
+        if(matchingRules.length > 1)
+            log.warn(`found ${matchingRules.length} mathing environments for ${circle_branch}`);
+        return matchingRules[0].env;
+    }
 }
 
 module.exports = {
-    firstTargetEnv: getFirstEnv,
-    secondTargetEnv: getSecondEnv,
-    isMainVersionBranch: isMainVersionBranch
+    getTargetEnv
 };
+
