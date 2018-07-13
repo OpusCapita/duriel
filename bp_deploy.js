@@ -44,11 +44,7 @@ const exec = async function () {
 
         if (!EnvInfo[config['TARGET_ENV']]) {
             paramsMissing = true;
-            log.error(`no env-info for branch '${config['andariel_branch']}' found`);
-        }
-
-        if (!config['INVOKE_DEPLOYMENT'] || config['TARGET_ENV'] === 'none') {
-            log.info(`skipping deployment. invoke_deployment: ${config['INVOKE_DEPLOYMENT']}, target_env: ${config['TARGET_ENV']}`);
+            log.info(`no env-info for branch '${config['andariel_branch']}' found`);
             process.exit(0);
         }
 
