@@ -45,17 +45,13 @@ async function exec() {
     }
 
 
-    await writeSummary(data);
-
-    proxy.close();
-}
-
-async function writeSummary(data){
-    log.info("Saving information into file... ")
-    const fileName = `libs_${new Date().getTime()}.csv`;
-    let content = "service;web-init;event-client\n" + data.join('\n');
+    const fileName = `libs_${targetEnv}_${new Date().getTime()}.csv`;
+    log.info("Saving information into file... ");
+    let content = "node;service;web-init;event-client\n" + data.join('\n');
     fs.writeFileSync(`./${fileName}`, content);
     log.info(`Successfully exported library-infos into file: ${fileName}`);
+
+    proxy.close();
 }
 
 exec();
