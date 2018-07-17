@@ -173,7 +173,7 @@ module.exports = class EnvProxy {
         if (!cmd)
             throw new Error('command missing');
 
-        let command = `ssh -A ${node}`;
+        let command = `ssh -o StrictHostKeyChecking=no -A ${node}`;
         command += ` ${sudo ? 'sudo' : ''}`;
 
         if (surroundWithQuotes)
