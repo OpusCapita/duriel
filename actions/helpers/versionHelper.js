@@ -83,8 +83,8 @@ async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMess
     log.info(`upload changes on VERSION-file to github`);
 
     try {
-        await gitHelper.tag(bumpedVersion);
-        await gitHelper.pushTags();
+        // await gitHelper.tag(bumpedVersion);
+        // await gitHelper.pushTags();
 
         await gitHelper.addFiles(VERSION_FILE);
         await gitHelper.commit(commitMessage);
