@@ -45,9 +45,9 @@ async function tag(tag, push) {
     }
 }
 
-async function push() {
+async function push(branch) {
     log.info('git: push');
-    return await executeCommand("git push origin");
+    return await executeCommand(`git push origin ${branch}`);
 }
 
 async function pushTags() {
@@ -74,8 +74,8 @@ async function checkForChanges() {
     }
 }
 
-async function checkout(branch){
-    try{
+async function checkout(branch) {
+    try {
         log.info(`git: checkout ${branch}`);
         return await executeCommand(`git checkout ${branch}`);
     } catch (e) {

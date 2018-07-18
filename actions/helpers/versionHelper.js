@@ -76,10 +76,8 @@ function bumpVersion(version, bumpLevel = "patch") {
 
 }
 
-async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage, branch) {
-    if(branch) {
-        await gitHelper.checkout(branch);
-    }
+async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage, branch = "develop") {
+    await gitHelper.checkout(branch);
     const bumpedVersion = bumpVersion(version, bumpLevel);
     if (!bumpedVersion) {
         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
@@ -95,7 +93,7 @@ async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMess
     try {
         await gitHelper.addFiles(VERSION_FILE);
         await gitHelper.commit(commitMessage);
-        await gitHelper.push();
+        await gitHelper.push(branch);
     } catch (e) {
         log.warn("could not bump version", e);
     }
@@ -134,7 +132,7 @@ async function handleHotfixVersion(config) {
     const branch = config['CIRCLE_BRANCH'];
     if (branch.toLowerCase().startsWith("hotfix/")) {
         log.info("Handling versioning for hotfixes");
-        await bumpAndCommitVersionFile(undefined, "hotfix", undefined);
+        await bumpAndCommitVersionFile(undefined, "hotfix", undefined, branch);
 
     }
 }
