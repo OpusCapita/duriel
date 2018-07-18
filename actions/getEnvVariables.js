@@ -52,8 +52,8 @@ module.exports = function () {
     config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
 
     config['MYSQL_PW'] = getDatabasePassword(config);
-    config['VERSION'] = calculateVersion.calculateImageTag(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
+    config['VERSION'] = calculateVersion.calculateImageTag(config);
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 
