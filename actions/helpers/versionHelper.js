@@ -130,11 +130,11 @@ function splitIntoParts(version) {
     return result;
 }
 
-function handleHotfixVersion(config) {
+async function handleHotfixVersion(config) {
     const branch = config['CIRCLE_BRANCH'];
     if (branch.toLowerCase().startsWith("hotfix/")) {
         log.info("Handling versioning for hotfixes");
-        bumpAndCommitVersionFile(undefined, "hotfix", undefined);
+        await bumpAndCommitVersionFile(undefined, "hotfix", undefined);
 
     }
 }
