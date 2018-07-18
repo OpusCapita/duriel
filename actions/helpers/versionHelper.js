@@ -15,7 +15,7 @@ const tagRules = [
     {rule: (env) => env === 'develop', postFix: "dev", bumpVersion: false, addBuildNum: true},
     {rule: (env) => env === 'stage', postFix: "rc", bumpVersion: false, addBuildNum: true},
     {rule: (env) => env === 'prod', postFix: undefined, bumpVersion: true},
-    {rule: (env, branch) => branch.toLowerCase().startsWith("hotfix/"), postFix: "hf", bumpVersion: false},
+    {rule: (env, branch) => branch.toLowerCase().startsWith("hotfix/"), postFix: "hf", bumpVersion: false, addBuildNum: true},
     {rule: (env, branch) => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
 
@@ -26,7 +26,7 @@ function calculateImageTag(config) {
 
     const postFix = branchRule.postFix;
     const version = branchRule.bumpVersion ? bumpVersion() : readVersionFile();
-    const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined
+    const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
         postFix,
