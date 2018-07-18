@@ -43,7 +43,7 @@ const exec = async function handleDeployment() {
                 await handleDevelopDeployment(config);
                 break;
         }
-
+        proxy.close();
     } catch (e) {
         log.error("Error in after_deployment", e);
         fileHandler.saveObject2File(config, config_file_name, true);
