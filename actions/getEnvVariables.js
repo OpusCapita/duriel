@@ -11,7 +11,7 @@ const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
  */
-module.exports = function () {
+module.exports = async function () {
     const config = getBaseConfigObject();
     if (process.argv.length < 3) {
         log.error(`too few parameters ${ process.argv}`);
@@ -53,7 +53,7 @@ module.exports = function () {
 
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
-    config['VERSION'] = calculateVersion.calculateImageTag(config);
+    config['VERSION'] = await calculateVersion.calculateImageTag(config);
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 
