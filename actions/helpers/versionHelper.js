@@ -11,24 +11,26 @@ module.exports = {
     calculateImageTag
 };
 
-const branchRules = [
-    {rule: env => env === 'develop', postFix: "dev", bumpVersion: false},
-    {rule: env => env === 'stage', postFix: "rc", bumpVersion: false},
-    {rule: env => env === 'prod', postFix: undefined, bumpVersion: true},
-    {rule: env => true, postFix: "dev", bumpVersion: false},
+const tagRules = [
+    {rule: (env) => env === 'develop', postFix: "dev", bumpVersion: false, addBuildNum: true},
+    {rule: (env) => env === 'stage', postFix: "rc", bumpVersion: false, addBuildNum: true},
+    {rule: (env) => env === 'prod', postFix: undefined, bumpVersion: true},
+    {rule: (env, branch) => branch.toLowerCase().startsWith("hotfix/"), postFix: "hf", bumpVersion: false},
+    {rule: (env, branch) => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
 
 function calculateImageTag(config) {
     const targetEnv = config.get('TARGET_ENV');
-    const branchRule = branchRules.filter(it => it.rule(targetEnv))[0];
+    const branch = config['CIRCLE_BRANCH'];
+    const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
     const postFix = branchRule.postFix;
     const version = branchRule.bumpVersion ? bumpVersion() : readVersionFile();
-
+    const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined
     const tagParts = [
         version.trim(),
         postFix,
-        targetEnv !== "prod" ? config.get('CIRCLE_BUILD_NUM') : undefined
+        buildNum
     ]
         .filter(it => it);
     return tagParts.join("-");

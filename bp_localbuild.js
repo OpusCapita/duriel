@@ -39,7 +39,7 @@ const exec = async () => {
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
 
-        await docBuilder(compose_base, config);
+        // await docBuilder(compose_base, config);
 
         if (config['TARGET_ENV']) {
             log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);

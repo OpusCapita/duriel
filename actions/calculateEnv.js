@@ -2,11 +2,9 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
 const environmentRules = [
-    {rule: branch => branch === 'nbp', env: "develop"},
-    {rule: branch => branch === 'develop', env: "develop"},
+    {rule: branch => ['nbp', 'develop'].includes(branch), env: "develop"},
     {rule: branch => branch.toLowerCase().startsWith("release/"), env: "stage"},
-    {rule: branch => branch === 'master', env: "prod"},
-    {rule: branch => branch.toLowerCase().startsWith("hotfix/"), env: "prod"}
+    {rule: branch => branch === 'master', env: "prod"}
 ];
 
 function getTargetEnv(circle_branch) {
