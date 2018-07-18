@@ -23,7 +23,8 @@ function run() {
         });
         describe("calculate target-envs", () => {
             it("calculates target-envs", () => {
-                assert.equal("dev", calculatEnv.getTargetEnv("develop"));
+                assert.equal("develop", calculatEnv.getTargetEnv("develop"));
+                assert.equal("develop", calculatEnv.getTargetEnv("nbp"));
                 assert.equal("stage", calculatEnv.getTargetEnv("release/delPocko"));
                 assert.equal("prod", calculatEnv.getTargetEnv("master"));
                 assert.equal("prod", calculatEnv.getTargetEnv("hotfix/daBanossi"));
