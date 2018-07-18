@@ -30,8 +30,11 @@ function calculateImageTag(config) {
     const branch = config['CIRCLE_BRANCH'];
     const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
+    const versionFromFile = readVersionFile();
+    const hasHotfixVersion = versionFromFile.includes("hf");
+
     const postFix = branchRule.postFix;
-    const version = branchRule.bumpVersion ? bumpVersion() : readVersionFile();
+    const version = branchRule.bumpVersion && !hasHotfixVersion ? bumpVersion() : versionFromFile;
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
