@@ -31,11 +31,11 @@ async function calculateImageTag(config) {
     const branch = config['CIRCLE_BRANCH'];
     const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
-    const versionFromFile = await readVersionFile();
+    const versionFromFile = await readVersionFile(config);
 
 
     const postFix = branchRule.postFix;
-    const version = branchRule.bumpVersion ? await bumpVersion() : versionFromFile;
+    const version = branchRule.bumpVersion ? await bumpVersion(versionFromFile) : versionFromFile;
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
@@ -54,7 +54,7 @@ async function downloadVersion(config) {
         .catch(e => log.error("could not download VERSION-File: ", e));
 }
 
-async function readVersionFile() {
+async function readVersionFile(config) {
     // let versionFileContent;
     // if (!fs.existsSync(VERSION_FILE)) {
     //     log.error('no VERSION-File found! exiting!');
@@ -67,9 +67,6 @@ async function readVersionFile() {
 }
 
 async function bumpVersion(version, bumpLevel = "patch") {
-    if (!version) {
-        version = await readVersionFile();
-    }
     if (!version) {
         throw new Error("no version given and could not load it from file");
     }
