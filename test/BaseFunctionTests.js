@@ -5,7 +5,7 @@ const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigO
 const versionHelper = require("../actions/helpers/versionHelper");
 const calculatEnv = require("../actions/calculateEnv");
 
-const versionFileContent = "0.8.15-a";
+const versionFileContent = "0.8.15";
 const circleBuildNum = 42;
 
 module.exports.run = run;
@@ -40,7 +40,7 @@ function run() {
                     TARGET_ENV: undefined,
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-a-dev-42", versionHelper.calculateImageTag(config))
+                assert.equal("0.8.15-dev-42", versionHelper.calculateImageTag(config))
             });
 
             it("creates a dev-tag", () => {
@@ -49,7 +49,7 @@ function run() {
                     TARGET_ENV: "develop",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-a-dev-42", versionHelper.calculateImageTag(config))
+                assert.equal("0.8.15-dev-42", versionHelper.calculateImageTag(config))
             });
             it("creates a stage-tag", () => {
                 writeVersionFile();
@@ -57,7 +57,7 @@ function run() {
                     TARGET_ENV: "stage",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-a-rc-42", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.15-rc-42", versionHelper.calculateImageTag(config));
             });
             it("creates a hotfix-tag", () => {  // why am i testing this??!
                 writeVersionFile();
@@ -65,7 +65,7 @@ function run() {
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.16-a", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16", versionHelper.calculateImageTag(config));
             });
             it("creates a prod-tag", () => {
                 writeVersionFile();
@@ -73,28 +73,40 @@ function run() {
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.16-a", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16", versionHelper.calculateImageTag(config));
             });
 
             deleteVersionFile();
         });
         describe("bump version - functions", () => {
             it("bump - major", async () => {
-                const version = "1.2.3-f";
-                const expectation = "2.2.3-f";
+                const version = "1.2.3";
+                const expectation = "2.2.3";
                 const bumpedVersion = await versionHelper.getBumpedVersion(version, "major", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - minor", async () => {
-                const version = "1.2.3-f";
-                const expectation = "1.3.3-f";
+                const version = "1.2.3";
+                const expectation = "1.3.3";
                 const bumpedVersion = await versionHelper.getBumpedVersion(version, "minor", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - patch", async () => {
-                const version = "1.2.3-f";
-                const expectation = "1.2.4-f";
+                const version = "1.2.3";
+                const expectation = "1.2.4";
                 const bumpedVersion = await versionHelper.getBumpedVersion(version, "patch", true);
+                assert.equal(expectation, bumpedVersion)
+            });
+            it("bump - hotfix new", async () => {
+                const version = "1.2.3";
+                const expectation = "1.2.3-hf1";
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "hotfix", true);
+                assert.equal(expectation, bumpedVersion)
+            });
+            it("bump - hotfix old", async () => {
+                const version = "1.2.3-hf1";
+                const expectation = "1.2.3-hf2";
+                const bumpedVersion = await versionHelper.getBumpedVersion(version, "hotfix", true);
                 assert.equal(expectation, bumpedVersion)
             });
             it("incorrect version-format", async () => {

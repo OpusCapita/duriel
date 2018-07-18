@@ -32,7 +32,7 @@ const exec = async function handleDeployment() {
         await runAfterDeploymentTests(config, proxy);
         await cleanupSystem(proxy, config);
 
-        switch (config['TARGET_ENV']){
+        switch (config['TARGET_ENV']) {
             case 'prod':
                 await handleProductionDeployment(config);
                 break;
@@ -73,7 +73,9 @@ async function handleProductionDeployment(config) {
     const compose_base = dockerCommandBuilder.dockerComposeBase();
     await buildDocs(compose_base, config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
-    await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
+    if (!versionHandler.getRawVersion().includes("-hf")) {
+        await versionHandler.bumpAndCommitVersionFile(); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
+    }
 }
 
 

@@ -8,14 +8,20 @@ module.exports = {
     getRawVersion: readVersionFile,
     getBumpedVersion: bumpVersion,
     bumpAndCommitVersionFile,
-    calculateImageTag
+    calculateImageTag,
+    handleHotfixVersion
 };
 
 const tagRules = [
     {rule: (env) => env === 'develop', postFix: "dev", bumpVersion: false, addBuildNum: true},
     {rule: (env) => env === 'stage', postFix: "rc", bumpVersion: false, addBuildNum: true},
     {rule: (env) => env === 'prod', postFix: undefined, bumpVersion: true},
-    {rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"), postFix: "hf", bumpVersion: false, addBuildNum: true},
+    {
+        rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
+        postFix: "hf",
+        bumpVersion: false,
+        addBuildNum: true
+    },
     {rule: (env, branch) => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
 
@@ -56,12 +62,12 @@ function bumpVersion(version, bumpLevel = "patch") {
         throw new Error("no version given and could not load it from file");
     }
     version = `${version}`.trim();
-    const regex = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
+    const regex = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(\-hf[0-9A-Za-z-])?$/;
     if (!regex.test(version)) {
         log.error(`${version} cannot be bumped! invalid format`);
         return;
     }
-    const validBumpLevels = ["major", "minor", "patch"];
+    const validBumpLevels = ["major", "minor", "patch", "hotfix"];
     if (!validBumpLevels.includes(bumpLevel)) {
         log.error(`invalid bumplevel '${bumpLevel}'`);
         return;
@@ -70,8 +76,8 @@ function bumpVersion(version, bumpLevel = "patch") {
 
 }
 
-async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage) {
-    await gitHelper.checkout('develop');
+async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage, branch = "develop") {
+    await gitHelper.checkout(branch);
     const bumpedVersion = bumpVersion(version, bumpLevel);
     if (!bumpedVersion) {
         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
@@ -100,28 +106,36 @@ async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMess
 
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
-    vp[bumpLevel] = 1 + vp[bumpLevel];
-    return `${vp.major}.${vp.minor}.${vp.patch}${vp.preRelease}${vp.build}`;
+    if (bumpLevel === "hotfix") {
+        vp.hotfix = `-hf${vp.hotfix ? vp.hotfix + 1 : 1}`;
+    } else {
+        vp[bumpLevel] = 1 + vp[bumpLevel];
+        vp.hotfix = "";
+    }
+
+    return `${vp.major}.${vp.minor}.${vp.patch}${vp.hotfix}`;
 }
 
 function splitIntoParts(version) {
-    const result = {
-        preRelease: "",
-        build: ""
-    };
+    const result = {};
     const firstSplit = version.split("-");
-    const secondSplit = firstSplit[0].split(".");
-    result.major = parseInt(secondSplit[0]);
-    result.minor = parseInt(secondSplit[1]);
-    result.patch = parseInt(secondSplit[2]);
+    const mainVersionPart = firstSplit[0].split(".");
+    result.major = parseInt(mainVersionPart[0]);
+    result.minor = parseInt(mainVersionPart[1]);
+    result.patch = parseInt(mainVersionPart[2]);
 
     if (firstSplit.length > 1) {
-        const PreReleaseAndBuild = firstSplit[1];
-        const split = PreReleaseAndBuild.split("+");
-        result.preRelease = `-${split[0]}`;
-        if (split.length > 1) {
-            result.build = `+${split[1]}`;
-        }
+        log.info("version contains hotfix version");
+        result.hotfix = parseInt(firstSplit[1].replace("hf", ""));
     }
     return result;
+}
+
+function handleHotfixVersion(config) {
+    const branch = config['CIRCLE_BRANCH'];
+    if (branch.toLowerCase().startsWith("hotfix/")) {
+        log.info("Handling versioning for hotfixes");
+        let versionContent = bumpAndCommitVersionFile(undefined, "hotfix", undefined, branch);
+
+    }
 }
