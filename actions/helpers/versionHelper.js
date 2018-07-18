@@ -3,6 +3,7 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 const gitHelper = require('./gitHelper');
 const VERSION_FILE = "VERSION";
+const fileHelper = require('../filehandling/fileHandler');
 
 module.exports = {
     getRawVersion: readVersionFile,
@@ -25,16 +26,16 @@ const tagRules = [
     {rule: () => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
 
-function calculateImageTag(config) {
+async function calculateImageTag(config) {
     const targetEnv = config.get('TARGET_ENV');
     const branch = config['CIRCLE_BRANCH'];
     const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
-    const versionFromFile = readVersionFile();
+    const versionFromFile = await readVersionFile();
 
 
     const postFix = branchRule.postFix;
-    const version = branchRule.bumpVersion ? bumpVersion() : versionFromFile;
+    const version = branchRule.bumpVersion ? await bumpVersion() : versionFromFile;
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
@@ -46,20 +47,28 @@ function calculateImageTag(config) {
 }
 
 
-function readVersionFile() {
-    let versionFileContent;
-    if (!fs.existsSync(VERSION_FILE)) {
-        log.error('no VERSION-File found! exiting!');
-        throw new Error('no VERSION-File found! exiting!');
-    } else {
-        versionFileContent = fs.readFileSync(VERSION_FILE, "utf8");
-        return versionFileContent.replace(/(\r\n|\n|\r)/gm, "");
-    }
+async function downloadVersion(config) {
+    const url = `https://raw.githubusercontent.com/OpusCapita/${config['serviceName']}/develop/VERSION`;
+    return await fileHelper.loadPrivateGit2File(url, config)
+        .then(version => version.replace(/(\r\n|\n|\r)/gm, ""))
+        .catch(e => log.error("could not download VERSION-File: ", e));
 }
 
-function bumpVersion(version, bumpLevel = "patch") {
+async function readVersionFile() {
+    // let versionFileContent;
+    // if (!fs.existsSync(VERSION_FILE)) {
+    //     log.error('no VERSION-File found! exiting!');
+    //     throw new Error('no VERSION-File found! exiting!');
+    // } else {
+    //     versionFileContent = fs.readFileSync(VERSION_FILE, "utf8");
+    //     return versionFileContent.replace(/(\r\n|\n|\r)/gm, "");
+    // }
+    return await downloadVersion(config)
+}
+
+async function bumpVersion(version, bumpLevel = "patch") {
     if (!version) {
-        version = readVersionFile();
+        version = await readVersionFile();
     }
     if (!version) {
         throw new Error("no version given and could not load it from file");
@@ -81,7 +90,7 @@ function bumpVersion(version, bumpLevel = "patch") {
 
 async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage, branch = "develop") {
     await gitHelper.checkout(branch);
-    const bumpedVersion = bumpVersion(version, bumpLevel);
+    const bumpedVersion = await bumpVersion(version, bumpLevel);
     if (!bumpedVersion) {
         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
         return;

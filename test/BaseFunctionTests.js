@@ -15,12 +15,12 @@ function run() {
         // it("missing VERSION file", () => {
         //     assert.throws(() => versionHelper.getImageTag({}), Error, "no VERSION-File found! exiting!");
         // });
-        it("get Version raw", () => {
-            writeVersionFile();
-            const rawVersion = versionHelper.getRawVersion();
-            assert.equal(rawVersion, versionFileContent);
-            deleteVersionFile();
-        });
+        // it("get Version raw", () => {
+        //     writeVersionFile();
+        //     const rawVersion = versionHelper.getRawVersion();
+        //     assert.equal(rawVersion, versionFileContent);
+        //     deleteVersionFile();
+        // });
         describe("calculate target-envs", () => {
             it("calculates target-envs", () => {
                 assert.equal("develop", calculatEnv.getTargetEnv("develop"));
@@ -32,7 +32,7 @@ function run() {
                 assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
         });
-
+        /*
         describe("calculate image-tags", () => {
             it("created a feature-tag", () => {
                 writeVersionFile();
@@ -78,6 +78,7 @@ function run() {
 
             deleteVersionFile();
         });
+        */
         describe("bump version - functions", () => {
             it("bump - major", async () => {
                 const version = "1.2.3";
