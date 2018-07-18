@@ -9,7 +9,7 @@ module.exports = {
     getBumpedVersion: bumpVersion,
     bumpAndCommitVersionFile,
     calculateImageTag,
-    handleHotfixVersion
+    //handleHotfixVersion
 };
 
 const tagRules = [
@@ -20,10 +20,9 @@ const tagRules = [
         rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
         postFix: "hf",
         bumpVersion: false,
-        addBuildNum: true,
-        checkHotfix: true
+        addBuildNum: true
     },
-    {rule: (env, branch) => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
+    {rule: () => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
 
 function calculateImageTag(config) {
@@ -32,12 +31,10 @@ function calculateImageTag(config) {
     const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
     const versionFromFile = readVersionFile();
-    const hasHotfixVersion = versionFromFile.includes("hf");
-    let ignorePostfix = branchRule.checkHotfix && hasHotfixVersion;
 
 
-    const postFix = ignorePostfix ? "" : branchRule.postFix;
-    const version = branchRule.bumpVersion && !hasHotfixVersion ? bumpVersion() : versionFromFile;
+    const postFix = branchRule.postFix;
+    const version = branchRule.bumpVersion ? bumpVersion() : versionFromFile;
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
@@ -134,11 +131,11 @@ function splitIntoParts(version) {
     return result;
 }
 
-async function handleHotfixVersion(config) {
-    const branch = config['CIRCLE_BRANCH'];
-    if (branch.toLowerCase().startsWith("hotfix/")) {
-        log.info("Handling versioning for hotfixes");
-        await bumpAndCommitVersionFile(undefined, "hotfix", undefined, branch);
-
-    }
-}
+// async function handleHotfixVersion(config) {
+//     const branch = config['CIRCLE_BRANCH'];
+//     if (branch.toLowerCase().startsWith("hotfix/")) {
+//         log.info("Handling versioning for hotfixes");
+//         await bumpAndCommitVersionFile(undefined, "hotfix", undefined, branch);
+//
+//     }
+// }

@@ -73,9 +73,7 @@ async function handleProductionDeployment(config) {
     const compose_base = dockerCommandBuilder.dockerComposeBase();
     await buildDocs(compose_base, config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
-    if (!versionHandler.getRawVersion().includes("-hf")) {
-        await versionHandler.bumpAndCommitVersionFile(undefined, undefined, undefined, "develop"); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
-    }
+    await versionHandler.bumpAndCommitVersionFile(undefined, undefined, undefined); // undefined, undefined, undefined --> load the file, bump as 'patch', ${version} [ci skip] message
 }
 
 
