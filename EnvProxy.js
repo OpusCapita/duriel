@@ -48,6 +48,8 @@ module.exports = class EnvProxy {
                 username: this.config.admin_user,
                 agentForward: true,
                 agent: process.env.SSH_AUTH_SOCK,
+                hostHash: 'md5',
+                hostVerifier : (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
 
