@@ -11,19 +11,22 @@ module.exports = {
     calculateImageTag
 };
 
-const envPostfixes = [
-    {rule: env => env === 'develop', postFix: "dev"},
-    {rule: env => env === 'stage', postFix: "rc"},
-    {rule: env => env === 'prod', postFix: undefined},
-    {rule: env => true, postFix: "dev"},
+const branchRules = [
+    {rule: env => env === 'develop', postFix: "dev", bumpVersion: false},
+    {rule: env => env === 'stage', postFix: "rc", bumpVersion: false},
+    {rule: env => env === 'prod', postFix: undefined, bumpVersion: true},
+    {rule: env => true, postFix: "dev", bumpVersion: false},
 ];
 
 function calculateImageTag(config) {
-    const versionFileContent = readVersionFile();
     const targetEnv = config.get('TARGET_ENV');
-    const postFix = envPostfixes.filter(it => it.rule(targetEnv))[0].postFix;
+    const branchRule = branchRules.filter(it => it.rule(targetEnv))[0];
+
+    const postFix = branchRule.postFix;
+    const version = branchRule.bumpVersion ? bumpVersion() : readVersionFile();
+
     const tagParts = [
-        versionFileContent.trim(),
+        version.trim(),
         postFix,
         targetEnv !== "prod" ? config.get('CIRCLE_BUILD_NUM') : undefined
     ]

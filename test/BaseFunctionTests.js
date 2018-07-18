@@ -65,7 +65,7 @@ function run() {
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-a", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16-a", versionHelper.calculateImageTag(config));
             });
             it("creates a prod-tag", () => {
                 writeVersionFile();
@@ -73,7 +73,7 @@ function run() {
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-a", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16-a", versionHelper.calculateImageTag(config));
             });
 
             deleteVersionFile();
