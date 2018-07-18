@@ -20,7 +20,8 @@ const tagRules = [
         rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
         postFix: "hf",
         bumpVersion: false,
-        addBuildNum: true
+        addBuildNum: true,
+        checkHotfix: true
     },
     {rule: (env, branch) => true, postFix: "dev", bumpVersion: false, addBuildNum: true}
 ];
@@ -32,8 +33,10 @@ function calculateImageTag(config) {
 
     const versionFromFile = readVersionFile();
     const hasHotfixVersion = versionFromFile.includes("hf");
+    let ignorePostfix = branchRule.checkHotfix && hasHotfixVersion;
 
-    const postFix = branchRule.postFix;
+
+    const postFix = ignorePostfix ? "" : branchRule.postFix;
     const version = branchRule.bumpVersion && !hasHotfixVersion ? bumpVersion() : versionFromFile;
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
