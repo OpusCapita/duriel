@@ -7,7 +7,7 @@
 | feature/* | -         |
 | develop   | develop   |
 | release/* | stage     |
-| hotfix    | prod      |
+| hotfix    | -         |
 | master    | prod      |
 
 ## behaviour flags

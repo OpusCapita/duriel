@@ -27,7 +27,7 @@ function run() {
                 assert.equal("develop", calculatEnv.getTargetEnv("nbp"));
                 assert.equal("stage", calculatEnv.getTargetEnv("release/delPocko"));
                 assert.equal("prod", calculatEnv.getTargetEnv("master"));
-                assert.equal("prod", calculatEnv.getTargetEnv("hotfix/daBanossi"));
+                assert.equal(undefined, calculatEnv.getTargetEnv("hotfix/daBanossi"));
                 assert.equal(undefined, calculatEnv.getTargetEnv("feature/kevin"));
                 assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
