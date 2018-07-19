@@ -4,16 +4,19 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
 module.exports = {
-    addFiles: addFiles,
-    addAll: addAll,
-    tag: tag,
-    checkout: checkout,
-    commit: commit,
-    push: push,
-    pushTags: pushTags,
-    status: status,
-    setCredentials: setCredentials,
-    checkForChanges: checkForChanges
+    addFiles,
+    addAll,
+    tag,
+    checkout,
+    commit,
+    push,
+    pushTags,
+    status,
+    setCredentials,
+    checkForChanges,
+    getTags,
+    getMainVersionTags,
+    getMerges
 };
 
 
@@ -87,4 +90,23 @@ async function setCredentials(user, mail) {
     log.info(`setting git-credentials: user: ${user}, email: ${mail}`);
     await executeCommand(`git config --global user.name ${user}`);
     await executeCommand(`git config --global user.email ${mail}`);
+}
+
+/**
+ * Getter
+ */
+
+async function getTags(pattern) {
+    return await executeCommand(`git tag --list`)
+        .then(tags => tags.split('\n')
+            .filter(tag => pattern && new RegExp(pattern, "gm").test(tag)));
+}
+
+async function getMainVersionTags(){
+    return await getTags(/(^[0-9]+\.)([0-9]+\.)([0-9]+)$/)
+        .then(tags => tags.sort())
+}
+
+async function getMerges(){
+    return await executeCommand(`git log --merges --pretty="%h% ; %P% ; %an%;%ad%;%s"`)
 }
