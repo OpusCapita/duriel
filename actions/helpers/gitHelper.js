@@ -96,17 +96,114 @@ async function setCredentials(user, mail) {
  * Getter
  */
 
-async function getTags(pattern) {
-    return await executeCommand(`git tag --list`)
+async function getTags(filter) {
+    let command = "git tag --list";
+    if (filter) {
+        if (filter.commit)
+            command = `${command} --points-at ${filter.commit}`;
+        else if (filter.merged) {
+            command = `${command} --merged ${filter.merged}`
+        }
+    }
+
+    log.info(command);
+    return await executeCommand(command)
         .then(tags => tags.split('\n')
-            .filter(tag => pattern && new RegExp(pattern, "gm").test(tag)));
+            .filter(tag => {
+                if (!tag)
+                    return false;
+                if (filter && filter.pattern && !new RegExp(filter.pattern, "gm").test(tag))
+                    return false;
+
+                return true
+            })
+        )
 }
 
-async function getMainVersionTags(){
-    return await getTags(/(^[0-9]+\.)([0-9]+\.)([0-9]+)$/)
-        .then(tags => tags.sort())
+async function getMainVersionTags() {
+    function compareVersion(a, b) {
+        const aSplit = a.split('.');
+        const bSplit = b.split('.');
+        if (aSplit[0] !== bSplit[0]) {
+            const aMajor = parseInt(aSplit[0]) ? parseInt(aSplit[0]) : 0;
+            const bMajor = parseInt(bSplit[0]) ? parseInt(bSplit[0]) : 0;
+            return bMajor - aMajor;
+        } else {
+            if (aSplit[1] !== bSplit[1]) {
+                const aMinor = parseInt(aSplit[1]) ? parseInt(aSplit[1]) : 0;
+                const bMinor = parseInt(bSplit[1]) ? parseInt(bSplit[1]) : 0;
+                return bMinor - aMinor;
+            } else {
+                if (aSplit[2] !== bSplit[2]) {
+                    const aPatch = parseInt(aSplit[2]) ? parseInt(aSplit[2]) : 0;
+                    const bPatch = parseInt(bSplit[2]) ? parseInt(bSplit[2]) : 0;
+                    return bPatch - aPatch;
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
+        .then(tags => tags.sort(compareVersion))
+        .then(tags => {
+            if (!tags.length)
+                return ['1.0.0'];
+            else
+                return tags;
+        })
 }
 
-async function getMerges(){
-    return await executeCommand(`git log --merges --pretty="%h% ; %P% ; %an%;%ad%;%s"`)
+/**
+ *
+ * @param filter - e.g. { commit: '', author: '', message: '' }
+ * @returns [ { commit: '', parents: [ '', '' ], author: 'kpm', date: 2017-11-20T15:55:00.000Z, message: '' } ]
+ */
+async function getMerges(filter) {
+    function createUsedFilter(filter) {
+        const result = {};
+        if (filter) {
+            if (filter.commit)
+                result.commit = filter.commit.trim();
+            if (filter.message)
+                result.message = filter.message.trim();
+        }
+        return result;
+    }
+
+    return await executeCommand(`git log --merges --all --pretty="%H% ;##; %P% ;##; %an% ;##; %ae% ;##; %ad% ;##; %s% ;##; %e% ;##; %T"`)
+        .then(data => {
+            return data.split("\n")
+                .map(row => {
+                    const cols = row.split(";##;").filter(it => it);
+                    if (cols.length === 8) {
+                        return {
+                            commit: cols[0].trim(),
+                            parents: cols[1].split(" ").filter(it => it).map(it => it.trim()),
+                            author: {
+                                name: cols[2].trim(),
+                                mail: cols[3].trim()
+                            },
+                            date: new Date(cols[4]),
+                            message: cols[5].trim(),
+                            encoding: cols[6].trim(),
+                            tree: cols[7].trim()
+                        }
+                    }
+                }).filter(it => {
+                    if (!it)
+                        return it;
+                    if (filter) {
+                        const usedFilter = createUsedFilter(filter);
+                        for (const filterino in usedFilter) {
+                            if (usedFilter[filterino] && usedFilter[filterino] !== it[filterino]) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                    return true;
+                });
+        })
 }

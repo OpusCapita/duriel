@@ -18,7 +18,7 @@ const docBuilder = require('./actions/buildDocs');
 const exec = async () => {
     try {
         require('events').EventEmitter.prototype._maxListeners = 100;
-        const config = getEnvVariables();
+        const config = await getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerHelper.loginLocal(config);
         try{
@@ -39,8 +39,6 @@ const exec = async () => {
         await runUnitTests(compose_base);
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
-
-        //await versionHelper.handleHotfixVersion(config);
 
         if (config['TARGET_ENV']) {
             log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);

@@ -30,7 +30,6 @@ module.exports = async function () {
             log.severe(`env_var ${env_var} set successfully.`);
         }
     }
-
     if (!all_required_vars_set) {
         log.error("env vars are missing! exiting!");
         throw new Error("env vars are missing! exiting!");
@@ -50,6 +49,7 @@ module.exports = async function () {
     }
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
     config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
+
 
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];

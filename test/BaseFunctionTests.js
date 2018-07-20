@@ -12,15 +12,6 @@ module.exports.run = run;
 
 function run() {
     describe("Base Functions", () => {
-        // it("missing VERSION file", () => {
-        //     assert.throws(() => versionHelper.getImageTag({}), Error, "no VERSION-File found! exiting!");
-        // });
-        // it("get Version raw", () => {
-        //     writeVersionFile();
-        //     const rawVersion = versionHelper.getRawVersion();
-        //     assert.equal(rawVersion, versionFileContent);
-        //     deleteVersionFile();
-        // });
         describe("calculate target-envs", () => {
             it("calculates target-envs", () => {
                 assert.equal("develop", calculatEnv.getTargetEnv("develop"));
@@ -32,95 +23,84 @@ function run() {
                 assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
         });
-        /*
+/*
         describe("calculate image-tags", () => {
-            it("created a feature-tag", () => {
+            it("created a feature-tag", async () => {
                 writeVersionFile();
                 const config = getBaseConfigObject({
                     TARGET_ENV: undefined,
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-dev-42", versionHelper.calculateImageTag(config))
+                assert.equal("0.8.15-dev-42", await versionHelper.calculateImageTag(config))
             });
 
-            it("creates a dev-tag", () => {
+            it("creates a dev-tag", async () => {
                 writeVersionFile();
                 const config = getBaseConfigObject({
                     TARGET_ENV: "develop",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-dev-42", versionHelper.calculateImageTag(config))
+                assert.equal("0.8.15-dev-42", await versionHelper.calculateImageTag(config))
             });
-            it("creates a stage-tag", () => {
+            it("creates a stage-tag", async () => {
                 writeVersionFile();
                 const config = getBaseConfigObject({
                     TARGET_ENV: "stage",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.15-rc-42", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.15-rc-42", await versionHelper.calculateImageTag(config));
             });
-            it("creates a hotfix-tag", () => {  // why am i testing this??!
+            it("creates a hotfix-tag", async () => {  // why am i testing this??!
                 writeVersionFile();
                 const config = getBaseConfigObject({
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.16", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16", await versionHelper.calculateImageTag(config));
             });
-            it("creates a prod-tag", () => {
+            it("creates a prod-tag", async  () => {
                 writeVersionFile();
                 const config = getBaseConfigObject({
                     TARGET_ENV: "prod",
                     CIRCLE_BUILD_NUM: circleBuildNum
                 });
-                assert.equal("0.8.16", versionHelper.calculateImageTag(config));
+                assert.equal("0.8.16", await versionHelper.calculateImageTag(config));
             });
 
             deleteVersionFile();
         });
+*/
         describe("bump version - functions", () => {
             it("bump - major", async () => {
                 const version = "1.2.3";
                 const expectation = "2.2.3";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config, version, "major", true);
+                const bumpedVersion = await versionHelper.bumpVersion(version, "major");
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - minor", async () => {
                 const version = "1.2.3";
                 const expectation = "1.3.3";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config, version, "minor", true);
+                const bumpedVersion = await versionHelper.bumpVersion(version, "minor");
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - patch", async () => {
                 const version = "1.2.3";
                 const expectation = "1.2.4";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config, version, "patch", true);
-                assert.equal(expectation, bumpedVersion)
-            });
-            it("bump - hotfix new", async () => {
-                const version = "1.2.3";
-                const expectation = "1.2.3-hf1";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config, version, "hotfix", true);
-                assert.equal(expectation, bumpedVersion)
-            });
-            it("bump - hotfix old", async () => {
-                const version = "1.2.3-hf1";
-                const expectation = "1.2.3-hf2";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config, version, "hotfix", true);
+                const bumpedVersion = await versionHelper.bumpVersion(version, "patch");
                 assert.equal(expectation, bumpedVersion)
             });
             it("incorrect version-format", async () => {
                 const version = "kaputt-42";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config,version, "patch", true);
+                const bumpedVersion = await versionHelper.bumpVersion(version, "patch");
                 assert.equal(bumpedVersion, undefined)
             });
             it("incorrect bump-format", async () => {
                 const version = "1.1.1";
-                const bumpedVersion = await versionHelper.getBumpedVersion(config,version, "dropDB", true);
+                const bumpedVersion = await versionHelper.bumpVersion(version, "dropDB");
                 assert.equal(bumpedVersion, undefined)
             });
         });
-        */
+
         describe("util", () => {
             const helper = require('../actions/helpers/utilHelper');
             it("flatten simple array", () => {

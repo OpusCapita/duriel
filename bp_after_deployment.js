@@ -73,8 +73,7 @@ async function handleProductionDeployment(config) {
     const compose_base = dockerCommandBuilder.dockerComposeBase();
     await buildDocs(compose_base, config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
-    const version = versionHandler.getRawVersion(config);
-    await versionHandler.bumpAndCommitVersionFile(version, undefined, undefined);
+
 }
 
 
