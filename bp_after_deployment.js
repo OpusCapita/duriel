@@ -88,24 +88,26 @@ async function handleProductionDeployment(config) {
 }
 
 async function createPullRequests(config) {
-    if(config.get('pull_request_creation_skip')){
+    if (config.get('pull_request_creation_skip')) {
         log.warn("pull-request-creation is disabled via flag, skipping.");
         return;
     }
     try {
         const pullRequestsBranches = pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH']));
         if (pullRequestsBranches.length) {
-            for (const base of pullRequestsBranches.base) {
-                const pullRequest = {
-                    title: "PullRequest from duriel-build-automation",
-                    body: "the deployment was successfull, please merge your changes!",
-                    head: config['CIRCLE_BRANCH'],
-                    base: base,
-                    maintainer_can_modity: true
-                };
-                const response = await gitHubHelper.createPullRequest(config, pullRequest);
-                if (response) {
-                    log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+            for (const matchingRules of pullRequestsBranches) {
+                for (const base of matchingRules.base) {
+                    const pullRequest = {
+                        title: "PullRequest from duriel-build-automation",
+                        body: "the deployment was successfull, please merge your changes!",
+                        head: config['CIRCLE_BRANCH'],
+                        base: base,
+                        maintainer_can_modity: true
+                    };
+                    const response = await gitHubHelper.createPullRequest(config, pullRequest);
+                    if (response) {
+                        log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+                    }
                 }
             }
         } else {
