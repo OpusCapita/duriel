@@ -16,6 +16,11 @@ const buildDocs = require('./actions/buildDocs');
 const versionHandler = require('./actions/helpers/versionHelper');
 const dockerCommandBuilder = require("./actions/docker/dockerCommandBuilder");
 
+const pullRequestRules = [
+    {rule: branch => branch.toLowerCase().startsWith("hotfix/"), base: ['master', 'develop']},
+    {rule: branch => branch.toLowerCase().startsWith("release/"), base: ['master']}
+];
+
 const exec = async function handleDeployment() {
     require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Running after deploy script");
@@ -52,30 +57,8 @@ const exec = async function handleDeployment() {
             process.exit(1);
         }
     }
-    try {
-        const pullRequestRules = [
-            {rule: branch => branch.toLowerCase().startsWith("hotfix/")},
-            {rule: branch => branch.toLowerCase().startsWith("release/")}
-        ];
 
-        if (pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH'])).length) {
-            const pullRequest = {
-                title: "PullRequest from duriel-build-automation",
-                body: "the deployment was successfull, please merge your changes!",
-                head: config['CIRCLE_BRANCH'],
-                base: "master",
-                maintainer_can_modity: true
-            };
-            const response = await gitHubHelper.createPullRequest(config, pullRequest);
-            if (response) {
-                log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
-            }
-        } else {
-            log.info(`no pull-request will be created for branch '${config['CIRCLE_BRANCH']}'`)
-        }
-    } catch (e) {
-        log.error("could not open pull-request. You have to do it manually ¯\\_(ツ)_/¯ ", e);
-    }
+    await createPullRequests(config)
 };
 
 async function runAfterDeploymentTests(config, proxy) {
@@ -104,5 +87,34 @@ async function handleProductionDeployment(config) {
 
 }
 
+async function createPullRequests(config) {
+    if(config.get('pull_request_creation_skip')){
+        log.warn("pull-request-creation is disabled via flag, skipping.");
+        return;
+    }
+    try {
+        const pullRequestsBranches = pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH']));
+        if (pullRequestsBranches.length) {
+            for (const base of pullRequestsBranches.base) {
+                const pullRequest = {
+                    title: "PullRequest from duriel-build-automation",
+                    body: "the deployment was successfull, please merge your changes!",
+                    head: config['CIRCLE_BRANCH'],
+                    base: base,
+                    maintainer_can_modity: true
+                };
+                const response = await gitHubHelper.createPullRequest(config, pullRequest);
+                if (response) {
+                    log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+                }
+            }
+        } else {
+            log.info(`no pull-request will be created for branch '${config['CIRCLE_BRANCH']}'`)
+        }
+
+    } catch (e) {
+        log.error("could not open pull-request. You have to do it manually ¯\\_(ツ)_/¯ ", e);
+    }
+}
 
 exec();
