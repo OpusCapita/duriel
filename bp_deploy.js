@@ -31,6 +31,11 @@ const exec = async function () {
             return;
         }
 
+        if(!config['TARGET_ENV']){
+            log.info("no deployment to env needed.");
+            process.exit(0);
+        }
+
         let paramsMissing = false;
         if (!config['GIT_TOKEN']) {
             paramsMissing = true;

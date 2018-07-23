@@ -11,7 +11,7 @@ const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
  */
-module.exports = function () {
+module.exports = async function () {
     const config = getBaseConfigObject();
     if (process.argv.length < 3) {
         log.error(`too few parameters ${ process.argv}`);
@@ -30,7 +30,6 @@ module.exports = function () {
             log.severe(`env_var ${env_var} set successfully.`);
         }
     }
-
     if (!all_required_vars_set) {
         log.error("env vars are missing! exiting!");
         throw new Error("env vars are missing! exiting!");
@@ -51,9 +50,10 @@ module.exports = function () {
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
     config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
 
+
     config['MYSQL_PW'] = getDatabasePassword(config);
-    config['VERSION'] = calculateVersion.calculateImageTag(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
+    config['VERSION'] = await calculateVersion.calculateImageTag(config);
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 

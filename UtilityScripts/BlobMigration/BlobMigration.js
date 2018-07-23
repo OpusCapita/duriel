@@ -5,9 +5,9 @@
  * run: node BlobMigration.js srcEnv targetEnv
  */
 var ApiHelper = require('./ApiHelper.js');
-var EnvProxy = require('./EnvProxy.js');
+var EnvProxy = require('../../EnvProxy.js');
 var mysql = require('mysql2/promise');
-var envInfo = require('./envInfo.js');
+var envInfo = require('../../envInfo.js');
 var https = require('https');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));

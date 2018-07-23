@@ -1,0 +1,10 @@
+{
+  "libraries": [
+    "@opuscapita/web-init",
+    "@opuscapita/event-client",
+    "@opuscapita/config",
+    "@opuscapita/db-init",
+    "ocbesbn-service-client"
+  ],
+  "package_results": false
+}

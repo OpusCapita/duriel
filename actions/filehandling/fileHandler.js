@@ -47,20 +47,10 @@ async function loadTaskTemplate(config) {
     return injectorResult;
 }
 
-function loadFileFromPrivateGit(url, file, config) {
+function loadFileFromPrivateGit(url, config) {
     return request.get(url)
         .set('Authorization', `token ${config['GIT_TOKEN']}`)
-        .then(res => {
-            fs.writeFile(file, res.text, function (error) {
-                return new Promise(((resolve, reject) => {
-                    if (error) {
-                        return reject(error);
-                    } else {
-                        return resolve(res.text);
-                    }
-                }))
-            })
-        })
+        .then(res => res.text);
 }
 
 function saveObject2File(object, path, forceOverride = false) {

@@ -21,7 +21,7 @@ module.exports = async function executeCleanup(proxy, config) {
                 };
                 entries.push(entry);
             })
-            .catch(error => log.warn(`could not prune node '${node.hostname}'`, error));
+            .catch(error => log.warn(`could not prune node '${node.hostname}'`, error))
     }
     config['cleanups'][env] = entries;
     return {success: true};
