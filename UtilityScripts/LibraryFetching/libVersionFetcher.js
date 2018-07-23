@@ -6,6 +6,8 @@ const Logger = require('../../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
+const config = require("./config");
+
 /**
  * usage node libVersionFetcher < user > < env > [ < env > ]
  *
@@ -17,6 +19,7 @@ async function exec() {
         return;
     }
     const targetEnvs = process.argv.slice(3);
+    log.info("fetching services: ", config)
     let fetchedData = {};
     for (const targetEnv of targetEnvs) {
         const data = await fetchLibVersions(targetEnv)
@@ -31,15 +34,17 @@ async function exec() {
     for (const env in fetchedData) {
         const filePath = `${dir}/${env}.csv`;
         log.info(` Saving information for '${env}' into file '${filePath}'... `);
-        let content = "service;web-init;event-client\n" + fetchedData[env].sort().join('\n');
+        let content = `service;${config.libraries.join(";")}\n${fetchedData[env].sort().join('\n')}`;
         fs.writeFileSync(`./${filePath}`, content);
         log.info(`Successfully exported library-infos into file: ${filePath}`);
     }
 
-    log.info("packaging results...");
-    const utilProxy = new EnvProxy();
-    utilProxy.executeCommand_L(`tar -czf ${dir}.tar ${dir}/`);
-    log.info(`finished packaging. file: '${dir}.tar'`)
+    if (config.package_results) {
+        log.info("packaging results...");
+        const utilProxy = new EnvProxy();
+        utilProxy.executeCommand_L(`tar -czf ${dir}.tar ${dir}/`);
+        log.info(`finished packaging. file: '${dir}.tar'`)
+    }
 
 }
 
@@ -64,9 +69,8 @@ async function fetchLibVersions(targetEnv) {
             try {
                 const parsedPackageJSON = JSON.parse(response);
                 const serviceName = parsedPackageJSON.name;
-                const webInitVersion = parsedPackageJSON.dependencies['@opuscapita/web-init'];
-                const eventClientVersion = parsedPackageJSON.dependencies['@opuscapita/event-client'];
-                data.push(`${serviceName};${webInitVersion ? webInitVersion : ""};${eventClientVersion ? eventClientVersion : ""};`);
+                const fetchedVersions = config.libraries.map(lib => parsedPackageJSON.dependencies[lib] ? parsedPackageJSON.dependencies[lib] : "");
+                data.push(`${serviceName};${fetchedVersions.join(";")}`);
             } catch (e) {
                 // if the containers does not contain a package.json, it is not needed.
             }
