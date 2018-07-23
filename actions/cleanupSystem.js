@@ -7,7 +7,7 @@ module.exports = async function executeCleanup(proxy, config) {
     const nodes = await proxy.getNodes_E();
     config['cleanups'] = config['cleanups'] ? config['cleanups'] : {};
     const entries = [];
-    await Promise.all(nodes.map(async node =>
+    for (const node of nodes) {
         await proxy.executeCommand_N(node.hostname, "docker system prune -f")
             .then(response => {
                 const filteredInput = response.split(/\r\n|\r|\n/g).filter(it => it.startsWith("Total reclaimed space:"))[0];
@@ -22,7 +22,7 @@ module.exports = async function executeCleanup(proxy, config) {
                 entries.push(entry);
             })
             .catch(error => log.warn(`could not prune node '${node.hostname}'`, error))
-    ));
+    }
     config['cleanups'][env] = entries;
     return {success: true};
 };

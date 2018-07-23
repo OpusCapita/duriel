@@ -19,5 +19,14 @@
 | pull_request_creation_skip | buildprocess will not create pull-requests |
 
 
+## pull-request creation
+
+When deploying successfully to a "hotfix/" or "release/" branch, the build-process will create pull-requests in GitHub.
+| Branch    | PR's to |
+|-----------|-----------|
+| release/* | master |
+| hotfix    | master, develop |
+
 ## known issues
 - some nodes block secreet-reading and the deployment thinks, it need to create a new secret.
+
