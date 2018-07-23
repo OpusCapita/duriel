@@ -12,7 +12,7 @@
 
 ## behaviour flags
 
-| Branch    | TargetEnv |
+| Flag    | TargetEnv |
 |-----------|-----------|
 | e2e_skip  | ignore the result of the e2e-tests |
 | andariel_loglevel  | loglevel of outputs (severe, debug, info, warn, error) |
