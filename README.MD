@@ -22,6 +22,7 @@
 ## pull-request creation
 
 When deploying successfully to a "hotfix/" or "release/" branch, the build-process will create pull-requests in GitHub.
+
 | Branch    | PR's to |
 |-----------|-----------|
 | release/* | master |
