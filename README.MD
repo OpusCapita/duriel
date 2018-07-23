@@ -30,3 +30,6 @@ When deploying successfully to a "hotfix/" or "release/" branch, the build-proce
 ## known issues
 - some nodes block secreet-reading and the deployment thinks, it need to create a new secret.
 
+## overview
+
+![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/feature/hotfix-impl/images/nbp_v2.png)
