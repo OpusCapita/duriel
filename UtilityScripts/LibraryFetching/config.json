@@ -1,0 +1,5 @@
+[
+  "@opuscapita/web-init",
+  "@opuscapita/event-client",
+  "@opuscapita/service-client"
+]

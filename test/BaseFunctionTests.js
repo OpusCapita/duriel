@@ -23,63 +23,16 @@ function run() {
                 assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
         });
-/*
-        describe("calculate image-tags", () => {
-            it("created a feature-tag", async () => {
-                writeVersionFile();
-                const config = getBaseConfigObject({
-                    TARGET_ENV: undefined,
-                    CIRCLE_BUILD_NUM: circleBuildNum
-                });
-                assert.equal("0.8.15-dev-42", await versionHelper.calculateImageTag(config))
-            });
-
-            it("creates a dev-tag", async () => {
-                writeVersionFile();
-                const config = getBaseConfigObject({
-                    TARGET_ENV: "develop",
-                    CIRCLE_BUILD_NUM: circleBuildNum
-                });
-                assert.equal("0.8.15-dev-42", await versionHelper.calculateImageTag(config))
-            });
-            it("creates a stage-tag", async () => {
-                writeVersionFile();
-                const config = getBaseConfigObject({
-                    TARGET_ENV: "stage",
-                    CIRCLE_BUILD_NUM: circleBuildNum
-                });
-                assert.equal("0.8.15-rc-42", await versionHelper.calculateImageTag(config));
-            });
-            it("creates a hotfix-tag", async () => {  // why am i testing this??!
-                writeVersionFile();
-                const config = getBaseConfigObject({
-                    TARGET_ENV: "prod",
-                    CIRCLE_BUILD_NUM: circleBuildNum
-                });
-                assert.equal("0.8.16", await versionHelper.calculateImageTag(config));
-            });
-            it("creates a prod-tag", async  () => {
-                writeVersionFile();
-                const config = getBaseConfigObject({
-                    TARGET_ENV: "prod",
-                    CIRCLE_BUILD_NUM: circleBuildNum
-                });
-                assert.equal("0.8.16", await versionHelper.calculateImageTag(config));
-            });
-
-            deleteVersionFile();
-        });
-*/
         describe("bump version - functions", () => {
             it("bump - major", async () => {
                 const version = "1.2.3";
-                const expectation = "2.2.3";
+                const expectation = "2.0.0";
                 const bumpedVersion = await versionHelper.bumpVersion(version, "major");
                 assert.equal(expectation, bumpedVersion)
             });
             it("bump - minor", async () => {
                 const version = "1.2.3";
-                const expectation = "1.3.3";
+                const expectation = "1.3.0";
                 const bumpedVersion = await versionHelper.bumpVersion(version, "minor");
                 assert.equal(expectation, bumpedVersion)
             });
@@ -96,8 +49,9 @@ function run() {
             });
             it("incorrect bump-format", async () => {
                 const version = "1.1.1";
-                const bumpedVersion = await versionHelper.bumpVersion(version, "dropDB");
-                assert.equal(bumpedVersion, undefined)
+                const invalidLevel = "LeonardoDeBabanossiDelPocko";
+                const bumpedVersion = await versionHelper.bumpVersion(version, invalidLevel).catch(e => "Backpfeife");
+                assert.equal(bumpedVersion, "Backpfeife")
             });
         });
 

@@ -5,6 +5,9 @@ const gitHelper = require('./gitHelper');
 const VERSION_FILE = "VERSION";
 const fileHelper = require('../filehandling/fileHandler');
 
+const validBumpLevels = ["major", "minor", "patch"];
+
+
 module.exports = {
     bumpVersion,
     bumpProdVersion,
@@ -78,11 +81,11 @@ async function bumpProdVersion(version, config) {
     const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
         .then(merges => merges.map(it => it.parents));
     let bumpLevel = "minor";
-    if(config['major_release']){
-        // TODO: remove var 
+    if (config['major_release']) {
+        // TODO: remove var from circleci
         return await bumpVersion(version, 'major')
     }
-    for(const merge of commitMerges) {
+    for (const merge of commitMerges) {
         for (const parent of merge.parents) {
             const tagsOfParent = await gitHelper.getTags({commit: parent});
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
@@ -103,50 +106,25 @@ async function bumpVersion(version, bumpLevel = "patch") {
         log.error(`${version} cannot be bumped! invalid format`);
         return;
     }
-    const validBumpLevels = ["major", "minor", "patch", "hotfix"];
     if (!validBumpLevels.includes(bumpLevel)) {
-        log.error(`invalid bumplevel '${bumpLevel}'`);
-        return;
+        throw new Error(`invalid bumplevel '${bumpLevel}'`);
     }
     return createBumpedVersion(version, bumpLevel);
 
 }
 
-// async function bumpAndCommitVersionFile(version, bumpLevel = "patch", commitMessage, branch = "develop") {
-//     await gitHelper.checkout(branch);
-//     const bumpedVersion = await bumpVersion(version, bumpLevel);
-//     if (!bumpedVersion) {
-//         log.warn("no bumped Version could be created. Pleace check your VERSION-File");
-//         return;
-//     }
-//     if (!commitMessage) {
-//         commitMessage = `${bumpedVersion} [ci skip]`
-//     }
-//     log.info("Updating VERSION-file file locally");
-//     fs.writeFileSync(VERSION_FILE, bumpedVersion);
-//     log.info(`upload changes on VERSION-file to github`);
-//
-//     try {
-//         await gitHelper.addFiles(VERSION_FILE);
-//         await gitHelper.commit(commitMessage);
-//         await gitHelper.push(branch);
-//     } catch (e) {
-//         log.warn("could not bump version", e);
-//     }
-// }
-
 /**********************************************************/
 
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
-    if (bumpLevel === "hotfix") {
-        vp.hotfix = `-hf${vp.hotfix ? vp.hotfix + 1 : 1}`;
-    } else {
-        vp[bumpLevel] = 1 + vp[bumpLevel];
-        vp.hotfix = "";
+    if(bumpLevel === "major"){
+        vp.minor = vp.patch = 0;
+    } else if (bumpLevel === "minor"){
+        vp.patch = 0;
     }
+    vp[bumpLevel] = 1 + vp[bumpLevel];
 
-    return `${vp.major}.${vp.minor}.${vp.patch}${vp.hotfix}`;
+    return `${vp.major}.${vp.minor}.${vp.patch}`;
 }
 
 function splitIntoParts(version) {
@@ -164,11 +142,3 @@ function splitIntoParts(version) {
     return result;
 }
 
-// async function handleHotfixVersion(config) {
-//     const branch = config['CIRCLE_BRANCH'];
-//     if (branch.toLowerCase().startsWith("hotfix/")) {
-//         log.info("Handling versioning for hotfixes");
-//         await bumpAndCommitVersionFile(undefined, "hotfix", undefined, branch);
-//
-//     }
-// }
