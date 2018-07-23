@@ -9,6 +9,7 @@ const rollback = require('./actions/rollbackService');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const gitHelper = require('./actions/helpers/gitHelper');
 const dockerHelper = require('./actions/helpers/dockerHelper');
+const gitHubHelper = require('./actions/helpers/gitHubHelper');
 const cleanupSystem = require('./actions/cleanupSystem');
 
 const buildDocs = require('./actions/buildDocs');
@@ -24,30 +25,56 @@ const exec = async function handleDeployment() {
         log.info("no config file could be loaded - ending step");
         return;
     }
-    try {
-        log.info("connecting to environment...");
-        const proxy = await new EnvProxy().init(config);
-        log.debug("... done.");
+    if (config['TARGET_ENV']) {
+        try {
+            log.info("connecting to environment...");
+            const proxy = await new EnvProxy().init(config);
+            log.debug("... done.");
 
-        await runAfterDeploymentTests(config, proxy);
-        await cleanupSystem(proxy, config);
+            await runAfterDeploymentTests(config, proxy);
+            await cleanupSystem(proxy, config);
 
-        switch (config['TARGET_ENV']) {
-            case 'prod':
-                await handleProductionDeployment(config);
-                break;
-            case 'stage':
-                await handleStageDeployment(config);
-                break;
-            case 'develop':
-                await handleDevelopDeployment(config);
-                break;
+            switch (config['TARGET_ENV']) {
+                case 'prod':
+                    await handleProductionDeployment(config);
+                    break;
+                case 'stage':
+                    await handleStageDeployment(config);
+                    break;
+                case 'develop':
+                    await handleDevelopDeployment(config);
+                    break;
+            }
+            proxy.close();
+        } catch (e) {
+            log.error("Error in after_deployment", e);
+            fileHandler.saveObject2File(config, config_file_name, true);
+            process.exit(1);
         }
-        proxy.close();
+    }
+    try {
+        const pullRequestRules = [
+            {rule: branch => branch.toLowerCase().startsWith("hotfix/")},
+            {rule: branch => branch.toLowerCase().startsWith("release/")}
+        ];
+
+        if (pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH']).length)) {
+            const pullRequest = {
+                title: "PullRequest from duriel-build-automation",
+                body: "the deployment was successfull, please merge your changes!",
+                head: config['CIRCLE_BRANCH'],
+                base: "master",
+                maintainer_can_modity: true
+            };
+            const response = await gitHubHelper.createPullRequest(config, pullRequest);
+            if (response) {
+                log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+            }
+        } else {
+            log.info(`no pull-request will be created for branch '${config['CIRCLE_BRANCH']}'`)
+        }
     } catch (e) {
-        log.error("Error in after_deployment", e);
-        fileHandler.saveObject2File(config, config_file_name, true);
-        process.exit(1);
+        log.error("could not open pull-request. You have to do it manually ¯\\_(ツ)_/¯ ", e);
     }
 };
 
@@ -67,6 +94,7 @@ async function handleDevelopDeployment(config) {
 async function handleStageDeployment(config) {
     const compose_base = dockerCommandBuilder.dockerComposeBase();
     await buildDocs(compose_base, config);
+    // TODO: open PR in github!
 }
 
 async function handleProductionDeployment(config) {

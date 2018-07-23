@@ -45,7 +45,6 @@ const exec = async () => {
             await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);
         } else {
             log.info(`no target-environment associated with the branch '${config['CIRCLE_BRANCH']}' \n no deployment is going to happen. \n exiting.`);
-            process.exit(0);
         }
         log.info("saving config for later buildprocess-steps");
         fileHandler.saveObject2File(config, "bp-config.json", true);
