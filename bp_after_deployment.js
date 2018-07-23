@@ -58,7 +58,7 @@ const exec = async function handleDeployment() {
             {rule: branch => branch.toLowerCase().startsWith("release/")}
         ];
 
-        if (pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH']).length)) {
+        if (pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH'])).length) {
             const pullRequest = {
                 title: "PullRequest from duriel-build-automation",
                 body: "the deployment was successfull, please merge your changes!",
