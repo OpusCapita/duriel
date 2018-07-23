@@ -29,7 +29,7 @@ Fetches the version of web-init and event-client from every container inside an 
 Exports the data of a env into a csv-file and packages multiple files.
 
 ## usage
-node libVersionFetcher <ssh-user> <env> [<env>]
+node libVersionFetcher < ssh-user > < env > [< env >]
 
 ## requirements
 - agent forwarding
