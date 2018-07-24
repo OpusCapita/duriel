@@ -43,7 +43,7 @@ module.exports = async function (compose_base, config, commit = false) {
                 await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
                 await gitHelper.addAll();
                 await gitHelper.commit('updated documentation. [ci skip]');
-                await gitHelper.push();
+                await gitHelper.push('master');
             }
         } else {
             const gitStatus = await gitHelper.status();
