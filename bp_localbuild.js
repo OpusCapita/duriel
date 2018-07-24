@@ -13,7 +13,7 @@ const fileHandler = require('./actions/filehandling/fileHandler');
 const gitHelper = require('./actions/helpers/gitHelper');
 const dockerHelper = require('./actions/helpers/dockerHelper');
 const versionHelper = require('./actions/helpers/versionHelper');
-const docBuilder = require('./actions/buildDocs');
+const buildDocs = require('./actions/buildDocs');
 
 const exec = async () => {
     try {
@@ -39,6 +39,12 @@ const exec = async () => {
         await runUnitTests(compose_base);
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
+
+        try {
+            await buildDocs(compose_base, config);
+        } catch (e) {
+            log.warn("could not build docs", e);
+        }
 
         if (config['TARGET_ENV']) {
             log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);
