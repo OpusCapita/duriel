@@ -33,7 +33,7 @@ const tagRules = [
     {
         rule: (env) => env === 'prod',
         postFix: undefined,
-        bump: async () => bumpProdVersion()
+        bump: async (config) => bumpProdVersion(config)
     },
     {
         rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
@@ -55,7 +55,7 @@ async function calculateImageTag(config) {
     const branchRule = tagRules.filter(it => it.rule(targetEnv, branch))[0];
 
     const postFix = branchRule.postFix;
-    const version = await branchRule.bump();
+    const version = await branchRule.bump(config);
     const buildNum = branchRule.addBuildNum ? config.get('CIRCLE_BUILD_NUM') : undefined;
     const tagParts = [
         version.trim(),
