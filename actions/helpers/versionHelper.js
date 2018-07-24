@@ -77,7 +77,8 @@ async function readVersionFile(config) {
     }
 }
 
-async function bumpProdVersion(version, config) {
+async function bumpProdVersion(config) {
+    const version = await gitHelper.getMainVersionTags().then(versions => versions[0])
     const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
         .then(merges => merges.map(it => it.parents));
     let bumpLevel = "minor";
