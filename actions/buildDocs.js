@@ -36,7 +36,7 @@ module.exports = async function (compose_base, config, commit = false) {
         if (commit) {
             log.info("committing and pushing changes of documentation");
             const changedFiles = await gitHelper.checkForChanges();
-            if (!changedFiles || changedFiles !== "") {
+            if (!changedFiles || changedFiles === "") {
                 log.info("no files changed!");
             } else {
                 log.info("changed files: ", changedFiles);
