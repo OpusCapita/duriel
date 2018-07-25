@@ -1,1 +1,0 @@
-node ../duriel/bp_after_deployment.js

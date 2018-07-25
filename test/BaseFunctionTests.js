@@ -3,10 +3,9 @@ const assert = require("assert");
 const fs = require("fs");
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 const versionHelper = require("../actions/helpers/versionHelper");
+const libraryHelper = require("../actions/helpers/libaryHelper");
 const calculatEnv = require("../actions/calculateEnv");
 
-const versionFileContent = "0.8.15";
-const circleBuildNum = 42;
 
 module.exports.run = run;
 
@@ -23,38 +22,6 @@ function run() {
                 assert.equal(undefined, calculatEnv.getTargetEnv("LeonardoDaBanossi"))
             });
         });
-        describe("bump version - functions", () => {
-            it("bump - major", async () => {
-                const version = "1.2.3";
-                const expectation = "2.0.0";
-                const bumpedVersion = await versionHelper.bumpVersion(version, "major");
-                assert.equal(expectation, bumpedVersion)
-            });
-            it("bump - minor", async () => {
-                const version = "1.2.3";
-                const expectation = "1.3.0";
-                const bumpedVersion = await versionHelper.bumpVersion(version, "minor");
-                assert.equal(expectation, bumpedVersion)
-            });
-            it("bump - patch", async () => {
-                const version = "1.2.3";
-                const expectation = "1.2.4";
-                const bumpedVersion = await versionHelper.bumpVersion(version, "patch");
-                assert.equal(expectation, bumpedVersion)
-            });
-            it("incorrect version-format", async () => {
-                const version = "kaputt-42";
-                const bumpedVersion = await versionHelper.bumpVersion(version, "patch");
-                assert.equal(bumpedVersion, undefined)
-            });
-            it("incorrect bump-format", async () => {
-                const version = "1.1.1";
-                const invalidLevel = "LeonardoDeBabanossiDelPocko";
-                const bumpedVersion = await versionHelper.bumpVersion(version, invalidLevel).catch(e => "Backpfeife");
-                assert.equal(bumpedVersion, "Backpfeife")
-            });
-        });
-
         describe("util", () => {
             const helper = require('../actions/helpers/utilHelper');
             it("flatten simple array", () => {
@@ -95,13 +62,4 @@ function run() {
             });
         });
     });
-}
-
-function writeVersionFile() {
-    fs.writeFileSync("VERSION", versionFileContent);
-}
-
-function deleteVersionFile() {
-    if (fs.existsSync("VERSION"))
-        fs.unlinkSync("VERSION");
 }

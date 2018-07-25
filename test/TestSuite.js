@@ -9,6 +9,7 @@ before();
 try {
     require("./FileHandlingsTests").run(config);
     require("./VariableInjectionTests").run(config, constants);
+    require("./VersionTests").run();
     require("./BaseFunctionTests").run();
     require("./CommandBuilderTests").run();
 } catch (e) {

@@ -6,11 +6,12 @@ const VERSION_FILE = "VERSION";
 const fileHelper = require('../filehandling/fileHandler');
 
 const validBumpLevels = ["major", "minor", "patch"];
+const versionRegex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/;
 
 
 module.exports = {
     bumpVersion,
-    bumpProdVersion,
+    compareVersion,
     // readVersionFile,
     // bumpAndCommitVersionFile,
     calculateImageTag,
@@ -66,6 +67,11 @@ async function calculateImageTag(config) {
     return tagParts.join("-");
 }
 
+/**
+ * Read a File "VERSION"
+ * @param config
+ * @returns content of the VERSION-file
+ */
 async function readVersionFile(config) {
     let versionFileContent;
     if (!fs.existsSync(VERSION_FILE)) {
@@ -97,13 +103,20 @@ async function bumpProdVersion(config) {
     return await bumpVersion(version, bumpLevel);
 }
 
+/**
+ * bumps a version-string
+ * e.g bumpVersion('1.0.0', 'minor') => '1.1.0'
+ * @param version (e.g. 1.0.0)
+ * if version is undefined, if will be the highest git-tag
+ * @param bumpLevel [major, minor, patch]
+ * @returns bumped version-string
+ */
 async function bumpVersion(version, bumpLevel = "patch") {
     if (!version) {
         version = await gitHelper.getMainVersionTags().then(versions => versions[0])
     }
     version = `${version}`.trim();
-    const regex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/;
-    if (!regex.test(version)) {
+    if (!versionRegex.test(version)) {
         log.error(`${version} cannot be bumped! invalid format`);
         return;
     }
@@ -114,8 +127,33 @@ async function bumpVersion(version, bumpLevel = "patch") {
 
 }
 
-/**********************************************************/
+/**
+ * compares the two version-strings
+ * @param a: (e.g. '1.0.0')
+ * @param b: (e.g. '1.0.0')
+ * @returns  number
+ */
+function compareVersion(a, b) {
+    const aSplit = splitIntoParts(a);
+    const bSplit = splitIntoParts(b);
 
+    if (aSplit.major !== bSplit.major) {
+        return aSplit.major - bSplit.major;
+    } else if (aSplit.minor !== bSplit.minor) {
+        return aSplit.minor - bSplit.minor;
+    } else {
+        return aSplit.patch - bSplit.patch;
+    }
+}
+
+
+/**********************************************************/
+/**
+ * simple function that bumps the version
+ * @param version (e.g. {major: 1, minor: 2, patch: 3}
+ * @param bumpLevel [major, minor patch]
+ * @returns {string}
+ */
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
     if(bumpLevel === "major"){
@@ -128,18 +166,20 @@ function createBumpedVersion(version, bumpLevel) {
     return `${vp.major}.${vp.minor}.${vp.patch}`;
 }
 
+/**
+ * splits the input-string into the parts of a version (major, minor, patch)
+ * also checks the format of the input
+ * @param version (e.g. {major: 1, minor: 2, patch: 3})
+ */
 function splitIntoParts(version) {
+    if(!new RegExp(versionRegex).test(version)){
+        throw new Error("Invalid version-format");
+    }
     const result = {};
-    const firstSplit = version.split("-");
-    const mainVersionPart = firstSplit[0].split(".");
+    const mainVersionPart = version.split(".");
     result.major = parseInt(mainVersionPart[0]);
     result.minor = parseInt(mainVersionPart[1]);
     result.patch = parseInt(mainVersionPart[2]);
-
-    if (firstSplit.length > 1) {
-        log.info("version contains hotfix version");
-        result.hotfix = parseInt(firstSplit[1].replace("hf", ""));
-    }
     return result;
 }
 

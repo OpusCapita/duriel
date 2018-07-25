@@ -69,10 +69,14 @@ function loadFile2Object(path) {
     return JSON.parse(fs.readFileSync(path));
 }
 
+function loadPackageJSON(){
+
+}
+
 module.exports = {
     loadUrl2file: downloadURL2File,
-    loadTaskTemplate: loadTaskTemplate,
+    loadTaskTemplate,
     loadPrivateGit2File: loadFileFromPrivateGit,
-    saveObject2File: saveObject2File,
-    loadFile2Object: loadFile2Object
+    saveObject2File,
+    loadFile2Object
 };
