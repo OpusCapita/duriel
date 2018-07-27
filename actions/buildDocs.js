@@ -90,7 +90,7 @@ async function createDocs(failOnError = false) {
     const sequelizeVersion = libraryHelper.getLibraryVersion("sequelize");
     if (sequelizeVersion) {
         try {
-            log.info(`Installing sequelize to generate docs...`);
+            log.info(`Installing sequelize@${sequelizeVersion} to generate docs...`);
             new EnvProxy().executeCommand_L(`npm install sequelize@${sequelizeVersion}`);
             log.info("Creating Domain-doc based on Sequelize");
             await createDomainDoc();
