@@ -5,6 +5,16 @@ const EnvProxy = require('../EnvProxy');
 const fileHandler = require('./filehandling/fileHandler');
 const gitHelper = require('./helpers/gitHelper');
 
+const fileHelper = require('./filehandling/fileHandler');
+const fs = require("fs");
+
+const raml2md = require("raml-to-markdown");
+const jsdoc2md = require("jsdoc-to-markdown");
+const seq2md = require("sequelize-to-markdown");
+
+const wikiDirs = ["./wiki/rest-doc/dummy.s", "./wiki/domain-doc/dummy.d", "./wiki/api-doc/dummy.f"];
+const sourceCodeDir =  "src/server";
+
 module.exports = async function (compose_base, config, commit = false) {
     const proxy = new EnvProxy();
     log.info("build docs");
@@ -27,7 +37,8 @@ module.exports = async function (compose_base, config, commit = false) {
         }
         await proxy.changePermission_L("777 -R", "wiki", true);
         try {
-            await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
+            // await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
+            await createDocs()
         } catch (error) {
             log.error("error during creating documentation", error);
             return;
@@ -51,5 +62,78 @@ module.exports = async function (compose_base, config, commit = false) {
         }
         await proxy.changeCommandDir_L("..");
     }
-
 };
+
+/**
+ * Creates rest-, domain- and js-docs
+ * files will be written into wiki/
+ */
+async function createDocs() {
+
+    log.info("Creating directories for wiki ");
+    wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
+    log.debug("all directories created!");
+
+    log.info("Creating REST-doc based on RAML");
+    await createRestDoc();
+    log.info("Creating Domain-doc based on Sequelize");
+    await createDomainDoc();
+    log.info(`Creating JavaScript-doc based on sourcecode inside ${sourceCodeDir}`);
+    await createJsDoc()
+}
+
+/**
+ * Creates the js-docs based on the sourcecode inside of src/server
+ */
+async function createJsDoc() {
+    const config = {files: fileHelper.getFilesInDir(sourceCodeDir, /.+\.js$/)};
+    const result = jsdoc2md.renderSync(config);
+    fs.writeFileSync('wiki/api-doc/Home.md', result);
+}
+
+/**
+ * created the model-docs based on the sequelize-models in src/server/db/models
+ */
+async function createDomainDoc() {
+    const config = {
+        fieldBlacklist: ['createdAt', 'updatedAt'],
+        models: {
+            paths: ["src/server/db/models"],
+            initFunction: "init",
+            recursive: true
+
+        },
+        output: {
+            type: 'File',
+            file: {
+                splitting: 'OnePerClass',
+                extension: ".model.md",
+                path: "./wiki/domain-doc/"
+            }
+        }
+    };
+    seq2md.render(config);
+    return Promise.resolve();
+}
+
+/**
+ * creates the rest-docs based on the rest-doc/main.raml
+ */
+async function createRestDoc() {
+    const config = {
+        input: {
+            paths: ["rest-doc/main.raml"],
+            recursive: true
+        },
+        output: {
+            type: 'File',
+            file: {
+                splitting: "OnePerResource",
+                extension: ".endpoint.md",
+                path: "./wiki/rest-doc/"
+            }
+        }
+    };
+
+    return raml2md.render(config)
+}

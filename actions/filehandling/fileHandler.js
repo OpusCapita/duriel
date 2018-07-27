@@ -4,6 +4,7 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 const variableInjector = require('./injectVariables');
 const fs = require('fs');
+const pathJs = require('path');
 
 async function downloadURL2File(url, targetFile) {
     return new Promise((resolve, reject) => {
@@ -69,14 +70,55 @@ function loadFile2Object(path) {
     return JSON.parse(fs.readFileSync(path));
 }
 
-function loadPackageJSON(){
+/**
+ *
+ * @param path
+ * @param regex
+ * @returns {Array}
+ */
+function getFilesInDir(path, regex) {
+    path = pathJs.resolve(path);
+    const fileFilter = new RegExp(regex);
+    let result = [];
+    const current = fs.readdirSync(path);
+    current.forEach(file => {
+        const entry = pathJs.join(path, file)
+        const stat = fs.statSync(entry);
+        if (stat.isDirectory()) {
+            result = result.concat(getFilesInDir(entry));
+        } else {
+            if (fileFilter.test(entry))
+                result.push(entry);
+        }
+    });
+    return result;
+}
 
+/**
+ * node.js version of mkdir -p
+ * @param path
+ */
+function mkdirp(path) {
+    let current = "";
+    path = pathJs.resolve(path);
+    const subPaths = pathJs.dirname(path).split(pathJs.sep);
+
+    for (const subPath of subPaths) {
+        current = `${current}${subPath}${pathJs.sep}`;
+
+        if (!fs.existsSync(current))
+            fs.mkdirSync(current);
+        else if (fs.lstatSync(current).isFile())
+            throw new Error(`path '${current}' is a File.`);
+    }
 }
 
 module.exports = {
-    loadUrl2file: downloadURL2File,
+    downloadURL2File,
     loadTaskTemplate,
-    loadPrivateGit2File: loadFileFromPrivateGit,
+    loadFileFromPrivateGit,
     saveObject2File,
-    loadFile2Object
+    loadFile2Object,
+    getFilesInDir,
+    mkdirp
 };
