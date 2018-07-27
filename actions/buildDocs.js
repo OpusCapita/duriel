@@ -11,9 +11,10 @@ const fs = require("fs");
 const raml2md = require("raml-to-markdown");
 const jsdoc2md = require("jsdoc-to-markdown");
 const seq2md = require("sequelize-to-markdown");
+const libraryHelper = require('./helpers/libaryHelper');
 
 const wikiDirs = ["./wiki/rest-doc/dummy.s", "./wiki/domain-doc/dummy.d", "./wiki/api-doc/dummy.f"];
-const sourceCodeDir =  "src/server";
+const sourceCodeDir = "src/server";
 
 module.exports = async function (compose_base, config, commit = false) {
     const proxy = new EnvProxy();
@@ -28,6 +29,9 @@ module.exports = async function (compose_base, config, commit = false) {
     }
 
     if (packageJson['scripts'] && packageJson['scripts']['doc']) {
+
+        await proxy.executeCommand_L("npm install sequelize@3.30.4");
+
         await proxy.executeCommand_L("rm -Rf wiki");
         try {
             await proxy.executeCommand_L(`git clone https://github.com/OpusCapita/${config['serviceName']}.wiki.git wiki`);
@@ -38,7 +42,7 @@ module.exports = async function (compose_base, config, commit = false) {
         await proxy.changePermission_L("777 -R", "wiki", true);
         try {
             // await proxy.executeCommand_L(`${compose_base} run main npm run doc`);
-            await createDocs()
+            await createDocs(commit)
         } catch (error) {
             log.error("error during creating documentation", error);
             return;
@@ -68,18 +72,42 @@ module.exports = async function (compose_base, config, commit = false) {
  * Creates rest-, domain- and js-docs
  * files will be written into wiki/
  */
-async function createDocs() {
+async function createDocs(failOnError = false) {
 
     log.info("Creating directories for wiki ");
     wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
     log.debug("all directories created!");
 
-    log.info("Creating REST-doc based on RAML");
-    await createRestDoc();
-    log.info("Creating Domain-doc based on Sequelize");
-    await createDomainDoc();
-    log.info(`Creating JavaScript-doc based on sourcecode inside ${sourceCodeDir}`);
-    await createJsDoc()
+    try {
+        log.info("Creating REST-doc based on RAML");
+        await createRestDoc();
+    } catch (e) {
+        if (failOnError)
+            throw e;
+        log.warn("error while creating REST-doc", e);
+    }
+
+    const sequelizeVersion = libraryHelper.getLibraryVersion("sequelize");
+    if (sequelizeVersion) {
+        try {
+            log.info(`Installing sequelize to generate docs...`);
+            new EnvProxy().executeCommand_L(`npm install sequelize@${sequelizeVersion}`);
+            log.info("Creating Domain-doc based on Sequelize");
+            await createDomainDoc();
+        } catch (e) {
+            if (failOnError)
+                throw e;
+            log.warn("error while creating domain-doc", e);
+        }
+    }
+    try {
+        log.info(`Creating JavaScript-doc based on sourcecode inside ${sourceCodeDir}`);
+        await createJsDoc()
+    } catch (e) {
+        if (failOnError)
+            throw e;
+        log.warn("error while creating js-doc", e);
+    }
 }
 
 /**
