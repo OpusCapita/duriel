@@ -10,17 +10,23 @@ jobs:
           docker_layer_caching: true
       - run:
           name: "prepare buildprocess scripts"
-          command: "chmod +x ./.circleci/bp_prepare.sh ; ./.circleci/bp_prepare.sh"
+          command: |
+              git clone https://github.com/OpusCapita/duriel.git -b master ../buildprocess
+              cd ../buildprocess
+              npm install
+              npm test
+              mv junit ~/build/junit
+              cd ~/build
       - run:
           name: "building and testing locally"
           command: "node ../buildprocess/bp_localbuild.js opuscapita/$CIRCLE_PROJECT_REPONAME"
       - store_test_results:
           path: "junit"
       - run:
-          name: "First Deployment"
+          name: "Deployment"
           command: "node ../buildprocess/bp_deploy.js"
       - run:
-          name: "After First Deployment"
+          name: "After Deployment"
           command: "node ../buildprocess/bp_after_deployment.js"
   copy_to_env:
     docker:
@@ -47,7 +53,13 @@ jobs:
           docker_layer_caching: true
       - run:
           name: "prepare buildprocess scripts"
-          command: "chmod +x ./.circleci/bp_prepare.sh ; ./.circleci/bp_prepare.sh"
+          command: |
+             git clone https://github.com/OpusCapita/duriel.git -b feature/hotfix-impl ../buildprocess
+             cd ../buildprocess
+             npm install
+             npm test
+             mv junit ~/build/junit
+             cd ~/build
       - run:
           name: "Build Base Image"
           command: "node ../buildprocess/bp_build_base.js opuscapita/$CIRCLE_PROJECT_REPONAME ;"
