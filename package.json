@@ -30,7 +30,7 @@
     "superagent": "^3.8.2",
     "raml-to-markdown": "^1.1.11",
     "jsdoc-to-markdown": "^4.0.1",
-    "sequelize-to-markdown": "^1.2.2",
+    "sequelize-to-markdown": "^1.2.3",
     "sequelize": "3.30.4"
   },
   "devDependencies": {
