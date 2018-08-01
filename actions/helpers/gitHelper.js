@@ -16,7 +16,8 @@ module.exports = {
     checkForChanges,
     getTags,
     getMainVersionTags,
-    getMerges
+    getMerges,
+    getStatus
 };
 
 
@@ -207,4 +208,24 @@ async function getMerges(filter) {
                     return true;
                 });
         })
+}
+
+/**
+ * Function that executes git status --porcelain.
+ * result is parsed and can be filtered by the param.
+ * @param filter - array of all git status that should be returned:
+ *      - M: modified
+ *      - MM: modified (changed a added file-state)
+ *      - ??: new
+ *      - D: deleted
+ * @returns Array with all files that were gathered
+ *      e.g. {status: 'M', file: 'del.pocko'}
+ */
+async function getStatus(filter) {
+    const status = await executeCommand('git status --porcelain');
+    return status.split('\n')
+        .map(row => row.split(/[ ]+/).filter(col => col)) // splitting into cols
+        .filter(it => it.length)    // removing empty rows
+        .map(it => ({status: it[0], file: it[1]})) // parsing into objects
+        .filter(it => !filter|| filter.includes(it.status)) // filtering
 }

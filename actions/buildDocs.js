@@ -1,3 +1,8 @@
+/**
+ * buildDocs module.
+ * @module action/buildDocs
+ */
+
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
@@ -16,9 +21,17 @@ const libraryHelper = require('./helpers/libaryHelper');
 const wikiDirs = ["./wiki/rest-doc/dummy.s", "./wiki/domain-doc/dummy.d", "./wiki/api-doc/dummy.f"];
 const sourceCodeDir = "src/server";
 
-
+/**
+ * function to create the documentation of a service
+ * creates docs based on:
+ *  - raml: raml-files inside the '/rest-doc' folder
+ *  - sequelize: sequelize-models inside 'src/server/db/models'
+ *  - jsdoc: jsdoc inside 'src/server'
+ * @param config - duriel config
+ * @param commit - [true | false] commit the doc-files
+ */
 module.exports = async function (config, commit = false) {
-    if(config.get('skip_doc_building')){
+    if (config.get('skip_doc_building')) {
         log.info("doc building disabled by flag.");
         return;
     }
@@ -57,24 +70,23 @@ module.exports = async function (config, commit = false) {
         }
     }
     await proxy.changeCommandDir_L("wiki");
+
     if (commit) {
         log.info("committing and pushing changes of documentation");
-        const changedFiles = await gitHelper.checkForChanges();
-        log.debug( gitHelper.status());
-        if (!changedFiles || changedFiles === "") {
-            log.info("no files changed!");
-        } else {
+        const changedFiles = await gitHelper.getStatus();
+        log.info("changed files: ", changedFiles.map(it => it.file).join(' ,'));
+        if (changedFiles.length) {
             log.info("changed files: ", changedFiles);
             await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
-            log.debug( gitHelper.status());
             await gitHelper.addAll();
             await gitHelper.commit('updated documentation. [ci skip]');
             await gitHelper.push('master');
+
+        } else {
+            log.info("no files changed!");
         }
-    } else {
-        const gitStatus = await gitHelper.status();
-        log.info("git would commit doc changes:", gitStatus);
     }
+
     await proxy.changeCommandDir_L("..");
 };
 
