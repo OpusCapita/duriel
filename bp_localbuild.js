@@ -41,7 +41,7 @@ const exec = async () => {
         await gitHelper.tag(config['VERSION'], true);
 
         try {
-            await buildDocs(config);
+            await buildDocs.buildDocs(config);
         } catch (e) {
             log.warn("could not build docs", e);
         }

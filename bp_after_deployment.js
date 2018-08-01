@@ -70,16 +70,16 @@ async function runAfterDeploymentTests(config, proxy) {
 
 async function handleDevelopDeployment(config) {
     await dockerHelper.pushImage(config['HUB_REPO'], "dev");
-    await buildDocs(config);
+    await buildDocs.buildDocs(config);
 }
 
 async function handleStageDeployment(config) {
-    await buildDocs(config);
+    await buildDocs.buildDocs(config);
     // TODO: open PR in github!
 }
 
 async function handleProductionDeployment(config) {
-    await buildDocs(config, true);
+    await buildDocs.buildDocs(config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
 
 }

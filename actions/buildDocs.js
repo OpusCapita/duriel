@@ -30,7 +30,7 @@ const sourceCodeDir = "src/server";
  * @param config - duriel config
  * @param commit - [true | false] commit the doc-files
  */
-module.exports = async function (config, commit = false) {
+async function buildDocs (config, commit = false) {
     if (config.get('skip_doc_building')) {
         log.info("doc building disabled by flag.");
         return;
@@ -191,4 +191,11 @@ async function loadPackageJson() {
     } catch (error) {
         log.error("could not load package.json");
     }
+}
+
+module.exports = {
+    buildDocs,
+    createDomainDoc,
+    createJsDoc,
+    createRestDoc
 }
