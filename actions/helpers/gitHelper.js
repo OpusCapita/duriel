@@ -71,7 +71,7 @@ async function executeCommand(command) {
 async function checkForChanges() {
     try {
         let changedFiles = await executeCommand("git ls-files -m");
-        log.debug("files that changed in git-repository", changedFiles)
+        log.debug("files that changed in git-repository", changedFiles);
         return changedFiles.replace(/(\r\n\t|\n|\r\t)/gm, "").replace(" ", "");
     } catch (err) {
         log.error("error", err);

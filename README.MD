@@ -17,6 +17,7 @@
 | e2e_skip  | ignore the result of the e2e-tests |
 | andariel_loglevel  | loglevel of outputs (severe, debug, info, warn, error) |
 | pull_request_creation_skip | buildprocess will not create pull-requests |
+| skip_doc_building | skip the documentation building |
 | major_release | the deployment will create a new major-version. e.g. 0.8.15 => 1.0.0 |
 
 

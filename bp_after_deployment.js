@@ -70,19 +70,16 @@ async function runAfterDeploymentTests(config, proxy) {
 
 async function handleDevelopDeployment(config) {
     await dockerHelper.pushImage(config['HUB_REPO'], "dev");
-    const compose_base = dockerCommandBuilder.dockerComposeBase();
-    await buildDocs(compose_base, config);
+    await buildDocs(config);
 }
 
 async function handleStageDeployment(config) {
-    const compose_base = dockerCommandBuilder.dockerComposeBase();
-    await buildDocs(compose_base, config);
+    await buildDocs(config);
     // TODO: open PR in github!
 }
 
 async function handleProductionDeployment(config) {
-    const compose_base = dockerCommandBuilder.dockerComposeBase();
-    await buildDocs(compose_base, config, true);
+    await buildDocs(config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
 
 }
