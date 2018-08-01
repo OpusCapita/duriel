@@ -71,10 +71,11 @@ async function buildDocs (config, commit = false) {
     }
     await proxy.changeCommandDir_L("wiki");
 
+    const changedFiles = await gitHelper.getStatus();
+    log.info("changed files: ", changedFiles.map(it => it.file).join(' ,'));
+
     if (commit) {
         log.info("committing and pushing changes of documentation");
-        const changedFiles = await gitHelper.getStatus();
-        log.info("changed files: ", changedFiles.map(it => it.file).join(' ,'));
         if (changedFiles.length) {
             log.info("changed files: ", changedFiles);
             await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
