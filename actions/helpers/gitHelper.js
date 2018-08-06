@@ -151,7 +151,7 @@ async function getMainVersionTags() {
         .then(tags => tags.sort(compareVersion))
         .then(tags => {
             if (!tags.length)
-                return ['1.0.0'];
+                return ['0.0.0'];
             else
                 return tags;
         })

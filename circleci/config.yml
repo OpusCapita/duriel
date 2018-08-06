@@ -54,7 +54,7 @@ jobs:
       - run:
           name: "prepare buildprocess scripts"
           command: |
-             git clone https://github.com/OpusCapita/duriel.git -b feature/hotfix-impl ../buildprocess
+             git clone https://github.com/OpusCapita/duriel.git -b master ../buildprocess
              cd ../buildprocess
              npm install
              npm test
