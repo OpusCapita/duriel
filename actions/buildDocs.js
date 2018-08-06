@@ -7,7 +7,6 @@
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
-const fileHandler = require('./filehandling/fileHandler');
 const gitHelper = require('./helpers/gitHelper');
 
 const fileHelper = require('./filehandling/fileHandler');
@@ -188,14 +187,24 @@ async function fetchDocFunctions(packageJson) {
 async function loadPackageJson() {
     try {
         log.info("loading package.json");
-        return await fileHandler.loadFile2Object("./package.json");
+        return await fileHelper.loadFile2Object("./package.json");
     } catch (error) {
         log.error("could not load package.json");
     }
 }
 
+async function createAllDocFiles(){
+
+    wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
+
+    await createRestDoc().catch(e => log.error(e));
+    await createJsDoc().catch(e => log.error(e));
+    await createDomainDoc().catch(e => log.error(e));
+}
+
 module.exports = {
     buildDocs,
+    createAllDocFiles,
     createDomainDoc,
     createJsDoc,
     createRestDoc
