@@ -169,7 +169,8 @@ async function fetchDocFunctions(packageJson) {
     if (sequelizeVersion && fs.existsSync('./src/server/db/models')) {
         log.info("Found sequelize dependency and models folder. Creating documentation based on sequelize-models!");
         log.info(`Installing sequelize@${sequelizeVersion} to generate docs...`);
-        await new EnvProxy().executeCommand_L(`npm install sequelize@${sequelizeVersion}`);
+        // await new EnvProxy().executeCommand_L(`npm install sequelize@${sequelizeVersion}`);
+        await new EnvProxy().executeCommand_L(`npm install`);
         result.push(createDomainDoc);
     }
 
@@ -196,6 +197,8 @@ async function loadPackageJson() {
 async function createAllDocFiles(){
 
     wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
+
+    new EnvProxy().executeCommand_L("npm install");
 
     await createRestDoc().catch(e => log.error(e));
     await createJsDoc().catch(e => log.error(e));
