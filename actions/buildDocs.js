@@ -29,18 +29,21 @@ const sourceCodeDir = "src/server";
  * @param config - duriel config
  * @param commit - [true | false] commit the doc-files
  */
-async function buildDocs (config, commit = false) {
+async function buildDocs(config, commit = false) {
     if (config.get('skip_doc_building')) {
         log.info("doc building disabled by flag.");
         return;
     }
     const proxy = new EnvProxy();
     log.info("build docs");
-    const packageJson = await loadPackageJson(proxy);
+    const packageJson = await loadPackageJson();
 
-    const docFunctions = await fetchDocFunctions(packageJson);
-    if (!docFunctions.length) {
-        log.info("No documentation type available for this service.")
+    const hasDocScript = packageJson && packageJson.scripts && packageJson.scripts.doc;
+    const fallBackFunctions = await fetchDocFunctions(packageJson); // keep this in as it installs libs
+
+    // if (!fallBackFunctions.length || !hasDocScript) {
+    if (!hasDocScript) {
+        log.info("No documentation script available for this service.");
         return;
     }
     await proxy.executeCommand_L("rm -Rf wiki");
@@ -57,17 +60,22 @@ async function buildDocs (config, commit = false) {
     wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
     log.debug("all directories created!");
 
-    for (const docFunction of docFunctions) {
-        try {
-            await docFunction();
-        } catch (error) {
-            if (commit) {
-                throw error;
-            }
-            log.error("error during creating documentation", error);
-            return;
-        }
-    }
+    // if (hasDocScript) {
+        await proxy.executeCommand_L("npm run doc");
+    // } else {
+    //     // TODO: Execute a default doc creation?
+    //     for (const docFunction of fallBackFunctions) {
+    //         try {
+    //             await docFunction();
+    //         } catch (error) {
+    //             if (commit) {
+    //                 throw error;
+    //             }
+    //             log.error("error during creating documentation", error);
+    //             return;
+    //         }
+    //     }
+    // }
     await proxy.changeCommandDir_L("wiki");
 
     const changedFiles = await gitHelper.getStatus();
@@ -88,16 +96,18 @@ async function buildDocs (config, commit = false) {
     }
 
     await proxy.changeCommandDir_L("..");
-};
+}
 
 /**
  * Creates the js-docs based on the sourcecode inside of src/server
  */
-async function createJsDoc() {
+async function createJsDoc(files, outputFile = 'wiki/api-doc/Home.md') {
     log.info("Creating docs based on jsDoc");
-    const config = {files: fileHelper.getFilesInDir(sourceCodeDir, /.+\.js$/)};
+    files = files ? files : fileHelper.getFilesInDir(sourceCodeDir, /.+\.js$/);
+    const config = {files};
     const result = jsdoc2md.renderSync(config);
-    fs.writeFileSync('wiki/api-doc/Home.md', result);
+    fileHelper.mkdirp(outputFile);
+    fs.writeFileSync(outputFile, result);
 }
 
 /**
@@ -129,7 +139,7 @@ async function createDomainDoc() {
 /**
  * creates the rest-docs based on the rest-doc/main.raml
  */
-async function createRestDoc() {
+async function createRestDoc(override) {
     log.info("Creating docs based on raml");
     const config = {
         input: {
@@ -194,12 +204,14 @@ async function loadPackageJson() {
     }
 }
 
-async function createAllDocFiles(){
+/**
+ * Function that simply creates a wiki-dir and executes generic doc-files.
+ */
+async function createAllDocFiles() {
 
     wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
 
     new EnvProxy().executeCommand_L("npm install");
-
     await createRestDoc().catch(e => log.error(e));
     await createJsDoc().catch(e => log.error(e));
     await createDomainDoc().catch(e => log.error(e));
@@ -211,4 +223,4 @@ module.exports = {
     createDomainDoc,
     createJsDoc,
     createRestDoc
-}
+};
