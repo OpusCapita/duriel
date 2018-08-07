@@ -95,8 +95,8 @@ async function createPullRequests(config) {
             for (const matchingRules of pullRequestsBranches) {
                 for (const base of matchingRules.base) {
                     const pullRequest = {
-                        title: "PullRequest from duriel-build-automation",
-                        body: "the deployment was successfull, please merge your changes!",
+                        title: "Pull-Request from duriel-build-automation",
+                        body: `Deployment of ${config['VERSION']} was successfull. Please merge your changes.`,
                         head: config['CIRCLE_BRANCH'],
                         base: base,
                         maintainer_can_modity: true
