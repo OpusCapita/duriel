@@ -22,7 +22,18 @@ jobs:
           command: "npm run build-docs"
       - run:
           name: "Uploading wiki"
-          command: "cd wiki ; git config --global user.email $GIT_MAIL ; git config --global user.name $GIT_USER ;  git add --all . ; git commit -am 'Updated wiki.' ; git push origin master ; (exit 0)"
+          command: |
+            cd wiki
+            git config --global user.email $GIT_MAIL
+            git config --global user.name $GIT_USER
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              git add --all .
+              git commit -am 'Updated wiki.'
+              git push origin master
+            else
+              git status
+            fi
+            (exit 0)
 workflows:
   version: 2
   commit:
