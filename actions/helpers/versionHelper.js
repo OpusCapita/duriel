@@ -1,3 +1,8 @@
+/**
+ * Module that offers functions to bump or compare Versions
+ * @module
+ */
+
 const fs = require('fs');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
@@ -150,9 +155,9 @@ function compareVersion(a, b) {
 /**********************************************************/
 /**
  * simple function that bumps the version
- * @param version (e.g. {major: 1, minor: 2, patch: 3}
- * @param bumpLevel [major, minor patch]
- * @returns {string}
+ * @param version {object} (e.g. {major: 1, minor: 2, patch: 3}
+ * @param bumpLevel {Array<string>} ['major', 'minor', 'patch']
+ * @returns {string} bumped Version
  */
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
@@ -169,7 +174,7 @@ function createBumpedVersion(version, bumpLevel) {
 /**
  * splits the input-string into the parts of a version (major, minor, patch)
  * also checks the format of the input
- * @param version (e.g. {major: 1, minor: 2, patch: 3})
+ * @param version {object} (e.g. {major: 1, minor: 2, patch: 3})
  */
 function splitIntoParts(version) {
     if(!new RegExp(versionRegex).test(version)){

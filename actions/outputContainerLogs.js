@@ -1,8 +1,18 @@
+/**
+ * Action to dump service-logs
+ * @module
+ */
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const EnvProxy = require('../EnvProxy');
 
+/**
+ * Dump the last logs of a service
+ * @param serviceName
+ * @param lines
+ * @returns {Promise<void>}
+ */
 module.exports = async function (serviceName = "_main", lines = 250) {
     const proxy = new EnvProxy();
     const containers = await proxy.getContainers_L()

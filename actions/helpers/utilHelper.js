@@ -1,4 +1,9 @@
 /**
+ * simple Module with random helper-functions
+ * @module
+ */
+
+/**
  * fake Thread.sleep in js (needs async-await)
  * @param ms
  * @returns {Promise<any>}

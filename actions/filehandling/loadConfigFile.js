@@ -1,3 +1,7 @@
+/**
+ * Action to load a JSON and create a BaseConfig-Object based on it's data
+ * @module
+ */
 'use strict';
 const fileHandler = require('./fileHandler');
 const getEnvVariables = require('../getEnvVariables');

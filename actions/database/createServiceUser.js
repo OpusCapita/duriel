@@ -5,7 +5,7 @@ const queryExecuter = require('./queryExecuter');
 
 /**
  *
- * @param config - used fields: {svcUserName, svcUserPassword}
+ * @param config - used fields: [svcUserName, svcUserPassword]
  * @param proxy - EnvProxy instance used to connect to db
  * @param checkOnly - flag if the service user will be inserted/updated if necessary
  * @returns success<boolean>

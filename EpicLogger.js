@@ -1,3 +1,7 @@
+/**
+ * Super epic simple logger of duriel!
+ * @class
+ */
 class EpicLogger {
     constructor() {
         this.logLevel = EpicLogger.getEnvLogLevel();
@@ -9,6 +13,11 @@ class EpicLogger {
         this.log = this.log.bind(this);
     }
 
+    /**
+     * @static
+     * @method
+     * @returns {string[]}
+     */
     static getLogLevels() {
         return [
             "severe", "debug", "info", "warn", "error"

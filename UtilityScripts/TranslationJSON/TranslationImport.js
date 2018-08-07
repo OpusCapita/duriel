@@ -1,3 +1,6 @@
+/**
+ * @module
+ */
 const supportedLanguages = require("./supportedLanguages");
 const importFromExcel = require("./ExcelTranslationHelper").importFromExcel;
 const child_process = require("child_process");

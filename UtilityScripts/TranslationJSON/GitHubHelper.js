@@ -1,3 +1,6 @@
+/**
+ * @module
+ */
 const request = require('superagent');
 const util = require("util");
 const fs = require("fs");

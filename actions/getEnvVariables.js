@@ -89,6 +89,10 @@ const getBaseConfigObject = function (result = {}) {
     return new BaseConfig(result);
 };
 
+/**
+ * Simple class to hold variables in the build-process
+ * @class
+ */
 class BaseConfig {
     constructor(params) {
         for (let param in params) {
@@ -98,10 +102,20 @@ class BaseConfig {
         this.fromProcessEnv = this.fromProcessEnv.bind(this);
     }
 
+    /**
+     * Method that returns a variable inside the object or the env
+     * @param name
+     * @returns {*}
+     */
     get(name) {
         return this[name] ? this[name] : this.fromProcessEnv(name);
     }
 
+    /**
+     * Method that returns a variable-value from env
+     * @param name
+     * @returns {string}
+     */
     fromProcessEnv(name) {
         const result = process.env[name];
         if (result) {

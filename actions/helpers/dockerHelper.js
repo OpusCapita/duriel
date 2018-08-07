@@ -1,3 +1,7 @@
+/**
+ * Helper module that offers multiple docker / dockerhub functions
+ * @module
+ */
 'use strict';
 const fs = require('fs');
 const EpicLogger = require('../../EpicLogger');
@@ -50,7 +54,7 @@ async function onEnv (config, proxy){
 
 /**
  * executes docker login locally with the credentials inside the config object
- * @param config - used fields: {'DOCKER_USER' : '', 'DOCKER_PASS' : ''}
+ * @param config - {BaseConfig} used fields: {'DOCKER_USER' : '', 'DOCKER_PASS' : ''}
  * @returns {Promise<void>}
  */
 async function local(config){

@@ -1,3 +1,8 @@
+/**
+ * Module to handle library versions
+ * @module
+ */
+
 'use strict';
 
 const fileHelper = require('../filehandling/fileHandler');

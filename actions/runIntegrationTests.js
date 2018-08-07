@@ -1,9 +1,20 @@
+/**
+ * Action to execute integration-tests
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const helper = require('./helpers/utilHelper');
 const request = require('superagent');
 
+/**
+ * Run integration tests on a service.
+ * aka. check if consul says the service is healthy + check general availability of the application
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @returns {Promise<boolean>}
+ */
 module.exports = async function (config, proxy) {
     const attempts = 30, interval = 5000;
     log.info("running integration tests...");

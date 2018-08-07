@@ -1,3 +1,7 @@
+/**
+ * HelperModule that offers functions to handle with files.
+ * @module
+ */
 'use strict';
 const request = require('superagent');
 const EpicLogger = require('../../EpicLogger');
@@ -82,7 +86,7 @@ function getFilesInDir(path, regex) {
     let result = [];
     const current = fs.readdirSync(path);
     current.forEach(file => {
-        const entry = pathJs.join(path, file)
+        const entry = pathJs.join(path, file);
         const stat = fs.statSync(entry);
         if (stat.isDirectory()) {
             result = result.concat(getFilesInDir(entry));
@@ -91,7 +95,7 @@ function getFilesInDir(path, regex) {
                 result.push(entry);
         }
     });
-    return result;
+    return result.filter(it => fileFilter.test(it));
 }
 
 /**

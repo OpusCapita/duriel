@@ -1,3 +1,6 @@
+/**
+ * @module
+ */
 const xl = require('excel4node');
 const fs = require("fs");
 const path = require('path');

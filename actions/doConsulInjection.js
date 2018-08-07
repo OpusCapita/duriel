@@ -1,9 +1,17 @@
+/**
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
-
+/**
+ * Inject variables from the task_template.json and inject them into consul
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @returns {Promise<void>}
+ */
 module.exports = async function (config, proxy) {
     log.info(`Starting to service-values into consul...`);
     log.debug("loading task_template...");

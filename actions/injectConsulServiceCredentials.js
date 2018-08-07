@@ -1,8 +1,17 @@
+/**
+ * Action that injects values from the task_template to consul
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
 
-
+/**
+ * Save the service-client credentials of a service into consul
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @returns {Promise<void>}
+ */
 module.exports = async function (config, proxy) {
     let injectServiceUser = false;
     try{

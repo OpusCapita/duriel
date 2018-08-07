@@ -1,6 +1,12 @@
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
+/**
+ *
+ * @param proxy
+ * @param config
+ * @returns {Promise<{success: boolean}>}
+ */
 module.exports = async function executeCleanup(proxy, config) {
     const env = config['TARGET_ENV'];
     log.info("Cleaning up systen after deployment on: " + env);

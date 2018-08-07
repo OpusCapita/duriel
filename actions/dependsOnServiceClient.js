@@ -1,8 +1,16 @@
+/**
+ * Action that checks if a service has a dependency to service-client or web-init
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
+/**
+ * check for service-client of web-init dependency
+ * @returns {boolean}
+ */
 module.exports = function () {
     if (!fs.existsSync('./package.json')) {
         log.warn("could not find package.json");

@@ -5,7 +5,8 @@ const log = new Logger();
 /**
  *
  * @param fullReplacement - flag thats enables removing the secret before the new value
- * @param config - {'serviceName' : '', 'serviceSecretName' : ''}
+ * @param config - {Object}
+ * e.g.: {'serviceName' : '', 'serviceSecretName' : ''}
  * @param proxy - initialized EnvProxy
  * @returns {Promise<{secretId, serviceSecret}>}
  */

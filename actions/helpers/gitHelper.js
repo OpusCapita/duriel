@@ -1,3 +1,8 @@
+/**
+ * Module that offers functions to interact with git.
+ * @module
+ */
+
 'use strict';
 const EnvProxy = require("../../EnvProxy");
 const EpicLogger = require('../../EpicLogger');
@@ -159,8 +164,8 @@ async function getMainVersionTags() {
 
 /**
  *
- * @param filter - e.g. { commit: '', author: '', message: '' }
- * @returns [ { commit: '', parents: [ '', '' ], author: 'kpm', date: 2017-11-20T15:55:00.000Z, message: '' } ]
+ * @param filter {object} - e.g. { commit: '', author: '', message: '' }
+ * @returns {Array<object>} @example [ { commit: '', parents: [ '', '' ], author: 'kpm', date: 2017-11-20T15:55:00.000Z, message: '' } ]
  */
 async function getMerges(filter) {
     function createUsedFilter(filter) {
@@ -219,7 +224,7 @@ async function getMerges(filter) {
  *      - ??: new
  *      - D: deleted
  * @returns Array with all files that were gathered
- *      e.g. {status: 'M', file: 'del.pocko'}
+ *      @example e.g. {status: "M", file: "del.pocko"}
  */
 async function getStatus(filter) {
     const status = await executeCommand('git status --porcelain');

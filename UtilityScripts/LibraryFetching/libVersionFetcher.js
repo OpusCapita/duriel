@@ -1,5 +1,7 @@
+/**
+ * @module
+ */
 'use strict';
-
 const EnvProxy = require('../../EnvProxy');
 const envInfo = require('../../envInfo');
 const Logger = require('../../EpicLogger');
@@ -10,8 +12,6 @@ const config = require("./config");
 
 /**
  * usage node libVersionFetcher < user > < env > [ < env > ]
- *
- *
  */
 async function exec() {
     if (process.argv.length < 4) {

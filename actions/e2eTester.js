@@ -1,3 +1,7 @@
+/**
+ * Module to interact and execute E2E-Tests in CircleCI
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
@@ -10,10 +14,13 @@ const helper = require('./helpers/utilHelper');
  * @param config
  * @param attempts
  * @param interval
- * @returns currenStatus: {
- *      status: parsedApiResponse.status,
- *      testNumber: parsedApiResponse.build_num,
- *      nextTestNumber: parsedApiResponse.build_num + 1}
+ * @returns {object}
+ *      @example {
+ *      currenStatus: {
+ *          status: parsedApiResponse.status,
+ *          testNumber: parsedApiResponse.build_num,
+ *          nextTestNumber: parsedApiResponse.build_num + 1}
+ *      }
  */
 const waitForTest = async function (config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {

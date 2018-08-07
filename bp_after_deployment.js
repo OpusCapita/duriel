@@ -79,8 +79,8 @@ async function handleStageDeployment(config) {
 }
 
 async function handleProductionDeployment(config) {
-    await buildDocs.buildDocs(config, true);
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
+    await buildDocs.buildDocs(config, true);
 
 }
 

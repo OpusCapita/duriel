@@ -1,3 +1,7 @@
+/**
+ * Action to inject variables into a string
+ * @module
+ */
 'use strict';
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
@@ -11,8 +15,8 @@ const EnvProxy = require('../../EnvProxy');
  * e.g. input: "${insertMe}", config: {insertMe: '$upe12$ec123t'}
  *      result {success: true, missing: [], result: "$upe12$ec123t"}
  *
- * @param input - string with injection marked fields ${:env}
- * @param config - holder of variables for the injection
+ * @param input - {string} string with injection marked fields ${:env}
+ * @param config - {BaseConfig} holder of variables for the injection
  * @returns input with injections
  */
 module.exports = function (input, config) {

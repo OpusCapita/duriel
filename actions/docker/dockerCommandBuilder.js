@@ -1,3 +1,7 @@
+/**
+ * Module that offers functions to create docker-commands
+ * @module
+ */
 'use strict';
 const Logger = require('../../EpicLogger');
 const log = new Logger();
@@ -135,7 +139,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
 /**
  * Adds up params for 'production' and 'default'
  * @param taskTemplate
- * @returns {Array<string> fields for docker-command}
+ * @returns Array<string> fields for docker-command
  */
 const getWantedParams = function (taskTemplate) {
     log.debug("gathering wanted params...");

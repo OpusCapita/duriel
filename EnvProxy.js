@@ -23,9 +23,10 @@ const dataSizes = {
 
 
 /**
- * Should return a promise on an EnvProxy instance
+ * Class to open a ssh-connection, execute commands and a proxy for multiple consul-functions
+ * @class
  */
-module.exports = class EnvProxy {
+class EnvProxy {
 
     constructor() {
         this.proxyServers = {};
@@ -153,7 +154,7 @@ module.exports = class EnvProxy {
      * @param node
      * @param dir
      * @param permission (775 as default)
-     * @returns
+     * @returns Promise
      */
     createFolder_N(node, dir, permission = '775') {
         if (!node)
@@ -331,7 +332,7 @@ module.exports = class EnvProxy {
      * returns a list containing all tasks running the service
      * @param service
      * @param onlyRunning
-     * @returns {PromiseLike<{id, name, image, node, desiredState, currentState, error, [ports]}>}
+     * @returns {PromiseLike<object>} e.g. {id, name, image, node, desiredState, currentState, error, [ports]}
      */
     getTasksOfServices_E(service, onlyRunning = false) {
         if (!service)
@@ -372,7 +373,7 @@ module.exports = class EnvProxy {
     /**
      * returns a list of all services on ENV-swarm
      * service-object looks like: {id, name, instances_up, instances_target, image, ports: ['port':'port']}
-     * @returns {PromiseLike<{id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}>}
+     * @returns {PromiseLike<object>} e.g. {id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}
      */
     getServices_E() {
         return this.executeCommand_E("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
@@ -404,7 +405,7 @@ module.exports = class EnvProxy {
 
     /**
      * returns a list of all containers on ENV
-     * @returns {Promise<[{name, image, command, status, [port:port]}]>}
+     * @returns {Promise<Array<object>>} e.g. [{name, image, command, status, [port:port]}]
      */
     getContainers_E() {
         return this.executeCommand_E(" docker ps --format '{{.Names}};{{.Image}};{{.Command}};{{.Status}};{{.Ports}}' --no-trunc")
@@ -466,7 +467,7 @@ module.exports = class EnvProxy {
      * @param inputFileName
      * @param targetPath
      * @param targetFileName
-     * @returns {Promise<>}
+     * @returns {Promise}
      */
     copyFile_L2E(inputPath, inputFileName, targetPath, targetFileName) {
         if (!targetFileName)
@@ -544,7 +545,7 @@ module.exports = class EnvProxy {
     /**
      * returns a list of all services locally
      * service-object looks like: {id, name, instances_up, instances_target, image, ports: ['port':'port']}
-     * @returns {PromiseLike<{id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}>}
+     * @returns {PromiseLike<object>} e.g. {id: '', name: '', instances_up: '', instances_target: '', image: '', ports: ['port':'port']}
      */
     getServices_L() {
         return this.executeCommand_L("docker service ls --format '{{.ID}};{{.Name}};{{.Replicas}};{{.Image}};{{.Ports}}'")
@@ -864,7 +865,7 @@ module.exports = class EnvProxy {
 
 };
 
-
+module.exports = EnvProxy;
 
 
 

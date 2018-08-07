@@ -1,3 +1,7 @@
+/**
+ * Action to execute Unit-Tests
+ * @module
+ */
 'use strict';
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
@@ -5,6 +9,11 @@ const EnvProxy = require('../EnvProxy');
 const fs = require('fs');
 const fileHandler = require('./filehandling/fileHandler');
 
+/**
+ *Execute the Unit-Tests of a service
+ * @param composeBase {string} e.g. 'docker-compose -d -f docker-compose.yml'
+ * @returns {Promise<void>}
+ */
 module.exports = async function (composeBase) {
     log.info(`running unit tests.`);
     if (!fs.existsSync("./package.json")) {

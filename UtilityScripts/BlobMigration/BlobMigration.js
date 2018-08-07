@@ -3,6 +3,7 @@
  * It won't overwrite files in case hashcode is matching.
  * 
  * run: node BlobMigration.js srcEnv targetEnv
+ * @module
  */
 var ApiHelper = require('./ApiHelper.js');
 var EnvProxy = require('../../EnvProxy.js');

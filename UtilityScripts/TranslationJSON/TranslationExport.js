@@ -1,3 +1,6 @@
+/**
+ * @module
+ */
 const gitHelper = require("./GitHubHelper.js");
 const supportedLanguages = require("./supportedLanguages");
 const util = require("util");

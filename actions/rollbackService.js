@@ -1,8 +1,18 @@
+/**
+ * Action to rollback a service-update
+ * @module
+ */
 'use strict';
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const monitorDockerContainer = require('./docker/monitorDockerContainer_E');
 
+/**
+ *
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @returns {Promise<void>}
+ */
 module.exports = async function (config, proxy) {
     log.info("rolling back service!");
     const serviceId = await getServiceId(config, proxy);
