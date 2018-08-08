@@ -11,8 +11,8 @@ const VERSION_FILE = "VERSION";
 const fileHelper = require('../filehandling/fileHandler');
 
 const validBumpLevels = ["major", "minor", "patch"];
-const versionRegex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/;
-
+const versionRegex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)(-dev-(\d)+)?(-rc-(\d)+)?(-hf-(\d)+)?$/;
+const devVersionSplitter = new RegExp(/(-dev-)?(-rc-)?(-hf-)?/);
 
 module.exports = {
     bumpVersion,
@@ -23,6 +23,10 @@ module.exports = {
     //handleHotfixVersion
 };
 
+/**
+ * rules that check which target_env is needed for the current branch
+ * @type Array<object>
+ */
 const tagRules = [
     {
         rule: (env) => env === 'develop',
@@ -55,6 +59,11 @@ const tagRules = [
     }
 ];
 
+/**
+ * Creates Versiontag based on the target_env, circle_branch and [optional] build-num
+ * @param config {BaseConfig}
+ * @returns {Promise<string>}
+ */
 async function calculateImageTag(config) {
     const targetEnv = config.get('TARGET_ENV');
     const branch = config['CIRCLE_BRANCH'];
@@ -88,6 +97,12 @@ async function readVersionFile(config) {
     }
 }
 
+/**
+ * Bumps a Version for a production release.
+ * Checks whether the master-commit came from a hotfix- or release-branch
+ * @param config {BaseConfig}
+ * @returns {Promise<void>}
+ */
 async function bumpProdVersion(config) {
     const version = await gitHelper.getMainVersionTags().then(versions => versions[0])
     const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
@@ -161,9 +176,9 @@ function compareVersion(a, b) {
  */
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
-    if(bumpLevel === "major"){
+    if (bumpLevel === "major") {
         vp.minor = vp.patch = 0;
-    } else if (bumpLevel === "minor"){
+    } else if (bumpLevel === "minor") {
         vp.patch = 0;
     }
     vp[bumpLevel] = 1 + vp[bumpLevel];
@@ -177,14 +192,16 @@ function createBumpedVersion(version, bumpLevel) {
  * @param version {object} (e.g. {major: 1, minor: 2, patch: 3})
  */
 function splitIntoParts(version) {
-    if(!new RegExp(versionRegex).test(version)){
-        throw new Error("Invalid version-format");
+    if (!new RegExp(versionRegex).test(version)) {
+        throw new Error(`Invalid version-format '${version}'`);
     }
     const result = {};
     const mainVersionPart = version.split(".");
     result.major = parseInt(mainVersionPart[0]);
     result.minor = parseInt(mainVersionPart[1]);
-    result.patch = parseInt(mainVersionPart[2]);
+    const patchSplit = mainVersionPart[2].split(devVersionSplitter);
+    result.patch = parseInt(patchSplit[0]);
+    result.deploymentNumber = parseInt(patchSplit[1]);
     return result;
 }
 

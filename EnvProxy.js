@@ -50,7 +50,7 @@ class EnvProxy {
                 agentForward: true,
                 agent: process.env.SSH_AUTH_SOCK,
                 hostHash: 'md5',
-                hostVerifier : (hash) => true
+                hostVerifier: (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
 
@@ -389,6 +389,8 @@ class EnvProxy {
                                 instances_up: replicasSplit[0],
                                 instances_target: replicasSplit[1],
                                 image: split[3],
+                                image_name: split[3].split(":")[0],
+                                image_version: split[3].split(":")[1],
                                 ports: split[4].split(comma_splitter)
                             };
                         }
@@ -399,7 +401,7 @@ class EnvProxy {
                     log.warn("no nodes found... this is strange...", nodes);
                     return [];
                 }
-                return nodes.filter(it => it !== undefined)
+                return nodes.filter(it => it)
             })
     }
 

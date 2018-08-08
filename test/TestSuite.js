@@ -12,6 +12,7 @@ try {
     require("./VersionTests").run();
     require("./BaseFunctionTests").run();
     require("./CommandBuilderTests").run();
+    require("./LibraryTests").run();
 } catch (e) {
     console.error(e);
 }

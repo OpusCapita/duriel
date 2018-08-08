@@ -2,7 +2,7 @@
 const assert = require("assert");
 const versionHelper = require("../actions/helpers/versionHelper");
 
-module.exports.run = function () {
+function run () {
     describe("version - bump", () => {
         it("bump - major", async () => {
             const version = "1.2.3";
@@ -35,7 +35,7 @@ module.exports.run = function () {
         });
     });
 
-    describe("version - compare", () => {
+    describe("main-version - compare", () => {
         const small = "0.0.1";
         const big = "1.0.0";
         const broken = "Leonardo.0.da-Banossi";
@@ -56,4 +56,26 @@ module.exports.run = function () {
             assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
         });
     })
+    describe("dev-version - compare", () => {
+        const small = "0.0.1-dev-123";
+        const big = "1.0.0-rc-123";
+        const broken = "Leonardo.0.da-Banossi";
+
+        it("is greater", () => {
+            assert.equal(versionHelper.compareVersion(big, small) > 0, true)
+        });
+        it("is lower", () => {
+            assert.equal(versionHelper.compareVersion(small, big) < 0, true)
+        });
+        it("is equal", () => {
+            assert.equal(versionHelper.compareVersion(big, big) === 0, true)
+        });
+        it("is broken", () => {
+            assert.throws(() => versionHelper.compareVersion(broken, small), Error, "")
+        });
+        it("is broken again", () => {
+            assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
+        });
+    })
 }
+module.exports.run = run;
