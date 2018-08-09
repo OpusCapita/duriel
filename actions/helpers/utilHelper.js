@@ -33,7 +33,7 @@ const padLeft = function (input, character, length) {
     return input;
 };
 
-function isEqual(obj1, obj2){
+function isEqual(obj1, obj2) {
     if (Array.isArray(obj1) && Array.isArray(obj1)) {
         for (const arrayEntry1 of obj1) {
             for (const arrayEntry2 of obj2) {
@@ -57,25 +57,25 @@ function isEqual(obj1, obj2){
             }
         }
         return true;
-    } else if (typeof obj1 ===  typeof obj2) {
+    } else if (typeof obj1 === typeof obj2) {
         return obj1 === obj2;
     } else {
         return obj1 === obj2;
     }
 }
 
-function deepContains(array, obj){
-    for(const entry of array){
-        if(isEqual(entry, obj))
+function deepContains(array, obj) {
+    for (const entry of array) {
+        if (isEqual(entry, obj))
             return true;
     }
     return false;
 }
 
-function arrayMinus(array1, array2){
+function arrayMinus(array1, array2) {
     const result = [];
     for (const entry1 of array1) {
-        if(!deepContains(array2, entry1)){
+        if (!deepContains(array2, entry1)) {
             result.push(entry1);
         }
     }
@@ -93,12 +93,36 @@ function arrayIntersect(array1, array2) {
     return result;
 }
 
+/**
+ * return the longest length of every string inside an array.
+ * e.g. {
+ *  a: 1,
+ *  b: [22, 333],
+ *  c: "4444"
+ * } --> 4
+ * @param input string
+ * @returns {number} length of longest string
+ */
+function getLongestStringInObject(input) {
+    if (typeof input === 'string')
+        return input.length;
+
+    if (Array.isArray(input))
+        return Math.max(... input.map(it => getLongestStringInObject(it)));
+
+    if(input !== Object(input))
+        return getLongestStringInObject(`${input}`);
+
+    return Math.max(... Object.keys(input).map(it => getLongestStringInObject(input[it])))
+}
+
 
 module.exports = {
-    snooze: snooze,
-    flattenArray: flattenArray,
-    padLeft: padLeft,
-    arrayMinus: arrayMinus,
-    arrayIntersect: arrayIntersect,
-    objectIsEqual: isEqual
+    snooze,
+    flattenArray,
+    padLeft,
+    arrayMinus,
+    arrayIntersect,
+    isEqual,
+    getLongestStringInObject
 };

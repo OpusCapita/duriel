@@ -5,6 +5,8 @@ const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
 const fs = require('fs');
 
+const versionValidator = require('./actions/versionValidator');
+
 const fileHandler = require('./actions/filehandling/fileHandler');
 const generateSecret = require('./actions/docker/generateDockerSecret');
 
@@ -71,6 +73,13 @@ const exec = async function () {
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
+
+        log.info("Checking version dependencies... ");
+        await versionValidator.checkVersionDependencies(config, proxy)
+            .catch(e => log.error(e));  // remove me!
+        log.info("... finished checking version dependencies");
+
+
         await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = await dependsOnServiceClient();

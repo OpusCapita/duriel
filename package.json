@@ -24,14 +24,15 @@
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
     "extend": "^3.0.1",
-    "mysql2": "^1.5.1",
-    "qs": "^6.5.1",
-    "ssh2": "^0.6.1",
-    "superagent": "^3.8.2",
-    "raml-to-markdown": "^1.1.11",
     "jsdoc-to-markdown": "^4.0.1",
+    "mysql2": "^1.5.1",
+    "nunjucks": "^3.1.3",
+    "qs": "^6.5.1",
+    "raml-to-markdown": "^1.1.11",
+    "sequelize": "3.30.4",
     "sequelize-to-markdown": "^1.2.3",
-    "sequelize": "3.30.4"
+    "ssh2": "^0.6.1",
+    "superagent": "^3.8.2"
   },
   "devDependencies": {
     "mocha": "^5.0.4",

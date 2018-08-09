@@ -20,7 +20,6 @@ const dummyPackageJson = {
     }
 };
 
-
 module.exports.run = run;
 
 async function run() {
@@ -150,10 +149,43 @@ async function run() {
                         }
                     }
                 }));
-                let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
+
+                let successCheck = await versionValidator.validateVersionDependencies(config, proxy)
                 proxy.close();
                 assert.equal(successCheck.serviceVersionCheck.success, false);
             });
+            it("renders the results", () => {
+                const checkResult = {
+                    "serviceVersionCheck": {
+                        "errors": [
+                            {
+                                "service": "andariel",
+                                "expected": "2.0.0",
+                                "deployed": "1.0.0-dev-261"
+                            },
+                            {
+                                "service": "andariel-monitoring",
+                                "expected": "2.0.0",
+                                "deployed": "1.0.0-dev-2613232"
+                            }
+                        ],
+                        "passing": [
+                            {
+                                "service": "dummy",
+                                "expected": "0.0.0",
+                                "deployed": "1.0.0-dev-261",
+
+                            }, {
+                                "service": "tnt",
+                                "expected": "0.0.0",
+                                "deployed": "0.2.5-dev-261"
+                            }
+                        ],
+                        "success": false
+                    }
+                };
+                assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(checkResult))
+            })
         })
     });
 }
