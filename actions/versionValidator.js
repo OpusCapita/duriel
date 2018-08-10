@@ -11,6 +11,8 @@ const log = new EpicLogger();
 const utilHelper = require('./helpers/utilHelper');
 const nunjucks = require('nunjucks');
 
+const extend = require('extend');
+
 async function checkVersionDependencies(config, proxy) {
 
     const validationResult = await validateVersionDependencies(config, proxy);
@@ -35,24 +37,38 @@ async function validateVersionDependencies(config, proxy) {
     const serviceDependencies = await libraryHelper.fetchServiceVersionDependencies(config);
     const deployedServiceVersions = await libraryHelper.loadServiceVersionsFromEnv(proxy, Object.keys(serviceDependencies));
 
-    const validationResult = {};
-    validationResult.serviceVersionCheck = libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
+    const result = {
+        validations: []
+    };
 
-    validationResult.success = concludeValidationResult(validationResult);
-    return validationResult;
+    const serviceValidation = libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
+    const serviceValidationResult = extend(true, {},
+        {name: "ServiceValidation",},
+        serviceValidation);
+
+    result.validations.push(serviceValidationResult);
+    result.success = concludeValidationResult(result.validations);
+    return result;
 }
 
-function renderVersionValidationResult(validationResult) {
-    validationResult.getLength = utilHelper.getLongestStringInObject;
-    validationResult.padLeft = utilHelper.padLeft;
+function renderVersionValidationResult(validations) {
+    let result = "";
+    nunjucks.configure({autoescape: true, trimBlocks: true});
+    for (const validation of validations.validations) {
+        const functions = {
+            length: utilHelper.getLongestStringInObject(validation),
+            padLeft: utilHelper.padLeft,
+            padBoth: utilHelper.padBoth
+        };
+        //log.info(validations);
+        result += nunjucks.render(__dirname + "/templates/versionValidationResult.njk", extend(true, {}, validation, functions));
+    }
+    return result
 
-    nunjucks.configure({autoescape: true});
-    return nunjucks.renderString(template, validationResult);
 }
 
-function concludeValidationResult(validationResult) {
-    return Object.keys(validationResult)
-        .reduce((reduced, current) => (reduced && !validationResult[current].errors.length), true);
+function concludeValidationResult(validations) {
+    return validations.reduce((reduced, current) => (reduced && !current.errors.length), true);
 }
 
 module.exports = {
@@ -61,19 +77,3 @@ module.exports = {
     validateVersionDependencies,
     renderVersionValidationResult
 };
-
-const template =
-    "\nServiceVersionCheck - success: {{serviceVersionCheck.success}}\n" +
-    "Errors:\n" +
-    "{% set length = getLength(serviceVersionCheck) %}" +
-    "|{{padLeft('Service', ' ', length)}}|{{padLeft( 'Expected', ' ', length)}}|{{padLeft('Deployed', ' ', length)}}|\n" +
-    "{{ padLeft('', '-', length * 3 + 4)}} \n" +
-    "{% for error in serviceVersionCheck.errors %}" +
-    "|{{ padLeft(error.service, ' ', length)}}|{{ padLeft(error.expected, ' ', length)}}|{{ padLeft(error.deployed, ' ', length)}}|\n" +
-    "{% endfor %} \n" +
-    "Passing:\n" +
-    "|{{padLeft('Service', ' ', length)}}|{{padLeft( 'Expected', ' ', length)}}|{{padLeft('Deployed', ' ', length)}}|\n" +
-    "{{ padLeft('', '-', length * 3 + 4)}} \n" +
-    "{% for it in serviceVersionCheck.passing %}" +
-    "|{{ padLeft(it.service, ' ', length)}}|{{ padLeft(it.expected, ' ', length)}}|{{ padLeft(it.deployed, ' ', length)}}|\n" +
-    "{% endfor %}";

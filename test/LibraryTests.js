@@ -138,7 +138,7 @@ async function run() {
                     const config = getBaseConfig({TARGET_ENV: 'develop'});
                     fs.writeFileSync("task_template.json", JSON.stringify({}));
                     let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                    assert.equal(successCheck.serviceVersionCheck.success, true);
+                    assert.equal(successCheck.success, true);
                 });
                 it("checks and has success", async () => {
                     const config = getBaseConfig({TARGET_ENV: 'develop'});
@@ -150,10 +150,11 @@ async function run() {
                         }
                     }));
                     let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                    assert.equal(successCheck.serviceVersionCheck.success, true);
+                    assert.equal(successCheck.success, true);
+                    assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(successCheck))
                 });
 
-                it("checks and has success", async () => {
+                it("checks and failes", async () => {
                     const config = getBaseConfig({TARGET_ENV: 'develop'});
                     fs.writeFileSync("task_template.json", JSON.stringify({
                         default: {
@@ -164,92 +165,67 @@ async function run() {
                     }));
 
                     let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                    assert.equal(successCheck.serviceVersionCheck.success, false);
+                    assert.equal(successCheck.success, false);
+                    assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(successCheck))
                 });
                 it("renders the results", () => {
                     const checkResult = {
-                        "serviceVersionCheck": {
-                            "errors": [
-                                {
-                                    "service": "andariel",
-                                    "expected": "2.0.0",
-                                    "deployed": "1.0.0-dev-261"
-                                },
-                                {
-                                    "service": "andariel-monitoring",
-                                    "expected": "2.0.0",
-                                    "deployed": "1.0.0-dev-2613232"
-                                }
-                            ],
-                            "passing": [
-                                {
-                                    "service": "dummy",
-                                    "expected": "0.0.0",
-                                    "deployed": "1.0.0-dev-261",
-
-                                }, {
-                                    "service": "tnt",
-                                    "expected": "0.0.0",
-                                    "deployed": "0.2.5-dev-261"
-                                }
-                            ],
-                            "success": false
-                        }
+                        "validations": [
+                            {
+                                "name": "ServiceValidation",
+                                "errors": [
+                                    {
+                                        "service": "dummy",
+                                        "expected": "999.999.999",
+                                        "deployed": "1.0.0-dev-261"
+                                    }
+                                ],
+                                "passing": [
+                                    {
+                                        "service": "logstash",
+                                        "expected": "0.999.999",
+                                        "deployed": "1.0.0-dev-261"
+                                    }
+                                ]
+                            }
+                        ],
+                        "success": false
                     };
                     assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(checkResult))
                 });
             });
             describe("Validation conclusion", () => {
                 it("gets a failure", () => {
-                    const checkResult = {
-                        "serviceVersionCheck": {
+                    const validations = [
+                        {
+                            "name": "ServiceValidation",
                             "errors": [
                                 {
-                                    "service": "andariel",
-                                    "expected": "2.0.0",
+                                    "service": "dummy",
+                                    "expected": "999.999.999",
                                     "deployed": "1.0.0-dev-261"
-                                },
-                                {
-                                    "service": "andariel-monitoring",
-                                    "expected": "2.0.0",
-                                    "deployed": "1.0.0-dev-2613232"
                                 }
                             ],
+                            "passing": []
+                        }
+                    ];
+                    assert.equal(versionValidator.concludeValidationResult(validations), false);
+                });
+                it("gets a passing result", () => {
+                    const validations = [
+                        {
+                            "name": "ServiceValidation",
                             "passing": [
                                 {
                                     "service": "dummy",
-                                    "expected": "0.0.0",
-                                    "deployed": "1.0.0-dev-261",
-
-                                }, {
-                                    "service": "tnt",
-                                    "expected": "0.0.0",
-                                    "deployed": "0.2.5-dev-261"
+                                    "expected": "999.999.999",
+                                    "deployed": "1.0.0-dev-261"
                                 }
                             ],
+                            "errors": []
                         }
-                    };
-                    assert.equal(versionValidator.concludeValidationResult(checkResult), false);
-                })
-                it("gets a failure", () => {
-                    const checkResult = {
-                        "serviceVersionCheck": {
-                            "errors": [],
-                            "passing": [
-                                {
-                                    "service": "dummy",
-                                    "expected": "0.0.0",
-                                    "deployed": "1.0.0-dev-261",
-
-                                }, {
-                                    "service": "tnt",
-                                    "expected": "0.0.0",
-                                    "deployed": "0.2.5-dev-261"
-                                }
-                            ]
-                        }
-                    };
-                    assert.equal(versionValidator.concludeValidationResult(checkResult), true);
+                    ];
+                    assert.equal(versionValidator.concludeValidationResult(validations), true);
                 })
             })
         });

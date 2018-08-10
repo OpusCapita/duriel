@@ -33,6 +33,33 @@ const padLeft = function (input, character, length) {
     return input;
 };
 
+const padRight = function (input, character, length) {
+    if (!`${character}` || !length) {
+        return "wrong usage! (input, character, length)";
+    }
+    input = `${input}`;
+    while (input.length < length) {
+        input = input + character;
+    }
+    return input;
+};
+
+const padBoth = function (input, character, length) {
+    if (!`${character}` || !length) {
+        return "wrong usage! (input, character, length)";
+    }
+    input = `${input}`;
+    let left = true;
+    while (input.length < length) {
+        if (left)
+            input = character + input;
+        else
+            input = input + character;
+        left = !left;
+    }
+    return input;
+};
+
 function isEqual(obj1, obj2) {
     if (Array.isArray(obj1) && Array.isArray(obj1)) {
         for (const arrayEntry1 of obj1) {
@@ -110,7 +137,7 @@ function getLongestStringInObject(input) {
     if (Array.isArray(input))
         return Math.max(... input.map(it => getLongestStringInObject(it)));
 
-    if(input !== Object(input))
+    if (input !== Object(input))
         return getLongestStringInObject(`${input}`);
 
     return Math.max(... Object.keys(input).map(it => getLongestStringInObject(input[it])))
@@ -121,6 +148,8 @@ module.exports = {
     snooze,
     flattenArray,
     padLeft,
+    padRight,
+    padBoth,
     arrayMinus,
     arrayIntersect,
     isEqual,

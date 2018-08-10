@@ -5,6 +5,8 @@ const dummyConfigPath = `./dummyConfig-${new Date().getTime()}.json`;
 const constants = require("./TestConstants");
 let config = {};
 
+process.env.andariel_loglevel = "warn";
+
 before();
 try {
     require("./FileHandlingsTests").run(config);
