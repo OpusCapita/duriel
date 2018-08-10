@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test --recursive -R mocha-junit-reporter --reporter-options mochaFile=junit/buildprocess_tests.xml",
+    "test-local": "mocha test --recursive ",
     "build-docs": "node ./UtilityScripts/DurielDocBuilder/index.js"
   },
   "repository": {

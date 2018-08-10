@@ -12,6 +12,10 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
 const extend = require('extend');
+/**
+ * Key inside the task_template for the service-dependencies
+ * @type {string}
+ */
 const serviceDependencyKey = "serviceDependencies";
 
 /**
@@ -36,10 +40,20 @@ function fetchServiceVersionDependencies(config, taskTemplate) {
     taskTemplate = taskTemplate ? taskTemplate : fileHelper.loadFile2Object('./task_template.json');
     const targetEnv = config['TARGET_ENV'];
 
+    let result = {};
+
+    if (taskTemplate.default && taskTemplate.default[serviceDependencyKey])
+        result = extend(true, {}, result, taskTemplate.default[serviceDependencyKey]);
+
     if (taskTemplate[targetEnv] && taskTemplate[targetEnv][serviceDependencyKey]) {
-        return extend(true, {}, taskTemplate.default[serviceDependencyKey], taskTemplate[targetEnv][serviceDependencyKey])
+        result = extend(true, {}, result, taskTemplate[targetEnv][serviceDependencyKey])
     }
-    return taskTemplate.default[serviceDependencyKey];
+
+    if (Object.keys(result).length === 0) {
+        log.warn("task_template has no service-dependencies (?!)")
+    }
+
+    return result;
 }
 
 /**
@@ -58,6 +72,19 @@ async function loadServiceVersionsFromEnv(proxy, services) {
         })
 }
 
+/**
+ *
+ * @param expectedVersions
+ * @param deployedVersions
+ * @returns  {{errors: Array<dependencyCheckResultEntry>, passing: Array<dependencyCheckResultEntry>}}
+ */
+
+/**
+ *
+ * @param expectedVersions
+ * @param deployedVersions
+ * @returns {{errors: Array, passing: Array}}
+ */
 function checkServiceDependencies(expectedVersions, deployedVersions) {
     const result = {errors: [], passing: []};
 
@@ -67,14 +94,14 @@ function checkServiceDependencies(expectedVersions, deployedVersions) {
 
         if (!deployedVersion) {
             log.warn(`Service ${service} is not deployed`);
-            result.errors.push({service: service, expected: expectedVersion, deployed: deployedVersion})
+            result.errors.push(new dependencyCheckResultEntry(service, expectedVersion,deployedVersion))
         } else {
             const compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
             if (compareResult < 0) {
                 log.warn(`Version of '${service}' is incompatible`);
-                result.errors.push({service: service, expected: expectedVersion, deployed: deployedVersion});
-            } else{
-                result.passing.push({service: service, expected: expectedVersion, deployed: deployedVersion})
+                result.errors.push(new dependencyCheckResultEntry(service, expectedVersion,deployedVersion))
+            } else {
+                result.passing.push(new dependencyCheckResultEntry(service, expectedVersion,deployedVersion))
             }
         }
     }
@@ -88,3 +115,21 @@ module.exports = {
     loadServiceVersionsFromEnv,
     checkServiceDependencies
 };
+
+/**
+ * Simple holder of check information
+ * @class
+ */
+class dependencyCheckResultEntry {
+    /**
+     * Get a resultEntry
+     * @param serviceName
+     * @param expected
+     * @param deployed
+     */
+    constructor(serviceName, expected, deployed){
+        this.serviceName = serviceName;
+        this.expected = expected;
+        this.deployed = deployed
+    }
+}
