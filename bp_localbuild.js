@@ -40,12 +40,6 @@ const exec = async () => {
         await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
         await gitHelper.tag(config['VERSION'], true);
 
-        try {
-            await buildDocs.buildDocs(config);
-        } catch (e) {
-            log.warn("could not build docs", e);
-        }
-
         if (config['TARGET_ENV']) {
             log.info(`deployment to env: ${config['TARGET_ENV']} is planned - storing in bp-config`);
             await dockerHelper.tagAndPushImage(config['HUB_REPO'], "latest", config['VERSION'], config['VERSION']);

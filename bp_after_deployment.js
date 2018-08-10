@@ -70,11 +70,13 @@ async function runAfterDeploymentTests(config, proxy) {
 
 async function handleDevelopDeployment(config) {
     await dockerHelper.pushImage(config['HUB_REPO'], "dev");
-    await buildDocs.buildDocs(config);
+    await buildDocs.buildDocs(config)
+        .catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
 }
 
 async function handleStageDeployment(config) {
-    await buildDocs.buildDocs(config);
+    await buildDocs.buildDocs(config)
+        .catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
     // TODO: open PR in github!
 }
 
