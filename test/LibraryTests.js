@@ -197,6 +197,59 @@ async function run() {
                         }
                     };
                     assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(checkResult))
+                });
+            });
+            describe("Validation conclusion", () => {
+                it("gets a failure", () => {
+                    const checkResult = {
+                        "serviceVersionCheck": {
+                            "errors": [
+                                {
+                                    "service": "andariel",
+                                    "expected": "2.0.0",
+                                    "deployed": "1.0.0-dev-261"
+                                },
+                                {
+                                    "service": "andariel-monitoring",
+                                    "expected": "2.0.0",
+                                    "deployed": "1.0.0-dev-2613232"
+                                }
+                            ],
+                            "passing": [
+                                {
+                                    "service": "dummy",
+                                    "expected": "0.0.0",
+                                    "deployed": "1.0.0-dev-261",
+
+                                }, {
+                                    "service": "tnt",
+                                    "expected": "0.0.0",
+                                    "deployed": "0.2.5-dev-261"
+                                }
+                            ],
+                        }
+                    };
+                    assert.equal(versionValidator.concludeValidationResult(checkResult), false);
+                })
+                it("gets a failure", () => {
+                    const checkResult = {
+                        "serviceVersionCheck": {
+                            "errors": [],
+                            "passing": [
+                                {
+                                    "service": "dummy",
+                                    "expected": "0.0.0",
+                                    "deployed": "1.0.0-dev-261",
+
+                                }, {
+                                    "service": "tnt",
+                                    "expected": "0.0.0",
+                                    "deployed": "0.2.5-dev-261"
+                                }
+                            ]
+                        }
+                    };
+                    assert.equal(versionValidator.concludeValidationResult(checkResult), true);
                 })
             })
         });

@@ -16,12 +16,7 @@ async function checkVersionDependencies(config, proxy) {
     const validationResult = await validateVersionDependencies(config, proxy);
     const output = renderVersionValidationResult(validationResult);
 
-    let success = true;
-
-    Object.keys(validationResult)
-        .forEach(key => success &= validationResult[key].success);
-
-    if (success) {
+    if (validationResult.success) {
         log.info("version validation was successfull: ", output);
     } else {
         log.error("version validation failed!: ", output);
@@ -43,6 +38,7 @@ async function validateVersionDependencies(config, proxy) {
     const validationResult = {};
     validationResult.serviceVersionCheck = libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
 
+    validationResult.success = concludeValidationResult(validationResult);
     return validationResult;
 }
 
@@ -54,7 +50,13 @@ function renderVersionValidationResult(validationResult) {
     return nunjucks.renderString(template, validationResult);
 }
 
+function concludeValidationResult(validationResult) {
+    return Object.keys(validationResult)
+        .reduce((reduced, current) => (reduced && !validationResult[current].errors.length), true);
+}
+
 module.exports = {
+    concludeValidationResult,
     checkVersionDependencies,
     validateVersionDependencies,
     renderVersionValidationResult

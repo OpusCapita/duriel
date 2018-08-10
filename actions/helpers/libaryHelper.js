@@ -123,12 +123,12 @@ module.exports = {
 class dependencyCheckResultEntry {
     /**
      * Get a resultEntry
-     * @param serviceName
+     * @param service
      * @param expected
      * @param deployed
      */
-    constructor(serviceName, expected, deployed){
-        this.serviceName = serviceName;
+    constructor(service, expected, deployed){
+        this.service = service;
         this.expected = expected;
         this.deployed = deployed
     }
