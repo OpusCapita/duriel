@@ -3,7 +3,7 @@
  * @class
  */
 class EpicLogger {
-    constructor(config = {andariel_loglevel: 'info'}) {
+    constructor(config) {
         this.logLevel = EpicLogger.getEnvLogLevel(config);
         this.severe = (msg, obj) => this.log('severe', msg, null, obj, EpicLogger.getColors().CYAN);
         this.debug = (msg, obj) => this.log('debug', msg, null, obj, EpicLogger.getColors().GREEN);

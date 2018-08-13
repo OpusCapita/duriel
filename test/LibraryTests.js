@@ -242,7 +242,6 @@ async function run() {
                     "email": "0.0.0"
                 };
                 const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
-                log.info("valid: ", result)
                 assert.equal(result.errors.length, 0);
                 assert.equal(result.passing.length, 1);
             });
@@ -253,12 +252,10 @@ async function run() {
                 };
                 const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
                 assert.equal(result.errors.length > 0, true);
-                //log.info(result);
             });
 
             it("loads invalid library dependency", async () => {
                 const serviceDependencies = {
-                    "servicenow-integration": "0.0.0",
                     "delPocko": "0.8.15"
                 };
                 const packageJson = {
@@ -315,8 +312,7 @@ async function run() {
                     "success": false
                 };
                 assert.doesNotThrow(async () => {
-                    const rendered = await versionValidator.renderVersionValidationResult(checkResult);
-                    //log.info(rendered)
+                    log.debug(await versionValidator.renderVersionValidationResult(checkResult))
                 })
             });
         });

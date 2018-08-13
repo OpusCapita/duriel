@@ -55,11 +55,14 @@ async function validateVersionDependencies(config, proxy) {
 
     result.validations.push(libraryValidationResult);
 
+    log.debug("validation-result: ", result);
+
     result.success = concludeValidationResult(result.validations);
     return result;
 }
 
 function renderVersionValidationResult(validations) {
+    log.debug("validations: ", validations);
     let result = "";
     nunjucks.configure({autoescape: true, trimBlocks: true});
     for (const validation of validations.validations) {
