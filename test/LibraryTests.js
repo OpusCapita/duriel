@@ -312,7 +312,7 @@ async function run() {
                     "success": false
                 };
                 assert.doesNotThrow(async () => {
-                    log.debug(await versionValidator.renderVersionValidationResult(checkResult))
+                    log.info(await versionValidator.renderVersionValidationResult(checkResult))
                 })
             });
         });
