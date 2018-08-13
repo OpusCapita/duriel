@@ -229,7 +229,7 @@ async function run() {
                 })
             })
         });
-        describe("Library loading", () => {
+        describe("Library loading", async () => {
             const packageJson = {
                 "dependencies": {
                     "sequelize": "0.0.0",
@@ -316,5 +316,24 @@ async function run() {
                 })
             });
         });
+        /**describe("Does a complete check", () => {
+
+            it("runs all", async () => {
+                fs.writeFileSync("task_template.json", JSON.stringify({
+                    default: {
+                        serviceDependencies: {
+                            dummy: "0.0.0",
+                            "servicenow-integration": "0.0.0"
+                        }
+                    }
+                }));
+
+                const output = await versionValidator.checkVersionDependencies({}, proxy)
+                    .catch(e => true);
+
+
+                fs.unlinkSync("task_template.json");
+            })
+        })*/
     });
 }

@@ -21,7 +21,6 @@ async function checkVersionDependencies(config, proxy) {
     if (validationResult.success) {
         log.info("version validation was successfull: ", output);
     } else {
-        log.error("version validation failed!: ", output);
         throw new Error("version validation failed!");
     }
 }
@@ -40,14 +39,14 @@ async function validateVersionDependencies(config, proxy) {
         validations: []
     };
 
-    const serviceValidation = libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
+    const serviceValidation = await libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
     const serviceValidationResult = extend(true, {},
         {name: "ServiceValidation",},
         serviceValidation
     );
     result.validations.push(serviceValidationResult);
 
-    const libraryValidation = libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
+    const libraryValidation = await libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
     const libraryValidationResult = extend(true, {},
         {name: "LibraryValidation",},
         libraryValidation
@@ -55,9 +54,7 @@ async function validateVersionDependencies(config, proxy) {
 
     result.validations.push(libraryValidationResult);
 
-    log.debug("validation-result: ", result);
-
-    result.success = concludeValidationResult(result.validations);
+    result.success = await concludeValidationResult(result.validations);
     return result;
 }
 

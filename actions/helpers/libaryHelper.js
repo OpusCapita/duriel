@@ -140,20 +140,28 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
     log.info("Checking library-dependencies of services: ", serviceDependencies);
     const result = {errors: [], passing: []};
     for (const service in serviceDependencies) {
+
+        log.warn(`checking libs of service '${service}'`);
         const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
-            .catch(e => result.errors.push(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message)));
-        if (libraryDependencies)
+            .catch(e => {
+                result.errors.push(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message))
+                return undefined;
+            });
+
+
+        if (libraryDependencies && Object.keys(libraryDependencies).length)
             for (const library in libraryDependencies) {
 
                 const expected = libraryDependencies[library];
-                const installed = getLibraryVersion(library, packageJson);
+                const installed = await getLibraryVersion(library, packageJson);
                 const entry = new LibraryCheckEntry(library, expected, installed, service);
-                const compareResult = versionHelper.compareVersion(installed, expected);
+                const compareResult = await versionHelper.compareVersion(installed, expected);
 
                 if (compareResult < 0) {
-                    log.warn(`Version of '${library}' is incompatble`);
+                    log.warn(`Version of '${library}' is incompatible`);
                     result.errors.push(entry);
                 } else {
+                    log.info(`Version of '${library }' is compatible`)
                     result.passing.push(entry);
                 }
             }
@@ -187,7 +195,7 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
     const command = `docker exec -t ${container.containerId} cat task_template.json`;
     const taskTemplate = await proxy.executeCommand_N(serviceTask.node, command);
 
-    return fetchLibraryVersionDependencies(config, JSON.parse(taskTemplate));
+    return await fetchLibraryVersionDependencies(config, JSON.parse(taskTemplate));
 }
 
 
