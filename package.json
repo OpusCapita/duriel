@@ -4,8 +4,8 @@
   "description": "Continuous Deployment and Integration for Andariel",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test --recursive -R mocha-junit-reporter --reporter-options mochaFile=junit/buildprocess_tests.xml",
-    "test-local": "mocha test --recursive ",
+    "test": "mocha test --timeout 5000 --recursive -R mocha-junit-reporter --reporter-options mochaFile=junit/buildprocess_tests.xml",
+    "test-local": "mocha test --timeout 5000 --recursive ",
     "build-docs": "node ./UtilityScripts/DurielDocBuilder/index.js"
   },
   "repository": {

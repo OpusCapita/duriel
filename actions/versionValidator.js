@@ -44,9 +44,18 @@ async function validateVersionDependencies(config, proxy) {
     const serviceValidation = libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
     const serviceValidationResult = extend(true, {},
         {name: "ServiceValidation",},
-        serviceValidation);
-
+        serviceValidation
+    );
     result.validations.push(serviceValidationResult);
+
+    const libraryValidation = libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
+    const libraryValidationResult = extend(true, {},
+        {name: "LibraryValidation",},
+        libraryValidation
+    );
+
+    result.validations.push(libraryValidationResult);
+
     result.success = concludeValidationResult(result.validations);
     return result;
 }
@@ -60,15 +69,16 @@ function renderVersionValidationResult(validations) {
             padLeft: utilHelper.padLeft,
             padBoth: utilHelper.padBoth
         };
-        //log.info(validations);
-        result += nunjucks.render(__dirname + "/templates/versionValidationResult.njk", extend(true, {}, validation, functions));
+
+        result += nunjucks.render(`${__dirname}/templates/${validation.name}.njk`, extend(true, {}, validation, functions));
     }
     return result
 
 }
 
 function concludeValidationResult(validations) {
-    return validations.reduce((reduced, current) => (reduced && !current.errors.length), true);
+
+    return validations.reduce((reduced, current) => reduced && (!current.errors || !current.errors.length), true);
 }
 
 module.exports = {

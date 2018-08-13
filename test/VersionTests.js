@@ -55,7 +55,7 @@ function run () {
         it("is broken again", () => {
             assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
         });
-    })
+    });
     describe("dev-version - compare", () => {
         const small = "0.0.1-dev-123";
         const big = "1.0.0-rc-123";

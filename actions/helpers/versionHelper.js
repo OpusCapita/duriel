@@ -154,6 +154,12 @@ async function bumpVersion(version, bumpLevel = "patch") {
  * @returns  number
  */
 function compareVersion(a, b) {
+    if (!a && !b)
+        return 0;
+    if (!a)
+        return -5;
+    if (!b)
+        return 5;
     const aSplit = splitIntoParts(a);
     const bSplit = splitIntoParts(b);
 

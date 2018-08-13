@@ -3,8 +3,8 @@
  * @class
  */
 class EpicLogger {
-    constructor() {
-        this.logLevel = EpicLogger.getEnvLogLevel();
+    constructor(config = {andariel_loglevel: 'info'}) {
+        this.logLevel = EpicLogger.getEnvLogLevel(config);
         this.severe = (msg, obj) => this.log('severe', msg, null, obj, EpicLogger.getColors().CYAN);
         this.debug = (msg, obj) => this.log('debug', msg, null, obj, EpicLogger.getColors().GREEN);
         this.info = (msg, obj) => this.log('info', msg, null, obj, EpicLogger.getColors().WHITE);
@@ -24,8 +24,13 @@ class EpicLogger {
         ];
     }
 
-    static getEnvLogLevel() {
-        return process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
+    static getEnvLogLevel(config) {
+        let result;
+        if(config)
+            result = config.andariel_loglevel;
+        if(!result)
+            result =  process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
+        return result;
     }
 
     static getColors(){

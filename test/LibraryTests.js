@@ -23,7 +23,7 @@ const dummyPackageJson = {
 module.exports.run = run;
 
 async function run() {
-    describe("Library Tests", () => {
+    describe("Dependency Tests", () => {
         let proxy;
         before(async () => {
             const proxyConfig = require('../envInfo').develop;
@@ -228,6 +228,93 @@ async function run() {
                     assert.equal(versionValidator.concludeValidationResult(validations), true);
                 })
             })
+        });
+        describe("Library loading", () => {
+            const packageJson = {
+                "dependencies": {
+                    "sequelize": "0.0.0",
+                    "@opuscapita/config": "1.0.0"
+                }
+            };
+            it("loads valid dependencies", async () => {
+                const serviceDependencies = {
+                    "servicenow-integration": "0.0.0"
+                };
+                const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
+                assert.equal(result.errors.length, 0);
+                assert.equal(result.passing.length, 1);
+            });
+            it("loads from a missing service", async () => {
+                const serviceDependencies = {
+                    "servicenow-integration": "0.0.0",
+                    "delPocko": "2.3.4"
+                };
+                const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
+                assert.equal(result.errors.length > 0, true);
+                //log.info(result);
+            });
+
+            it("loads invalid library dependency", async () => {
+                const serviceDependencies = {
+                    "servicenow-integration": "0.0.0",
+                    "delPocko": "0.8.15"
+                };
+                const packageJson = {
+                    "dependencies": {
+                        "sequelize": "0.0.0"
+                    }
+                };
+                const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
+                assert.equal(result.errors.length > 0, true);
+            });
+
+            it("renders library check results", async () => {
+                const checkResult = {
+                    "validations": [
+                        {
+                            "name": "ServiceValidation",
+                            "errors": [
+                                {
+                                    "service": "dummy",
+                                    "expected": "999.999.999",
+                                    "deployed": "1.0.0-dev-261"
+                                }
+                            ],
+                            "passing": [
+                                {
+                                    "service": "logstash",
+                                    "expected": "0.999.999",
+                                    "deployed": "1.0.0-dev-261"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "LibraryValidation",
+                            "errors": [
+                                {
+                                    "library": "lodash",
+                                    "expected": "999.999.999",
+                                    "installed": "1.0.0-dev-261",
+                                    "service": "dummy",
+                                    "reason": "Do not use lodash!"
+                                }
+                            ],
+                            "passing": [
+                                {
+                                    "library": "sequelize",
+                                    "expected": "0.0.0",
+                                    "installed": "1.0.0-dev-261",
+                                    "service": "humpalumpa",
+                                    "reason": "You received the golden ticket!"
+                                }
+                            ]
+                        }
+                    ],
+                    "success": false
+                };
+                const rendered = await versionValidator.renderVersionValidationResult(checkResult);
+                log.info(rendered)
+            });
         });
     });
 }
