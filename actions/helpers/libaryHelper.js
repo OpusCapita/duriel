@@ -126,6 +126,16 @@ function checkServiceDependencies(expectedVersions, deployedVersions) {
     return result;
 }
 
+/**
+ * Checks library dependencies of a service.
+ * Loads the task_template of services via EnvProxy.
+ * Then checks all library dependencies from the task_templates
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @param serviceDependencies {object} aggregated entries from task_template.json
+ * @param packageJson {object} content of package.json
+ * @returns {Promise<{errors: Array, passing: Array}>}
+ */
 async function checkLibraryDependencies(config, proxy, serviceDependencies, packageJson) {
     const result = {errors: [], passing: []};
     for (const service in serviceDependencies) {
@@ -204,7 +214,19 @@ class ServiceCheckEntry {
     }
 }
 
+/**
+ * Simple holder of library check information
+ * @class
+ */
 class LibraryCheckEntry {
+    /**
+     * Get an entry
+     * @param library
+     * @param expected
+     * @param installed
+     * @param service
+     * @param reason
+     */
     constructor(library, expected, installed = '-', service, reason = '-') {
         this.library = library;
         this.expected = expected;

@@ -24,7 +24,6 @@ async function checkVersionDependencies(config, proxy) {
         log.error("version validation failed!: ", output);
         throw new Error("version validation failed!");
     }
-
 }
 
 /**
@@ -77,7 +76,6 @@ function renderVersionValidationResult(validations) {
 }
 
 function concludeValidationResult(validations) {
-
     return validations.reduce((reduced, current) => reduced && (!current.errors || !current.errors.length), true);
 }
 
