@@ -137,6 +137,7 @@ function checkServiceDependencies(expectedVersions, deployedVersions) {
  * @returns {Promise<{errors: Array, passing: Array}>}
  */
 async function checkLibraryDependencies(config, proxy, serviceDependencies, packageJson) {
+    log.info("Checking library-dependencies of services: ", serviceDependencies);
     const result = {errors: [], passing: []};
     for (const service in serviceDependencies) {
         const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
@@ -156,6 +157,8 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
                     result.passing.push(entry);
                 }
             }
+        else
+            log.info(`service '${service}' has no library dependencies`);
     }
     return result
 }
