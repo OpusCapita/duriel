@@ -76,7 +76,7 @@ const exec = async function () {
 
         log.info("Checking version dependencies... ");
         await versionValidator.checkVersionDependencies(config, proxy)
-            .catch(e => log.error(e));  // remove me!
+            .catch(e => log.error("Error while checking dependencies", e));  // remove me!
         log.info("... finished checking version dependencies");
 
 
