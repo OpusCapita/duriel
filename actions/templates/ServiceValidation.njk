@@ -5,7 +5,7 @@
         |{{ padBoth('Service', '.', length) }}|{{ padBoth( 'Expected', '.', length) }}|{{ padBoth('Deployed', '.', length) }}|
         {{ padLeft('', '-', length * 3 + 4) }}
     {% for error in errors %}
-        |{{ padLeft(error.service, '.', length) }}|{{ padLeft(error.expected, '.', length) }}|{{ padLeft(error.deployed, '.', length) }}|
+    |{{ padLeft(error.service, '.', length) }}|{{ padLeft(error.expected, '.', length) }}|{{ padLeft(error.deployed, '.', length) }}|
     {% endfor %}
     {% endif %}
     {% if passing | length %}
@@ -14,6 +14,6 @@
         |{{ padBoth('Service', '.', length) }}|{{ padBoth( 'Expected', '.', length) }}|{{ padBoth('Deployed', '.', length) }}|
         {{ padLeft('', '-', length * 3 + 4) }}
     {% for it in passing %}
-        |{{ padLeft(it.service, '.', length) }}|{{ padLeft(it.expected, '.', length) }}|{{ padLeft(it.deployed, '.', length) }}|
+    |{{ padLeft(it.service, '.', length) }}|{{ padLeft(it.expected, '.', length) }}|{{ padLeft(it.deployed, '.', length) }}|
     {% endfor %}
     {% endif %}
