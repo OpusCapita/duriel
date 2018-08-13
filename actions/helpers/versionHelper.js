@@ -11,7 +11,7 @@ const VERSION_FILE = "VERSION";
 const fileHelper = require('../filehandling/fileHandler');
 
 const validBumpLevels = ["major", "minor", "patch"];
-const versionRegex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)(-dev-(\d)+)?(-rc-(\d)+)?(-hf-(\d)+)?$/;
+const versionRegex = /^[\^\~]?([0-9]+\.)([0-9]+\.)([0-9]+)(-dev-(\d)+)?(-rc-(\d)+)?(-hf-(\d)+)?$/;
 const devVersionSplitter = new RegExp(/(-dev-)?(-rc-)?(-hf-)?/);
 
 module.exports = {
@@ -160,6 +160,7 @@ function compareVersion(a, b) {
         return -5;
     if (!b)
         return 5;
+
     const aSplit = splitIntoParts(a);
     const bSplit = splitIntoParts(b);
 
@@ -203,7 +204,7 @@ function splitIntoParts(version) {
     }
     const result = {};
     const mainVersionPart = version.split(".");
-    result.major = parseInt(mainVersionPart[0]);
+    result.major = parseInt(mainVersionPart[0].replace(/[\^\~]/, ""));
     result.minor = parseInt(mainVersionPart[1]);
     const patchSplit = mainVersionPart[2].split(devVersionSplitter);
     result.patch = parseInt(patchSplit[0]);

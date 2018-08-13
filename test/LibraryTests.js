@@ -238,9 +238,11 @@ async function run() {
             };
             it("loads valid dependencies", async () => {
                 const serviceDependencies = {
-                    "servicenow-integration": "0.0.0"
+                    "servicenow-integration": "0.0.0",
+                    "email": "0.0.0"
                 };
                 const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
+                log.info("valid: ", result)
                 assert.equal(result.errors.length, 0);
                 assert.equal(result.passing.length, 1);
             });
@@ -301,19 +303,21 @@ async function run() {
                             ],
                             "passing": [
                                 {
-                                    "library": "sequelize",
+                                    "library": "@opuscapita/config",
                                     "expected": "0.0.0",
-                                    "installed": "1.0.0-dev-261",
-                                    "service": "humpalumpa",
-                                    "reason": "You received the golden ticket!"
+                                    "installed": "1.0.0",
+                                    "service": "servicenow-integration",
+                                    "reason": "-"
                                 }
                             ]
                         }
                     ],
                     "success": false
                 };
-                const rendered = await versionValidator.renderVersionValidationResult(checkResult);
-                log.info(rendered)
+                assert.doesNotThrow(async () => {
+                    const rendered = await versionValidator.renderVersionValidationResult(checkResult);
+                    //log.info(rendered)
+                })
             });
         });
     });

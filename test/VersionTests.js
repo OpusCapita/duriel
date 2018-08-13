@@ -2,7 +2,7 @@
 const assert = require("assert");
 const versionHelper = require("../actions/helpers/versionHelper");
 
-function run () {
+function run() {
     describe("version - bump", () => {
         it("bump - major", async () => {
             const version = "1.2.3";
@@ -42,12 +42,18 @@ function run () {
 
         it("is greater", () => {
             assert.equal(versionHelper.compareVersion(big, small) > 0, true)
+            assert.equal(versionHelper.compareVersion(`^${big}`, small) > 0, true);
+            assert.equal(versionHelper.compareVersion(`~${big}`, small) > 0, true);
         });
         it("is lower", () => {
             assert.equal(versionHelper.compareVersion(small, big) < 0, true)
+            assert.equal(versionHelper.compareVersion(small, `^${big}`) < 0, true);
+            assert.equal(versionHelper.compareVersion(small, `~${big}`) < 0, true);
         });
         it("is equal", () => {
             assert.equal(versionHelper.compareVersion(big, big) === 0, true)
+            assert.equal(versionHelper.compareVersion(big, `~${big}`) === 0, true)
+            assert.equal(versionHelper.compareVersion(big, `^${big}`) === 0, true)
         });
         it("is broken", () => {
             assert.throws(() => versionHelper.compareVersion(broken, small), Error, "")
@@ -55,6 +61,11 @@ function run () {
         it("is broken again", () => {
             assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
         });
+        it("has a crazy prefixes", () => {
+
+            assert.equal(versionHelper.compareVersion(`^${big}`, small) > 0, true);
+            assert.equal(versionHelper.compareVersion(`~${big}`, small) > 0, true);
+        })
     });
     describe("dev-version - compare", () => {
         const small = "0.0.1-dev-123";
@@ -78,4 +89,5 @@ function run () {
         });
     })
 }
+
 module.exports.run = run;
