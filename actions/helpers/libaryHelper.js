@@ -11,6 +11,8 @@ const versionHelper = require('./versionHelper');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
+const {ServiceCheckEntry, LibraryCheckEntry} = require('../classes/VersionValidation');
+
 const extend = require('extend');
 /**
  * Key inside the task_template for the service-dependencies
@@ -161,7 +163,7 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
                     log.warn(`Version of '${library}' is incompatible`);
                     result.errors.push(entry);
                 } else {
-                    log.info(`Version of '${library }' is compatible`)
+                    log.info(`Version of '${library }' is compatible`);
                     result.passing.push(entry);
                 }
             }
@@ -204,45 +206,7 @@ module.exports = {
     fetchServiceVersionDependencies,
     checkLibraryDependencies,
     loadServiceVersionsFromEnv,
-    checkServiceDependencies
+    checkServiceDependencies,
+    ServiceCheckEntry,
+    LibraryCheckEntry
 };
-
-/**
- * Simple holder of check information
- * @class
- */
-class ServiceCheckEntry {
-    /**
-     * Get a resultEntry
-     * @param service
-     * @param expected
-     * @param deployed
-     */
-    constructor(service, expected, deployed) {
-        this.service = service;
-        this.expected = expected;
-        this.deployed = deployed;
-    }
-}
-
-/**
- * Simple holder of library check information
- * @class
- */
-class LibraryCheckEntry {
-    /**
-     * Get an entry
-     * @param library
-     * @param expected
-     * @param installed
-     * @param service
-     * @param reason
-     */
-    constructor(library, expected, installed = '-', service, reason = '-') {
-        this.library = library;
-        this.expected = expected;
-        this.installed = installed;
-        this.service = service;
-        this.reason = reason;
-    }
-}

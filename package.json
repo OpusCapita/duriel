@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/OpusCapita/duriel#readme",
   "dependencies": {
+    "ascii-table": "0.0.9",
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
     "extend": "^3.0.1",

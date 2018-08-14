@@ -11,6 +11,7 @@ const log = new EpicLogger();
 const utilHelper = require('./helpers/utilHelper');
 const nunjucks = require('nunjucks');
 
+const AsciiTable = require('ascii-table');
 const extend = require('extend');
 
 async function checkVersionDependencies(config, proxy) {
@@ -59,19 +60,31 @@ async function validateVersionDependencies(config, proxy) {
 }
 
 function renderVersionValidationResult(validations) {
-    log.debug("validations: ", validations);
-    let result = "";
-    nunjucks.configure({autoescape: true, trimBlocks: true});
-    for (const validation of validations.validations) {
-        const functions = {
-            length: utilHelper.getLongestStringInObject(validation),
-            padLeft: utilHelper.padLeft,
-            padBoth: utilHelper.padBoth
-        };
+    let entries = [];
 
-        result += nunjucks.render(`${__dirname}/templates/${validation.name}.njk`, extend(true, {}, validation, functions));
+    for (const validation of validations.validations) {
+        if (validation.passing.length) {
+            const table = AsciiTable.factory({
+                title: `${validation.name} Passing`,
+                heading: validation.passing[0].getDataHeader(),
+                rows: validation.passing.map(it => it.asDataRow())
+
+            });
+            table.setBorder(undefined, undefined, undefined, '|');
+            entries.push(table.toString())
+        }
+        if (validation.errors.length) {
+            const table = AsciiTable.factory({
+                title: `${validation.name} Passing`,
+                heading: validation.errors[0].getDataHeader(),
+                rows: validation.errors.map(it => it.asDataRow()),
+                border: {bottom: 'p'}
+            });
+            table.setBorder(undefined, undefined, undefined, '|');
+            entries.push(table.toString());
+        }
     }
-    return result
+    return nunjucks.render(`${__dirname}/templates/ValidationSummary.njk`, {entries});
 
 }
 

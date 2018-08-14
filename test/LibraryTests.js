@@ -174,18 +174,10 @@ async function run() {
                             {
                                 "name": "ServiceValidation",
                                 "errors": [
-                                    {
-                                        "service": "dummy",
-                                        "expected": "999.999.999",
-                                        "deployed": "1.0.0-dev-261"
-                                    }
+                                    new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')
                                 ],
                                 "passing": [
-                                    {
-                                        "service": "logstash",
-                                        "expected": "0.999.999",
-                                        "deployed": "1.0.0-dev-261"
-                                    }
+                                    new libraryHelper.ServiceCheckEntry('lodash', '0.999.999', '1.0.0')
                                 ]
                             }
                         ],
@@ -200,11 +192,7 @@ async function run() {
                         {
                             "name": "ServiceValidation",
                             "errors": [
-                                {
-                                    "service": "dummy",
-                                    "expected": "999.999.999",
-                                    "deployed": "1.0.0-dev-261"
-                                }
+                                new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')
                             ],
                             "passing": []
                         }
@@ -216,11 +204,7 @@ async function run() {
                         {
                             "name": "ServiceValidation",
                             "passing": [
-                                {
-                                    "service": "dummy",
-                                    "expected": "999.999.999",
-                                    "deployed": "1.0.0-dev-261"
-                                }
+                                new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')
                             ],
                             "errors": []
                         }
@@ -273,39 +257,19 @@ async function run() {
                         {
                             "name": "ServiceValidation",
                             "errors": [
-                                {
-                                    "service": "dummy",
-                                    "expected": "999.999.999",
-                                    "deployed": "1.0.0-dev-261"
-                                }
+                                new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')
                             ],
                             "passing": [
-                                {
-                                    "service": "logstash",
-                                    "expected": "0.999.999",
-                                    "deployed": "1.0.0-dev-261"
-                                }
+                                new libraryHelper.ServiceCheckEntry('sequelize', '0.999.999', '1.0.0')
                             ]
                         },
                         {
                             "name": "LibraryValidation",
                             "errors": [
-                                {
-                                    "library": "lodash",
-                                    "expected": "999.999.999",
-                                    "installed": "1.0.0-dev-261",
-                                    "service": "dummy",
-                                    "reason": "Do not use lodash!"
-                                }
+                                new libraryHelper.LibraryCheckEntry('lodash', '999.999.999', '1.0.0-dev-261', 'dummy', 'do not use this!')
                             ],
                             "passing": [
-                                {
-                                    "library": "@opuscapita/config",
-                                    "expected": "0.0.0",
-                                    "installed": "1.0.0",
-                                    "service": "servicenow-integration",
-                                    "reason": "-"
-                                }
+                                new libraryHelper.LibraryCheckEntry('@opuscapita/config', '0.0.0', '1.0.0', 'servicenow-integration', '-')
                             ]
                         }
                     ],
