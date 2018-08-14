@@ -339,7 +339,7 @@ class EnvProxy {
             throw new Error('service missing');
         return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
             .then(response => {
-                log.debug(`docker service ps ${service}`, response);
+                log.severe(`docker service ps ${service}`, response);
                 return response.split('\n').map(
                     row => {
                         let split = row.split(semicolon_splitter);

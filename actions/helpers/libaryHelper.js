@@ -143,10 +143,10 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
     const result = {errors: [], passing: []};
     for (const service in serviceDependencies) {
 
-        log.warn(`checking libs of service '${service}'`);
+        log.info(`checking libs of service '${service}'`);
         const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
             .catch(e => {
-                result.errors.push(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message))
+                result.errors.push(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message));
                 return undefined;
             });
 
