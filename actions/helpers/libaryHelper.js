@@ -142,9 +142,15 @@ function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
  */
 function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
     const result = {errors: [], passing: []};
+
+    if (require('fs').existsSync('package.json'))
+        proxy.executeCommand_L('npm install');
+    else
+        return result;
+
     fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/)
         .map(it => {
-            const fileContent = fileHelper.loadFile2Object(it)
+            const fileContent = fileHelper.loadFile2Object(it);
             return {
                 dependencies: fileContent.serviceDependencies,
                 origin: fileContent.name || path.dirname(it).split(path.sep).pop()
