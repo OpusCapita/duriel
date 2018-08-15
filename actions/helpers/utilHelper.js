@@ -111,9 +111,8 @@ function arrayMinus(array1, array2) {
 
 function arrayIntersect(...arrays){
     let result = arrays[0];
-    for(let i = 0; i < arrays.length; i++){
-        result = twoArrayIntersect(result, arrays[i])
-        console.log(result);
+    for(let i = 1; i < arrays.length; i++){
+        result = twoArrayIntersect(result, arrays[i]);
     }
     return result;
 }

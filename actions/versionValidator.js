@@ -67,11 +67,10 @@ function renderVersionValidationResult(validations) {
     let entries = [];
 
     for (const validation of validations.validations) {
-        const cols = utilHelper.arrayIntersect(...validation.passing.map(it => it.getDataHeader().filter(key => it[key])));
         if (validation.passing.length) {
             const table = AsciiTable.factory({
                 title: `${validation.name} Passing`,
-                heading: cols,
+                heading: validation.passing[0].getDataHeader(),
                 rows: validation.passing.map(it => it.asDataRow())
 
             });

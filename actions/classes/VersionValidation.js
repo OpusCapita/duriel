@@ -69,7 +69,7 @@ class LibraryCheckEntry extends BaseCheckEntry {
      * @param service
      * @param reason
      */
-    constructor(library, expected, installed = '-', service, reason = '-') {
+    constructor(library, expected, installed = '-', service, reason) {
         super();
         this.library = library;
         this.expected = expected;
