@@ -48,7 +48,7 @@ async function validateVersionDependencies(config, proxy) {
     result.validations.push(s2sValidationResult);
 
     const library2serviceValidation = await libraryHelper.checkLibrary2ServiceDependencies(config, proxy, deployedServiceVersions);
-    const l2sValidationResult = extend(true, {}, {name: "Library2ServiceValidation"}, library2serviceValidation)
+    const l2sValidationResult = extend(true, {}, {name: "Library2ServiceValidation"}, library2serviceValidation);
 
     result.validations.push(l2sValidationResult);
 
