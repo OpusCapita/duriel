@@ -84,6 +84,8 @@ function getFilesInDir(path, regex) {
     path = pathJs.resolve(path);
     const fileFilter = new RegExp(regex);
     let result = [];
+    if(!fs.existsSync(path))
+        return result;
     const current = fs.readdirSync(path);
     current.forEach(file => {
         const entry = pathJs.join(path, file);

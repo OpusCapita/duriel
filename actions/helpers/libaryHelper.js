@@ -15,7 +15,7 @@ const {ServiceCheckEntry, LibraryCheckEntry} = require('../classes/VersionValida
 
 const extend = require('extend');
 
-const path = require("path")
+const path = require("path");
 /**
  * Key inside the task_template for the service-dependencies
  * @type {string}
@@ -140,12 +140,15 @@ function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
  * @returns {object}
  * @example {errors: Array<ServiceCheckEntry>, passing: Array<ServiceCheckEntry>}
  */
-function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
+async function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
     const result = {errors: [], passing: []};
 
-    if (require('fs').existsSync('package.json'))
-        proxy.executeCommand_L('npm install');
-    else
+    if (require('fs').existsSync('package.json')) {
+        log.info("installing npm packages to collect library2service dependencies...");
+        const output = await proxy.executeCommand_L('npm install');
+        log.severe(output);
+        log.debug("...finished installing packages.")
+    } else
         return result;
 
     fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/)
