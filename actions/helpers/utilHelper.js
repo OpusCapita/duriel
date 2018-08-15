@@ -61,7 +61,7 @@ const padBoth = function (input, character, length) {
 };
 
 function isEqual(obj1, obj2) {
-    if (Array.isArray(obj1) && Array.isArray(obj1)) {
+    if (Array.isArray(obj1) && Array.isArray(obj2)) {
         for (const arrayEntry1 of obj1) {
             for (const arrayEntry2 of obj2) {
                 if (!isEqual(arrayEntry1, arrayEntry2)) {
@@ -109,7 +109,16 @@ function arrayMinus(array1, array2) {
     return result;
 }
 
-function arrayIntersect(array1, array2) {
+function arrayIntersect(...arrays){
+    let result = arrays[0];
+    for(let i = 0; i < arrays.length; i++){
+        result = twoArrayIntersect(result, arrays[i])
+        console.log(result);
+    }
+    return result;
+}
+
+function twoArrayIntersect(array1, array2) {
     const result = [];
     for (const entry1 of array1) {
         for (const entry2 of array2) {
@@ -117,6 +126,7 @@ function arrayIntersect(array1, array2) {
                 result.push(entry1);
         }
     }
+
     return result;
 }
 

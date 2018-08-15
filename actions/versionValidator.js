@@ -40,21 +40,25 @@ async function validateVersionDependencies(config, proxy) {
         validations: []
     };
 
-    const serviceValidation = await libraryHelper.checkServiceDependencies(serviceDependencies, deployedServiceVersions);
-    const serviceValidationResult = extend(true, {},
-        {name: "ServiceValidation",},
-        serviceValidation
+    const service2serviceValidation = await libraryHelper.checkService2ServiceDependencies(serviceDependencies, deployedServiceVersions);
+    const s2sValidationResult = extend(true, {},
+        {name: "Service2ServiceValidation"},
+        service2serviceValidation
     );
-    result.validations.push(serviceValidationResult);
+    result.validations.push(s2sValidationResult);
 
-    const libraryValidation = await libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
-    const libraryValidationResult = extend(true, {},
-        {name: "LibraryValidation",},
-        libraryValidation
+    const library2serviceValidation = await libraryHelper.checkLibrary2ServiceDependencies(config, proxy, deployedServiceVersions);
+    const l2sValidationResult = extend(true, {}, {name: "Library2ServiceValidation"}, library2serviceValidation)
+
+    result.validations.push(l2sValidationResult);
+
+    const service2libraryValidation = await libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
+    const s2lValidationResult = extend(true, {},
+        {name: "Service2LibraryValidation"},
+        service2libraryValidation
     );
 
-    result.validations.push(libraryValidationResult);
-
+    result.validations.push(s2lValidationResult);
     result.success = await concludeValidationResult(result.validations);
     return result;
 }
@@ -63,10 +67,11 @@ function renderVersionValidationResult(validations) {
     let entries = [];
 
     for (const validation of validations.validations) {
+        const cols = utilHelper.arrayIntersect(...validation.passing.map(it => it.getDataHeader().filter(key => it[key])));
         if (validation.passing.length) {
             const table = AsciiTable.factory({
                 title: `${validation.name} Passing`,
-                heading: validation.passing[0].getDataHeader(),
+                heading: cols,
                 rows: validation.passing.map(it => it.asDataRow())
 
             });
@@ -75,16 +80,17 @@ function renderVersionValidationResult(validations) {
         }
         if (validation.errors.length) {
             const table = AsciiTable.factory({
-                title: `${validation.name} Passing`,
+                title: `${validation.name} Failing`,
                 heading: validation.errors[0].getDataHeader(),
-                rows: validation.errors.map(it => it.asDataRow()),
-                border: {bottom: 'p'}
+                rows: validation.errors.map(it => it.asDataRow())
             });
             table.setBorder(undefined, undefined, undefined, '|');
             entries.push(table.toString());
         }
     }
-    return nunjucks.render(`${__dirname}/templates/ValidationSummary.njk`, {entries});
+    const result = nunjucks.render(`${__dirname}/templates/ValidationSummary.njk`, {entries});
+    //log.info("", result);
+    return result;
 
 }
 

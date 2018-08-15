@@ -50,6 +50,32 @@ function run() {
                 assert.ok((end - start - 1000) < 100);
             });
         });
+        describe("array intersect", () => {
+            const a = [1, 2, 3];
+            const b = [2, 4, {a: 2}];
+            const c = [1, 3, [4]];
+            const d = [1, 3, 6, [4]];
+
+            it("intersects two", () => {
+                const expected = [2];
+                assert.deepEqual(utilHelper.arrayIntersect(a, b), expected);
+            });
+
+            it("intersects three with empty result", () => {
+                const expected = [];
+                assert.deepEqual(utilHelper.arrayIntersect(a, b, c), expected)
+            });
+
+            it("intersect three", () => {
+                const expected = [1, 3];
+                assert.deepEqual(utilHelper.arrayIntersect(a, c, d), expected)
+            });
+            it("intersect with deep equals", () => {
+                const expected = [1, 3, [4]];
+                assert.deepEqual(utilHelper.arrayIntersect(c, d), expected)
+
+            })
+        });
         describe("logger", () => {
             const EpicLogger = require('../EpicLogger');
             it("padding strings", () => {

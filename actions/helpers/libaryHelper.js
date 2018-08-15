@@ -14,6 +14,8 @@ const log = new EpicLogger();
 const {ServiceCheckEntry, LibraryCheckEntry} = require('../classes/VersionValidation');
 
 const extend = require('extend');
+
+const path = require("path")
 /**
  * Key inside the task_template for the service-dependencies
  * @type {string}
@@ -90,7 +92,7 @@ function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
  */
 async function loadServiceVersionsFromEnv(proxy, services) {
     return await proxy.getServices_E()
-        .then(servicesOnEnv => servicesOnEnv.filter(it => services.includes(it.name)))
+    //.then(servicesOnEnv => servicesOnEnv.filter(it => services.includes(it.name)))
         .then(filteredServices => {
             const result = {};
             filteredServices.forEach(it => result[it.name] = it.image_version);
@@ -104,7 +106,7 @@ async function loadServiceVersionsFromEnv(proxy, services) {
  * @param deployedVersions
  * @returns {{errors: Array, passing: Array}}
  */
-function checkServiceDependencies(expectedVersions, deployedVersions) {
+function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
     const result = {errors: [], passing: []};
 
     for (const service in expectedVersions) {
@@ -125,6 +127,42 @@ function checkServiceDependencies(expectedVersions, deployedVersions) {
         }
     }
     result.success = result.errors.length === 0;
+    return result;
+}
+
+/**
+ * extracts "andariel_dependencies.json" from the node_modules dir.
+ * e.g. {"name": "service-client", "serviceDependencies": {"supplier": "0.0.0"}}
+ * checks the service dependencies from those files.
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @param deployedServices {object} - e.g. {"supplier": "1.1.1", "customer": "2.2.2"}
+ * @returns {object}
+ * @example {errors: Array<ServiceCheckEntry>, passing: Array<ServiceCheckEntry>}
+ */
+function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
+    const result = {errors: [], passing: []};
+    fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/)
+        .map(it => {
+            const fileContent = fileHelper.loadFile2Object(it)
+            return {
+                dependencies: fileContent.serviceDependencies,
+                origin: fileContent.name || path.dirname(it).split(path.sep).pop()
+            }
+        })
+        .forEach(libEntry => {
+            for (const entry in libEntry.dependencies) {
+                const deployedVersion = deployedServices[entry];
+                const expectedVersion = libEntry.dependencies[entry];
+                const compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
+                if (compareResult < 0) {
+                    log.warn(`Version of '${service}' is incompatible`);
+                    result.errors.push(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, libEntry.origin))
+                } else {
+                    result.passing.push(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, libEntry.origin))
+                }
+            }
+        });
     return result;
 }
 
@@ -206,7 +244,8 @@ module.exports = {
     fetchServiceVersionDependencies,
     checkLibraryDependencies,
     loadServiceVersionsFromEnv,
-    checkServiceDependencies,
+    checkService2ServiceDependencies,
+    checkLibrary2ServiceDependencies,
     ServiceCheckEntry,
     LibraryCheckEntry
 };

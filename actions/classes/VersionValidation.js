@@ -13,8 +13,8 @@ class BaseCheckEntry {
      * returns the names of all fields that are not a function.
      * @returns {string[]}
      */
-    getDataFields(){
-        return Object.keys(this).filter(key => typeof this[key] !== "function")
+    getDataFields() {
+        return Object.keys(this).filter(key => typeof this[key] !== "function");
     }
 
     /**
@@ -39,18 +39,19 @@ class BaseCheckEntry {
  * @extends BaseCheckEntry
  * @class
  */
-class ServiceCheckEntry extends BaseCheckEntry{
+class ServiceCheckEntry extends BaseCheckEntry {
     /**
      * Get a resultEntry
      * @param service
      * @param expected
      * @param deployed
      */
-    constructor(service, expected, deployed) {
+    constructor(service, expected, deployed, origin) {
         super();
         this.service = service;
         this.expected = expected;
         this.deployed = deployed;
+        this.origin = origin;
     }
 }
 

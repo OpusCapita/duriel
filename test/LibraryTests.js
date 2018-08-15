@@ -107,21 +107,21 @@ async function run() {
                         sequelize: "2.2.2",
                         extend: "1.1.1"
                     };
-                    assert.equal(libraryHelper.checkServiceDependencies(expected, deployed).success, true);
+                    assert.equal(libraryHelper.checkService2ServiceDependencies(expected, deployed).success, true);
                 });
                 it("passing check", () => {
                     const expected = {
                         sequelize: "2.2.2",
                         extend: "0.5.1"
                     };
-                    assert.equal(libraryHelper.checkServiceDependencies(expected, deployed).success, true);
+                    assert.equal(libraryHelper.checkService2ServiceDependencies(expected, deployed).success, true);
                 });
                 it("invalid version deployed", () => {
                     const expected = {
                         sequelize: "2.2.2",
                         extend: "2.1.1"
                     };
-                    const result = libraryHelper.checkServiceDependencies(expected, deployed);
+                    const result = libraryHelper.checkService2ServiceDependencies(expected, deployed);
                     assert.equal(result.success, false);
                 });
                 it("missing service", () => {
@@ -129,7 +129,7 @@ async function run() {
                         sequelize: "2.2.2",
                         delPockoLib: "1.2.3"
                     };
-                    const result = libraryHelper.checkServiceDependencies(expected, deployed);
+                    const result = libraryHelper.checkService2ServiceDependencies(expected, deployed);
                     assert.equal(result.success, false);
                 })
             });
@@ -255,7 +255,7 @@ async function run() {
                 const checkResult = {
                     "validations": [
                         {
-                            "name": "ServiceValidation",
+                            "name": "Service2ServiceValidation",
                             "errors": [
                                 new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')
                             ],
@@ -264,7 +264,16 @@ async function run() {
                             ]
                         },
                         {
-                            "name": "LibraryValidation",
+                            "name": "Library2ServiceValidation",
+                            "errors": [
+                                new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0', 'service-client')
+                            ],
+                            "passing": [
+                                new libraryHelper.ServiceCheckEntry('sequelize', '0.999.999', '1.0.0', 'web-init')
+                            ]
+                        },
+                        {
+                            "name": "Library2LibraryValidation",
                             "errors": [
                                 new libraryHelper.LibraryCheckEntry('lodash', '999.999.999', '1.0.0-dev-261', 'dummy', 'do not use this!')
                             ],

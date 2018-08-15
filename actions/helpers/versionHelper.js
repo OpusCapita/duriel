@@ -20,7 +20,8 @@ module.exports = {
     // readVersionFile,
     // bumpAndCommitVersionFile,
     calculateImageTag,
-    //handleHotfixVersion
+    //handleHotfixVersion,
+    mergeVersionDependencies
 };
 
 /**
@@ -212,3 +213,26 @@ function splitIntoParts(version) {
     return result;
 }
 
+function mergeVersionDependencies(preferHigher = true, ...dependencies) {
+    const result = {};
+    const versionCheck = new RegExp(versionRegex);
+
+    for (const dependency of dependencies) {
+        for (const key in dependency) {
+            if(!versionCheck.test(dependency[key]))
+                throw new Error(`${dependency[key]} is not a valid version`);
+            if (result[key]) {
+                const versionComparison = compareVersion(result[key], dependency[key]);
+                if (preferHigher && versionComparison <= 0) {
+                    result[key] = dependency[key]
+                } else if (!preferHigher && versionComparison >= 0) {
+                    result[key] = dependency[key];
+                }
+            } else {
+                result[key] = dependency[key];
+            }
+        }
+    }
+    log.info(result);
+    return result;
+}

@@ -87,6 +87,37 @@ function run() {
         it("is broken again", () => {
             assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
         });
+    });
+    describe("version dependency merging", () => {
+        const a = {
+            supplier: "0.0.1",
+            tnt: "0.0.2-dev-12"
+        };
+        const b = {
+            supplier: "1.0.0",
+            dummy: "2.2.1-hf-123"
+        };
+        it("merges with higher", () => {
+            const result = {
+                supplier: "1.0.0",
+                tnt: "0.0.2-dev-12",
+                dummy: "2.2.1-hf-123"
+            };
+            const calculated = versionHelper.mergeVersionDependencies(true, a, b);
+            assert.deepEqual(result, calculated);
+        });
+        it("merges with lower", () => {
+            const result = {
+                supplier: "0.0.1",
+                tnt: "0.0.2-dev-12",
+                dummy: "2.2.1-hf-123"
+            };
+            const calculated = versionHelper.mergeVersionDependencies(false, a, b);
+            assert.deepEqual(result, calculated);
+        });
+        it("merges with broken versions", () => {
+            assert.throws(() => versionHelper.mergeVersionDependencies(false, "kevin", b), Error, "");
+        })
     })
 }
 
