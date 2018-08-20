@@ -79,7 +79,58 @@ class LibraryCheckEntry extends BaseCheckEntry {
     }
 }
 
+/**
+ * Holder class for check entries
+ * @class
+ */
+class CheckEntryHolder {
+    /**
+     * Get a Holder
+     * @param name  {string}
+     * @param passing {Array<BaseCheckEntry> | BaseCheckEntry}
+     * @param failing {Array<BaseCheckEntry> | BaseCheckEntry}
+     */
+    constructor(name, passing = [], failing = []) {
+        this.name = name;
+
+        if (Array.isArray(passing))
+            this.passing = passing;
+        else if (passing instanceof BaseCheckEntry)
+            this.passing = [passing];
+        else
+            throw new Error("passing has wrong type!");
+
+        if (Array.isArray(failing))
+            this.failing = failing;
+        else if (failing instanceof BaseCheckEntry)
+            this.failing = [failing];
+        else
+            throw new Error("failing has wrong type");
+
+        this.addFailingEntry = this.addFailingEntry.bind(this);
+        this.addPassingEntry = this.addPassingEntry.bind(this);
+        this.success = this.success.bind(this);
+    }
+
+    addPassingEntry(entry) {
+        if (entry instanceof BaseCheckEntry)
+            this.passing.push(entry);
+        else throw new Error("WRONG TYPE")
+    }
+
+    addFailingEntry(entry) {
+        if (entry instanceof BaseCheckEntry)
+            this.failing.push(entry);
+        else throw new Error("WRONG TYPE")
+    }
+
+    success() {
+        return this.failing.length === 0;
+    }
+}
+
 module.exports = {
     LibraryCheckEntry,
-    ServiceCheckEntry
-}
+    ServiceCheckEntry,
+    CheckEntryHolder
+};

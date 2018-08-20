@@ -11,7 +11,7 @@ const versionHelper = require('./versionHelper');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
-const {ServiceCheckEntry, LibraryCheckEntry} = require('../classes/VersionValidation');
+const {ServiceCheckEntry, LibraryCheckEntry, CheckEntryHolder} = require('../classes/VersionValidation');
 
 const extend = require('extend');
 
@@ -104,10 +104,10 @@ async function loadServiceVersionsFromEnv(proxy, services) {
  *
  * @param expectedVersions
  * @param deployedVersions
- * @returns {{errors: Array, passing: Array}}
+ * @returns {object} e.g. {failing: Array, passing: Array}
  */
 function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
-    const result = {errors: [], passing: []};
+    const result = new CheckEntryHolder("Service2ServiceDependencies");
 
     for (const service in expectedVersions) {
         const expectedVersion = expectedVersions[service];
@@ -115,18 +115,17 @@ function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
 
         if (!deployedVersion) {
             log.warn(`Service ${service} is not deployed`);
-            result.errors.push(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
+            result.addFailingEntry(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
         } else {
             const compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
             if (compareResult < 0) {
                 log.warn(`Version of '${service}' is incompatible`);
-                result.errors.push(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
+                result.addFailingEntry(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
             } else {
-                result.passing.push(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
+                result.addPassingEntry(new ServiceCheckEntry(service, expectedVersion, deployedVersion))
             }
         }
     }
-    result.success = result.errors.length === 0;
     return result;
 }
 
@@ -138,10 +137,10 @@ function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
  * @param proxy {EnvProxy}
  * @param deployedServices {object} - e.g. {"supplier": "1.1.1", "customer": "2.2.2"}
  * @returns {object}
- * @example {errors: Array<ServiceCheckEntry>, passing: Array<ServiceCheckEntry>}
+ * @example {failing: Array<ServiceCheckEntry>, passing: Array<ServiceCheckEntry>}
  */
 async function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
-    const result = {errors: [], passing: []};
+    const result = new CheckEntryHolder("Library2ServiceDependencies");
 
     if (require('fs').existsSync('package.json')) {
         log.info("installing npm packages to collect library2service dependencies...");
@@ -154,30 +153,30 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
     const dependencyFiles = fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/);
     log.debug("found andariel_dependencies.json-files: ", dependencyFiles);
 
-    dependencyFiles.map(it => {
-        const fileContent = fileHelper.loadFile2Object(it);
-        return {
-            dependencies: fileContent.serviceDependencies,
-            origin: fileContent.name || path.dirname(it).split(path.sep).pop()
-        }
-    }).forEach(libEntry => {
-        for (const entry in libEntry.dependencies) {
+    for (const file of dependencyFiles) {
+        const fileContent = fileHelper.loadFile2Object(file);
 
+        for (const entry in fileContent.serviceDependencies) {  // entry is name of a lib
             const deployedVersion = deployedServices[entry];
-            const expectedVersion = libEntry.dependencies[entry];
+            const expectedVersion = fileContent.serviceDependencies[entry];
             let compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
 
-            if(entry === 'consul') // TODO: implement proper solution for this crap.
+            if (entry === 'consul') {
+                const consulData = await proxy.lookupService('consul');
+                log.debug("Consul entry for 'consul'", consulData);
                 compareResult = 9001;   // IT IS OVER 9000!!!
+            }
 
             if (compareResult < 0) {
                 log.warn(`Version of '${entry}' is incompatible`);
-                result.errors.push(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, libEntry.origin))
+                result.addFailingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, fileContent.name))
             } else {
-                result.passing.push(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, libEntry.origin))
+                result.addPassingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, fileContent.name))
             }
+
         }
-    });
+    }
+
     return result;
 }
 
@@ -189,17 +188,17 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
  * @param proxy {EnvProxy}
  * @param serviceDependencies {object} aggregated entries from task_template.json
  * @param packageJson {object} content of package.json
- * @returns {Promise<{errors: Array, passing: Array}>}
+ * @returns {Promise<{failing: Array, passing: Array}>}
  */
 async function checkLibraryDependencies(config, proxy, serviceDependencies, packageJson) {
     log.info("Checking library-dependencies of services: ", serviceDependencies);
-    const result = {errors: [], passing: []};
+    const result = new CheckEntryHolder("Library2ServiceDependencies");
     for (const service in serviceDependencies) {
 
         log.info(`checking libs of service '${service}'`);
         const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
             .catch(e => {
-                result.errors.push(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message));
+                result.addFailingEntry(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message));
                 return undefined;
             });
 
@@ -214,10 +213,10 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
 
                 if (compareResult < 0) {
                     log.warn(`Version of '${library}' is incompatible`);
-                    result.errors.push(entry);
+                    result.addFailingEntry(entry);
                 } else {
                     log.info(`Version of '${library }' is compatible`);
-                    result.passing.push(entry);
+                    result.addPassingEntry(entry);
                 }
             }
         else
@@ -262,5 +261,6 @@ module.exports = {
     checkService2ServiceDependencies,
     checkLibrary2ServiceDependencies,
     ServiceCheckEntry,
-    LibraryCheckEntry
+    LibraryCheckEntry,
+    CheckEntryHolder
 };

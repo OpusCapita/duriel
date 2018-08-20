@@ -17,11 +17,9 @@ const devVersionSplitter = new RegExp(/(-dev-)?(-rc-)?(-hf-)?/);
 module.exports = {
     bumpVersion,
     compareVersion,
-    // readVersionFile,
-    // bumpAndCommitVersionFile,
     calculateImageTag,
-    //handleHotfixVersion,
-    mergeVersionDependencies
+    mergeVersionDependencies,
+    validateVersion
 };
 
 /**
@@ -200,7 +198,7 @@ function createBumpedVersion(version, bumpLevel) {
  * @param version {object} (e.g. {major: 1, minor: 2, patch: 3})
  */
 function splitIntoParts(version) {
-    if (!new RegExp(versionRegex).test(version)) {
+    if (!validateVersion(version)) {
         throw new Error(`Invalid version-format '${version}'`);
     }
     const result = {};
@@ -215,11 +213,9 @@ function splitIntoParts(version) {
 
 function mergeVersionDependencies(preferHigher = true, ...dependencies) {
     const result = {};
-    const versionCheck = new RegExp(versionRegex);
-
-    for (const dependency of dependencies) {
+        for (const dependency of dependencies) {
         for (const key in dependency) {
-            if(!versionCheck.test(dependency[key]))
+            if (!validateVersion(dependency[key]))
                 throw new Error(`${dependency[key]} is not a valid version`);
             if (result[key]) {
                 const versionComparison = compareVersion(result[key], dependency[key]);
@@ -235,4 +231,9 @@ function mergeVersionDependencies(preferHigher = true, ...dependencies) {
     }
     log.info(result);
     return result;
+}
+
+function validateVersion(version) {
+    const checker = new RegExp(versionRegex);
+    return version && checker.test(version);
 }

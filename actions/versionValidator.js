@@ -41,24 +41,14 @@ async function validateVersionDependencies(config, proxy) {
     };
 
     const service2serviceValidation = await libraryHelper.checkService2ServiceDependencies(serviceDependencies, deployedServiceVersions);
-    const s2sValidationResult = extend(true, {},
-        {name: "Service2ServiceValidation"},
-        service2serviceValidation
-    );
-    result.validations.push(s2sValidationResult);
+    result.validations.push(service2serviceValidation);
 
     const library2serviceValidation = await libraryHelper.checkLibrary2ServiceDependencies(config, proxy, deployedServiceVersions);
-    const l2sValidationResult = extend(true, {}, {name: "Library2ServiceValidation"}, library2serviceValidation);
-
-    result.validations.push(l2sValidationResult);
+    result.validations.push(library2serviceValidation);
 
     const service2libraryValidation = await libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
-    const s2lValidationResult = extend(true, {},
-        {name: "Service2LibraryValidation"},
-        service2libraryValidation
-    );
+    result.validations.push(service2libraryValidation);
 
-    result.validations.push(s2lValidationResult);
     result.success = await concludeValidationResult(result.validations);
     return result;
 }
@@ -77,11 +67,11 @@ function renderVersionValidationResult(validations) {
             table.setBorder(undefined, undefined, undefined, '|');
             entries.push(table.toString())
         }
-        if (validation.errors.length) {
+        if (validation.failing.length) {
             const table = AsciiTable.factory({
                 title: `${validation.name} Failing`,
-                heading: validation.errors[0].getDataHeader(),
-                rows: validation.errors.map(it => it.asDataRow())
+                heading: validation.failing[0].getDataHeader(),
+                rows: validation.failing.map(it => it.asDataRow())
             });
             table.setBorder(undefined, undefined, undefined, '|');
             entries.push(table.toString());
@@ -93,8 +83,16 @@ function renderVersionValidationResult(validations) {
 
 }
 
+/**
+ * Reduces an Array of BaseCheckEntries to by concluding all success-function results
+ * @param validations {Array<BaseCheckEntry>}
+ * @returns {boolean}
+ */
 function concludeValidationResult(validations) {
-    return validations.reduce((reduced, current) => reduced && (!current.errors || !current.errors.length), true);
+    return validations.reduce(
+        (reduced, current) => reduced && current && current.success && current.success(),
+        true
+    );
 }
 
 module.exports = {
