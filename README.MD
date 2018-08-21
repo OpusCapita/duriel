@@ -19,6 +19,7 @@
 | pull_request_creation_skip | buildprocess will not create pull-requests |
 | skip_doc_building | skip the documentation building |
 | major_release | the deployment will create a new major-version. e.g. 0.8.15 => 1.0.0 |
+|skip_service_rollback| flag that disables the rollback-function |
 
 
 ## pull-request creation
