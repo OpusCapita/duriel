@@ -5,9 +5,19 @@ const helper = require("../helpers/utilHelper");
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
-    const replicaCount = await getReplicaCount(config, proxy);
-    log.debug("replicaCount is: ", replicaCount);
-    for (let i = 1; i <= attempts *  replicaCount; i++) {
+    await getReplicaCount(config, proxy)
+        .then(replicaCount => {
+            log.debug("replicaCount is: ", replicaCount);
+            attempts = attempts * replicaCount;
+        })
+        .catch(e => {
+            log.warn("could not fetch replicacount.", e);
+            return 1;
+        });
+
+    let lastState = {};
+
+    for (let i = 1; i <= attempts; i++) {
         const logBase = `${helper.padLeft(i, '0', 2)}/${attempts}`;
         let serviceHealth = {};
         if (isCreateMode) {
@@ -15,19 +25,41 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
         } else {
             serviceHealth = await checkUpdateStatus(config, proxy);
         }
+
         if (['success'].includes(serviceHealth.state)) {
-            log.info(`${logBase} - service up and running'`);
-            return 'success';
+
+            if (lastState.state === serviceHealth.state) {
+                log.info(`${logBase} - service up and running'`);
+                return 'success';
+            } else {
+                log.info(`${logBase} - state successful for the first time, checking once more...`)
+            }
+
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
+
             log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval / 1000} sec'`);
-            await helper.snooze(interval)
+
         } else if (['paused'].includes(serviceHealth.state)) {
-            log.warn(`${logBase} - - current state: ${serviceHealth.state}`);
-            return 'paused';
+
+            if (lastState.state === serviceHealth.state) {
+                log.warn(`${logBase} - current state: ${serviceHealth.state}`);
+                return 'paused';
+            } else {
+                log.info(`${logBase} - state unsuccessful for the first time, checking once more...`)
+            }
+
         } else {
-            log.error(`${logBase} - current state: ${serviceHealth.state}`);
-            return 'failure';
+
+            if (lastState.state === serviceHealth.state) {
+                log.error(`${logBase} - current state: ${serviceHealth.state}`);
+                return 'failure';
+            } else {
+                log.info(`${logBase} - state unsuccessful for the first time, checking once more...`)
+            }
+
         }
+        lastState = serviceHealth;
+        await helper.snooze(interval);
     }
     return 'failure';
 };
@@ -50,7 +82,7 @@ const checkUpdateStatus = async function (config, proxy) {
     } else if (check.state === 'paused') {
         check.state = 'paused';
     } else if (check.state) {
-        log.warn("no valid state: ", check);
+        log.warn("no valid state: ", inspection);
         check.state = 'failure';
     } else {
         log.warn("no state", state);
@@ -86,9 +118,5 @@ async function getReplicaCount(config, proxy) {
             if (up !== target)
                 log.warn(`seems like we are updating an unhealty service... up: ${up} target: ${target}`);
             return up || 1
-        })
-        .catch(error => {
-            log.warn("error while fetching replicaCount: ", error);
-            return 1;
         })
 }
