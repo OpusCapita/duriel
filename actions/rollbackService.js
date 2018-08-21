@@ -41,7 +41,7 @@ module.exports = async function (config, proxy) {
 
 const getServiceId = async function (config, proxy) {
     const services = await proxy.getServices_E()
-        .filter(service => service.name === config['serviceName']);
+        .then(services => services.filter(service => service.name === config['serviceName']));
     if (services && services[0]) {
         return services[0].id;
     }
