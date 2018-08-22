@@ -24,20 +24,6 @@ module.exports.run = run;
 
 async function run() {
     describe("Dependency Tests", () => {
-            let proxy;
-            before(async () => {
-                const proxyConfig = require('../envInfo').develop;
-                proxyConfig.admin_user = 'tubbest1';
-                proxy = await new EnvProxy().init(proxyConfig);
-            });
-
-            after(() => {
-                if (proxy) {
-                    log.info("closing proxy.");
-                    proxy.close();
-                    proxy = undefined;
-                }
-            });
 
             describe("library - fetching", () => {
                 it("loads a the packageJson", () => {
@@ -54,41 +40,39 @@ async function run() {
                 });
             });
             describe("dependency fetching", () => {
-                describe("service dependencies", () => {
-                    const taskTemplate = {
-                        default: {
-                            serviceDependencies: {
-                                dummy: "4.4.4"
-                            }
-                        },
-                        develop: {
-                            serviceDependencies: {
-                                dummy: "2.2.2"
-                            }
-                        }
-                    };
-
-                    it("fetches without env-settings", () => {
-                        const config = {
-                            TARGET_ENV: "delPocko"
-                        };
-                        const expected = {
+                const taskTemplate = {
+                    default: {
+                        serviceDependencies: {
                             dummy: "4.4.4"
-                        };
-                        assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
-                    });
-
-                    it("fetches with env-settings", () => {
-                        const config = {
-                            TARGET_ENV: "develop"
-                        };
-                        const expected = {
+                        }
+                    },
+                    develop: {
+                        serviceDependencies: {
                             dummy: "2.2.2"
-                        };
-                        assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
-                    });
+                        }
+                    }
+                };
 
+                it("fetches without env-settings", () => {
+                    const config = {
+                        TARGET_ENV: "delPocko"
+                    };
+                    const expected = {
+                        dummy: "4.4.4"
+                    };
+                    assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
                 });
+
+                it("fetches with env-settings", () => {
+                    const config = {
+                        TARGET_ENV: "develop"
+                    };
+                    const expected = {
+                        dummy: "2.2.2"
+                    };
+                    assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
+                });
+
                 describe("library dependencies ", async () => {
                 })
             });
@@ -148,6 +132,23 @@ async function run() {
                     })
                 });
                 describe("check dummy", async () => {
+                    let proxy
+                    before(async () => {
+                        const proxyConfig = require('../envInfo').develop;
+                        proxyConfig.admin_user = 'tubbest1';
+                        proxy = await new EnvProxy().init(proxyConfig)
+                            .catch(e => log.error(e))
+                    });
+
+                    after(() => {
+                        if (proxy) {
+                            log.debug("closing proxy.");
+                            proxy.close();
+                            proxy = undefined;
+                        }
+                    })
+
+
                     it("checks and has no dependencies", async () => {
                         const config = getBaseConfig({TARGET_ENV: 'develop'});
                         fs.writeFileSync("task_template.json", JSON.stringify({}));
@@ -247,6 +248,22 @@ async function run() {
                 })
             });
             describe("Library loading", async () => {
+                let proxy
+                before(async () => {
+                    const proxyConfig = require('../envInfo').develop;
+                    proxyConfig.admin_user = 'tubbest1';
+                    proxy = await new EnvProxy().init(proxyConfig)
+                        .catch(e => log.error(e))
+                });
+
+                after(() => {
+                    if (proxy) {
+                        log.debug("closing proxy.");
+                        proxy.close();
+                        proxy = undefined;
+                    }
+                })
+
                 const packageJson = {
                     "dependencies": {
                         "sequelize": "0.0.0",

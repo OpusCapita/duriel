@@ -15,7 +15,7 @@ const log = new Logger();
 module.exports = async function (config, proxy) {
     let injectServiceUser = false;
     try{
-        await proxy.getKeyValue(`${config['serviceName']}/service-client/password`);
+        await proxy.getKeyValueFromConsul(`${config['serviceName']}/service-client/password`);
         log.info("service-client password exists.");
     } catch(error){
         log.warn("no service-client password could be found. --> injecting");

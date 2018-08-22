@@ -44,7 +44,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     let db_password = null;
     let injectIntoConsul = false;
     try {
-        db_password = await proxy.getKeyValue(`${config['serviceName']}/db-init/password`);
+        db_password = await proxy.getKeyValueFromConsul(`${config['serviceName']}/db-init/password`);
     } catch (error) {
         log.warn("error while getting service-password from consul: ", error);
     }

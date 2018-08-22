@@ -2,7 +2,9 @@ const Promise = require('bluebird');
 const dns = require('dns');
 const net = require('net');
 const Client = require('ssh2').Client;
-const axios = require('axios');
+
+const superagent = require('superagent');
+
 const fs = require('fs');
 const exec = require('child_process');
 
@@ -694,8 +696,10 @@ class EnvProxy {
 
     }
 
-    getConsulHealthCheck(serviceName) {
-        return this.queryConsul(`/v1/health/service/${serviceName}`)
+    async getConsulHealthCheck(serviceName) {
+        if (!serviceName)
+            return [];
+        return await this.queryConsul(`v1/health/service/${serviceName}`)
     }
 
     /**
@@ -703,8 +707,8 @@ class EnvProxy {
      * returns promise on an array like [ip,port]
      */
     lookupService(serviceName) {
-        log.info("looking up service " + serviceName + "...");
-        return this.queryConsul('/v1/catalog/service/' + serviceName)
+        log.debug("looking up service " + serviceName + "...");
+        return this.queryConsul('v1/catalog/service/' + serviceName)
             .then(data => {
                 log.debug(serviceName + ' looked up: ' + data[0].Address);
                 return Promise.resolve([data[0].Address, data[0].ServicePort]);
@@ -720,14 +724,18 @@ class EnvProxy {
      */
     async queryConsul(apiCall) {
         const proxy = this.proxyServers['consul'];
-        if (!proxy) return Promise.reject('no proxy for consul found!');
-        return await axios.get('http://localhost:' + proxy.port + apiCall)
-            .then((response) => {
-                return response.data;
-            })
-            .catch(error => {
-                log.error("error making http call to tunneled consul:", error);
-                return this.sshconn.e;
+        if (!proxy)
+            return Promise.reject('no proxy for consul found!');
+
+        const url = `http://localhost:${proxy.port}/${apiCall}`;
+
+        return superagent.get(url)
+            .set('Accept', 'application/json')
+            .set('accept-encoding', 'gzip')
+            .then(it => {
+                if (it.header['content-type'] === 'application/json')
+                    return JSON.parse(it.text);
+                return it.text
             });
     }
 
@@ -740,14 +748,12 @@ class EnvProxy {
     async addKeyValueToConsul(key, value) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
-        return await axios.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
-            .then((response) => {
-                return Promise.resolve(response.data);
-            })
+        return await superagent.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
+            .then(response => response.data)
             .catch(error => {
                 log.error("error making http call to tunneled consul", error);
-                return Promise.reject(this.sshconn.e);
-            });
+                throw error;
+            })
     }
 
     /**
@@ -755,8 +761,19 @@ class EnvProxy {
      * @param key
      * @returns value as String | Promise.reject
      */
-    async getKeyValue(key) {
+    async getKeyValueFromConsul(key) {
         return await this.queryConsul(`/v1/kv/${key}?raw`);
+    }
+
+    async deleteKeyValueFromConsul(key) {
+        const proxy = this.proxyServers['consul'];
+        if (!proxy) return Promise.reject('no proxy for consul found!');
+        return await superagent.delete(`http://localhost:${proxy.port}/v1/kv/${key}`)
+            .then(response => response.data)
+            .catch(error => {
+                log.error("error making http call to tunneled consul", error);
+                throw error;
+            })
     }
 
     /**
@@ -865,7 +882,7 @@ class EnvProxy {
         return result;
     };
 
-};
+}
 
 module.exports = EnvProxy;
 

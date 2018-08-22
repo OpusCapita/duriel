@@ -1,10 +1,21 @@
 const assert = require("assert");
 const variableInjector = require("../actions/filehandling/injectVariables");
+const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 
+
+const fs = require('fs');
+const constants = require('./TestConstants');
+const fileHelper = require('../actions/filehandling/fileHandler')
 module.exports.run = run;
 
-function run(config, constants) {
+function run() {
     describe('Variable Injection', () => {
+
+        let config;
+        before(() => {
+            config = getBaseConfigObject(constants.testConfigFields)
+        });
+
         it('injection of a simple variable', () => {
             assert.deepEqual(
                 JSON.parse(variableInjector(JSON.stringify(constants.simple), config)),

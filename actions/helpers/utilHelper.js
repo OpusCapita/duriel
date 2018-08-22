@@ -109,9 +109,9 @@ function arrayMinus(array1, array2) {
     return result;
 }
 
-function arrayIntersect(...arrays){
+function arrayIntersect(...arrays) {
     let result = arrays[0];
-    for(let i = 1; i < arrays.length; i++){
+    for (let i = 1; i < arrays.length; i++) {
         result = twoArrayIntersect(result, arrays[i]);
     }
     return result;
@@ -152,6 +152,22 @@ function getLongestStringInObject(input) {
     return Math.max(... Object.keys(input).map(it => getLongestStringInObject(input[it])))
 }
 
+/**
+ * makes the entries inside the array unique.
+ * Implementation is faster than Set-solution (O[n])
+ * @param array {Array}
+ * @returns {Array<string>}
+ */
+function getUniqueArray(array) {
+    if (!array)
+        return [];
+
+    return Object.keys(
+        array.filter(it => it)
+            .map(it => `${it}`)
+            .reduce((l, r) => l[r] = l, {})
+    )
+}
 
 module.exports = {
     snooze,
@@ -162,5 +178,6 @@ module.exports = {
     arrayMinus,
     arrayIntersect,
     isEqual,
-    getLongestStringInObject
+    getLongestStringInObject,
+    getUniqueArray
 };

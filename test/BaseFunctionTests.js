@@ -42,6 +42,31 @@ function run() {
                 const expected = [1, 2, 3];
                 assert.deepEqual(utilHelper.flattenArray(input), expected);
             });
+            describe("making arrayentries unique", () => {
+                it("gets a string-array", () => {
+                    const input = ['a', 'b', 'a'];
+                    const output = ['a', 'b'];
+                    assert.deepEqual(utilHelper.getUniqueArray(input), output);
+                });
+                it("gets a number-array", () => {
+                    const input = [1,2,1];
+                    const output = [1,2];
+                    assert.deepEqual(utilHelper.getUniqueArray(input), output);
+                });
+                it("gets a array with undefined", () => {
+                    const input = ['a', 'b', 'a', undefined];
+                    const output = ['a', 'b'];
+                    assert.deepEqual(utilHelper.getUniqueArray(input), output);
+                });
+                it("gets a mixed-array", () => {
+                    const input = [1, '1', 2];
+                    const output = ['1', '2'];
+                    assert.deepEqual(utilHelper.getUniqueArray(input), output);
+                });
+                it("get nothing", () => {
+                    assert.deepEqual(utilHelper.getUniqueArray(), []);
+                })
+            });
             it("test sleeping", async () => {
                 const sleepTime = 1000;
                 const start = Date.now();
