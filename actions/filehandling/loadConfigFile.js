@@ -15,6 +15,5 @@ module.exports = function (fileName) {
         return getEnvVariables.getBaseConfigObject(dataFromFile);
     } catch (e) {
         log.warn("could not load file", e);
-        return;
     }
 };

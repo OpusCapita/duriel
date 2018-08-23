@@ -169,6 +169,35 @@ function getUniqueArray(array) {
     )
 }
 
+/**
+ *
+ * @param input {array}
+ * @param groupingFunction {function}
+ * @param  transformFunction {function} (optional)
+ */
+function groupBy(input, groupingFunction, transformFunction) {
+
+    if (!Array.isArray(input))
+        throw new Error('input musst be an Array');
+
+    if (!groupingFunction)
+        throw new Error('no grouping function passed');
+
+    const result = {};
+    for (let entry of input) {
+
+        const currentKey = groupingFunction(entry);
+        if (transformFunction)
+            entry = transformFunction(entry);
+
+        if (result[currentKey])
+            result[currentKey].push(entry);
+        else
+            result[currentKey] = [entry];
+    }
+    return result;
+}
+
 module.exports = {
     snooze,
     flattenArray,
@@ -179,5 +208,6 @@ module.exports = {
     arrayIntersect,
     isEqual,
     getLongestStringInObject,
-    getUniqueArray
+    getUniqueArray,
+    groupBy
 };

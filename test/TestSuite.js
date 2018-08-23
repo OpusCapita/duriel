@@ -11,13 +11,14 @@ async function fun() {
     describe("Test duriel!", async () => {
 
         await require("./BaseFunctionTests").run();
+        await require("./EnvProxyTests").run();
         await require("./FileHandlingsTests").run();
         await require("./VariableInjectionTests").run();
         await require("./VersionTests").run();
         await require("./CommandBuilderTests").run();
         await require("./LibraryTests").run();
         await require('./IntegrationTests').run();
-        await require('./ConsulFunctionTests').run()
+        await require('./ConsulFunctionTests').run();
     })
 }
 

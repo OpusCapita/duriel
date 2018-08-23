@@ -49,8 +49,8 @@ function run() {
                     assert.deepEqual(utilHelper.getUniqueArray(input), output);
                 });
                 it("gets a number-array", () => {
-                    const input = [1,2,1];
-                    const output = [1,2];
+                    const input = [1, 2, 1];
+                    const output = [1, 2];
                     assert.deepEqual(utilHelper.getUniqueArray(input), output);
                 });
                 it("gets a array with undefined", () => {
@@ -75,6 +75,31 @@ function run() {
                 assert.ok((end - start - 1000) < 100);
             });
         });
+        describe("array grouping", () => {
+            const defaultInput = [
+                {a: 'a', b: 'b'},
+                {a: 'c', b: 'b'}
+            ];
+            const defaultExpected = {
+                b: [
+                    {a: 'a', b: 'b'},
+                    {a: 'c', b: 'b'}
+                ]
+            };
+            it("groups by a key", () => {
+                assert.deepEqual(utilHelper.groupBy(defaultInput, (input) => input.b), defaultExpected);
+            });
+            it("misses a function", () => {
+                assert.throws(() => utilHelper.groupBy(defaultInput))
+            });
+            it("misses all params", () => {
+                assert.throws(() => utilHelper.groupBy())
+            });
+            it("gets a non array", () => {
+                assert.throws(() => utilHelper.groupBy("pocko", () => "del"))
+            });
+        });
+
         describe("array intersect", () => {
             const a = [1, 2, 3];
             const b = [2, 4, {a: 2}];

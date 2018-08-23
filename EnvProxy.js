@@ -11,6 +11,8 @@ const exec = require('child_process');
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
 
+const helper = require('./actions/helpers/utilHelper');
+
 let default_config = {};
 
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
@@ -334,11 +336,12 @@ class EnvProxy {
      * returns a list containing all tasks running the service
      * @param service
      * @param onlyRunning
-     * @returns {PromiseLike<object>} e.g. {id, name, image, node, desiredState, currentState, error, [ports]}
+     * @returns {PromiseLike<array<object>>} e.g. {id, name, image, node, desiredState, currentState, error, [ports]}
      */
-    getTasksOfServices_E(service, onlyRunning = false) {
+    async getTasksOfServices_E(service, onlyRunning = false) {
         if (!service)
             throw new Error('service missing');
+
         return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
             .then(response => {
                 log.severe(`docker service ps ${service}`, response);
@@ -350,6 +353,8 @@ class EnvProxy {
                                 id: split[0],
                                 name: split[1],
                                 image: split[2],
+                                image_name: split[2].split(":")[0],
+                                image_version: split[2].split(":")[1],
                                 node: split[3],
                                 desiredState: split[4],
                                 currentState: split[5],
@@ -369,6 +374,44 @@ class EnvProxy {
                 }));
                 log.severe("unformatted tasks: " + service, nodes);
                 return nodes;
+            })
+    }
+
+    /**
+     *
+     * @param serviceName {string}
+     * @param onlyRunning {boolean}
+     * @returns {Promise<object>}
+     * @example {
+     *  '1.0.0': [{}, {}],
+     *  '2.0.0': [{}, {}]
+     * }
+     */
+    async getDeployedVersions_E(serviceName, onlyRunning = true) {
+        if (!serviceName)
+            throw new Error("serviceName is a mandatory parameter");
+        if (typeof serviceName !== 'string')
+            throw new Error("serviceName is a string (??!)");
+
+        const serviceTasks = await this.getTasksOfServices_E(serviceName, onlyRunning);
+        return helper.groupBy(
+            serviceTasks,
+            it => it.image_version
+        )
+    }
+
+    async getReplicaCount_E(serviceName) {
+        if (!serviceName)
+            throw new Error('serviceName is a mandatory parameter.');
+
+        return await this.getServices_E()
+            .then(services => services.filter(service => service.name === serviceName)[0])
+            .then(serviceInfo => {
+                const up = serviceInfo.instances_up;
+                const target = serviceInfo.instances_target;
+                if (up !== target)
+                    log.warn(`seems like we are checking an unhealty service... up: ${up} target: ${target}`);
+                return up || 1
             })
     }
 
