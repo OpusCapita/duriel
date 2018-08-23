@@ -8,7 +8,9 @@ const fs = require('fs');
 const getBaseConfig = require('../actions/getEnvVariables').getBaseConfigObject;
 const versionValidator = require('../actions/versionValidator');
 const libraryHelper = require("../actions/helpers/libaryHelper");
-const EnvProxy = require('../EnvProxy');
+
+const constants = require('./TestConstants');
+
 const dummyPackageJson = {
     "dependencies": {
         "delPocko": "^0.17.1",
@@ -132,12 +134,9 @@ async function run() {
                     })
                 });
                 describe("check dummy", async () => {
-                    let proxy
+                    let proxy;
                     before(async () => {
-                        const proxyConfig = require('../envInfo').develop;
-                        //proxyConfig.admin_user = 'tubbest1';
-                        proxy = await new EnvProxy().init(proxyConfig)
-                            .catch(e => log.error(e))
+                        proxy = await constants.getEnvProxy();
                     });
 
                     after(() => {
@@ -248,12 +247,9 @@ async function run() {
                 })
             });
             describe("Library loading", async () => {
-                let proxy
+                let proxy;
                 before(async () => {
-                    const proxyConfig = require('../envInfo').develop;
-                    //proxyConfig.admin_user = 'tubbest1';
-                    proxy = await new EnvProxy().init(proxyConfig)
-                        .catch(e => log.error(e))
+                    proxy = await constants.getEnvProxy();
                 });
 
                 after(() => {

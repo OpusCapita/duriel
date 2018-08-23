@@ -2,6 +2,8 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 const assert = require('assert');
 
+const constants = require('./TestConstants');
+
 const EnvProxy = require('../EnvProxy');
 const AsciiTable = require("ascii-table");
 
@@ -17,11 +19,7 @@ async function run() {
             const serviceName = "logstash";
             let proxy;
             before(async () => {
-                log.debug("opening proxy");
-                const proxyConfig = require('../envInfo').develop;
-                //proxyConfig.admin_user = 'tubbest1';
-                proxy = await new EnvProxy().init(proxyConfig)
-                    .catch(e => log.error(e))
+                proxy = await constants.getEnvProxy();
             });
 
             after(() => {

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha test --timeout 30000 --recursive -R mocha-junit-reporter --reporter-options mochaFile=junit/buildprocess_tests.xml",
     "test-coverage": "nyc --reporter=text mocha --timeout 30000",
-    "test-local": "mocha test --timeout 30000 --recursive ",
+    "test-local": "export admin_user=tubbest1 ; mocha test --timeout 30000 --recursive ",
     "build-docs": "node ./UtilityScripts/DurielDocBuilder/index.js"
   },
   "repository": {

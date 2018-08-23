@@ -6,6 +6,7 @@ const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
 const EnvProxy = require('../EnvProxy');
+const constants = require('./TestConstants');
 
 
 module.exports.run = run;
@@ -15,10 +16,7 @@ async function run() {
     describe("Test consul functions", () => {
         let proxy;
         before(async () => {
-            const proxyConfig = require('../envInfo').develop;
-            //proxyConfig.admin_user = 'tubbest1';
-            proxy = await new EnvProxy().init(proxyConfig)
-                .catch(e => log.error(e))
+            proxy = await constants.getEnvProxy();
         });
 
         after(() => {

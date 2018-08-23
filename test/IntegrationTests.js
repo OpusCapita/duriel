@@ -7,17 +7,15 @@ const EnvProxy = require('../EnvProxy');
 
 const IntegrationTestHelper = require("../actions/helpers/IntegrationTestHelper");
 
+const constants = require('./TestConstants');
+
 module.exports.run = run;
 
 async function run() {
     describe("checks the healthcheck-data-fetching", () => {
         let proxy;
         before(async () => {
-            log.debug("opening proxy")
-            const proxyConfig = require('../envInfo').develop;
-            //proxyConfig.admin_user = 'tubbest1';
-            proxy = await new EnvProxy().init(proxyConfig)
-                .catch(e => log.error(e))
+            proxy = await constants.getEnvProxy();
         });
 
         after(() => {
