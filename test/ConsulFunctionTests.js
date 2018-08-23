@@ -16,7 +16,7 @@ async function run() {
         let proxy;
         before(async () => {
             const proxyConfig = require('../envInfo').develop;
-            proxyConfig.admin_user = 'tubbest1';
+            //proxyConfig.admin_user = 'tubbest1';
             proxy = await new EnvProxy().init(proxyConfig)
                 .catch(e => log.error(e))
         });
