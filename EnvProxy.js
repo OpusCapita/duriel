@@ -215,13 +215,8 @@ class EnvProxy {
             throw new Error('service missing');
         return await this.getContainers_N(node, onlyRunning)
             .then(result => {
-                log.debug(`containers of node ${node}`, result.map(it => {
-                    return {
-                        name: it.name,
-                        image: it.image
-                    }
-                }));
-                log.severe("unformatted containers of node:", result);
+                log.debug(`node '${node}' has ${result.length} containers.`);
+                log.severe(`containers of node ${node}`, result);
                 return result;
             })
             .then(result => result.filter(it => it.name.toLowerCase().startsWith(service.toLowerCase()))) //TODO: sauber implementieren!
@@ -366,13 +361,8 @@ class EnvProxy {
                 );
             }).then(nodes => nodes.filter(it => it !== undefined))
             .then(nodes => {
-                log.debug(`tasks of service '${service}'`, nodes.map(it => {
-                    return {
-                        id: it.id,
-                        node: it.node
-                    }
-                }));
-                log.severe("unformatted tasks: " + service, nodes);
+                log.debug(`tasks of service '${service}'`, nodes.map(it => ({id: it.id, node: it.node})));
+                log.severe(`tasks of service '${service}'`, nodes);
                 return nodes;
             })
     }
@@ -387,13 +377,13 @@ class EnvProxy {
      *  '2.0.0': [{}, {}]
      * }
      */
-    async getDeployedVersions_E(serviceName, onlyRunning = true) {
+    async getDeployedVersions_E(serviceName) {
         if (!serviceName)
             throw new Error("serviceName is a mandatory parameter");
         if (typeof serviceName !== 'string')
             throw new Error("serviceName is a string (??!)");
 
-        const serviceTasks = await this.getTasksOfServices_E(serviceName, onlyRunning);
+        const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
         return helper.groupBy(
             serviceTasks,
             it => it.image_version

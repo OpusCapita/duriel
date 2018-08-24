@@ -16,7 +16,7 @@ module.exports.dev1 = extend(true, {}, default_config, {
 });
 
 module.exports.develop = extend(true, {}, default_config, {
-    admin_user: 'duriel-dev',
+    admin_user: process.env.admin_user || 'duriel-dev',
     public_ip: '13.95.208.44',
     admin_address: 'bnp-admin-develop.westeurope.cloudapp.azure.com',
     public_hostname: 'develop.businessnetwork.opuscapita.com'

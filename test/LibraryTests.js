@@ -7,7 +7,9 @@ const fs = require('fs');
 
 const getBaseConfig = require('../actions/getEnvVariables').getBaseConfigObject;
 const versionValidator = require('../actions/versionValidator');
-const libraryHelper = require("../actions/helpers/libaryHelper");
+const libraryHelper = require("../actions/helpers/libraryHelper");
+
+const loadTaskTemplate = require("../actions/filehandling/loadTaskTemplate");
 
 const constants = require('./TestConstants');
 
@@ -42,7 +44,7 @@ async function run() {
                 });
             });
             describe("dependency fetching", () => {
-                const taskTemplate = {
+                const taskTemplateContent = {
                     default: {
                         serviceDependencies: {
                             dummy: "4.4.4"
@@ -62,6 +64,8 @@ async function run() {
                     const expected = {
                         dummy: "4.4.4"
                     };
+                    const taskTemplate = loadTaskTemplate("delPocko", taskTemplateContent)
+
                     assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
                 });
 
@@ -72,6 +76,8 @@ async function run() {
                     const expected = {
                         dummy: "2.2.2"
                     };
+                    const taskTemplate = loadTaskTemplate(config.TARGET_ENV, taskTemplateContent);
+
                     assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
                 });
 

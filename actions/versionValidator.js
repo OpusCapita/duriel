@@ -3,7 +3,7 @@
  * @module
  */
 'use strict';
-const libraryHelper = require('./helpers/libaryHelper');
+const libraryHelper = require('./helpers/libraryHelper');
 
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();

@@ -6,7 +6,7 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
-const libraryHelper = require('./helpers/libaryHelper')
+const libraryHelper = require('./helpers/libraryHelper')
 
 
 const serviceClientLibs = ['ocbesbn-service-client', 'ocbesbn-web-init', '@opuscapita/web-init'];

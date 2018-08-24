@@ -14,7 +14,7 @@ const monitorDockerContainer = require('./docker/monitorDockerContainer_E');
  * @returns {Promise<void>}
  */
 module.exports = async function (config, proxy) {
-    if(config.get('skip_service_rollback')){
+    if (config.get('skip_service_rollback')) {
         log.warn("rollback is disabled via flag.")
         return;
     }

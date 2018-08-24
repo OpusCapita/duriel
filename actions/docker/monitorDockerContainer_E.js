@@ -40,8 +40,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
             if (serviceHealth.deployedVersions) {
                 const table = renderVersionTable(serviceHealth.deployedVersions);
-
-                log.info(table.toString());
+                log.info("", table.toString());
             }
 
             log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval / 1000} sec'`);
@@ -123,11 +122,13 @@ const checkCreateStatus = async function (config, proxy) {
 
 
 function renderVersionTable(versions) {
-    return AsciiTable.factory({
-        title: `Deployed Versions`,
-        heading: ["Version", "Count"],
-        rows: Object.keys(versions).map(key => ([key, versions[key].length]))
-    }).toString();
+    return Object.keys(versions)
+        .map(key => AsciiTable.factory({
+            title: `Deployed Versions (${Object.keys(versions).length})`,
+            heading: ["", "version", "node", "current state"],
+            rows: versions[key].map((it, index) => ([index + 1, key, it.node, it.currentState]))
+        }).toString())
+        .join("\n")
 }
 
 module.exports.renderVersionTable = renderVersionTable;

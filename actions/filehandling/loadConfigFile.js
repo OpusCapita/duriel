@@ -14,6 +14,6 @@ module.exports = function (fileName) {
         const dataFromFile = fileHandler.loadFile2Object(fileName);
         return getEnvVariables.getBaseConfigObject(dataFromFile);
     } catch (e) {
-        log.warn("could not load file", e);
+        log.warn("could not load file" + fileName, e);
     }
 };

@@ -3,7 +3,7 @@ const assert = require("assert");
 const fs = require("fs");
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 const versionHelper = require("../actions/helpers/versionHelper");
-const libraryHelper = require("../actions/helpers/libaryHelper");
+const libraryHelper = require("../actions/helpers/libraryHelper");
 const calculatEnv = require("../actions/calculateEnv");
 const utilHelper = require('../actions/helpers/utilHelper');
 

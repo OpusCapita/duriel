@@ -6,6 +6,7 @@
 'use strict';
 
 const fileHelper = require('../filehandling/fileHandler');
+const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 const versionHelper = require('./versionHelper');
 
 const EpicLogger = require('../../EpicLogger');
@@ -59,23 +60,37 @@ function fetchLibraryVersionDependencies(config = {}, taskTemplate) {
 }
 
 /**
+ * returns a list that contains all andariel_dependecies.json files
+ * @param proxy {EnvProxy}
+ * @returns {Promise<Array<object>>}
+ */
+async function fetchLibrary2ServiceDependencies(proxy) {
+    if (require('fs').existsSync('package.json')) {
+        log.info("installing npm packages to collect library2service dependencies...");
+        const output = await proxy.executeCommand_L('npm install');
+        log.severe(output);
+        log.debug("...finished installing packages.");
+        return fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/)
+            .map(file => fileHelper.loadFile2Object(file))
+
+    }
+    return []
+}
+
+/**
  *
  * @param config {BaseConfig} used fields: ['TARGET_ENV']
  * @param taskTemplate {object} task_template.json content
  * @param dependencyKey {string} key indicating what kind of dependencies are requested.
  */
 function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
-    taskTemplate = taskTemplate ? taskTemplate : fileHelper.loadFile2Object('./task_template.json');
     const targetEnv = config['TARGET_ENV'];
+    taskTemplate = taskTemplate || loadTaskTemplate(targetEnv);
 
     let result = {};
 
-    if (taskTemplate.default && taskTemplate.default[dependencyKey])
-        result = extend(true, {}, result, taskTemplate.default[dependencyKey]);
-
-    if (taskTemplate[targetEnv] && taskTemplate[targetEnv][dependencyKey]) {
-        result = extend(true, {}, result, taskTemplate[targetEnv][dependencyKey])
-    }
+    if (taskTemplate && taskTemplate[dependencyKey])
+        result = extend(true, {}, result, taskTemplate[dependencyKey]);
 
     if (Object.keys(result).length === 0) {
         log.warn(`task_template has no ${dependencyKey} (?!)`)
@@ -92,7 +107,6 @@ function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
  */
 async function loadServiceVersionsFromEnv(proxy, services) {
     return await proxy.getServices_E()
-    //.then(servicesOnEnv => servicesOnEnv.filter(it => services.includes(it.name)))
         .then(filteredServices => {
             const result = {};
             filteredServices.forEach(it => result[it.name] = it.image_version);
@@ -142,23 +156,17 @@ function checkService2ServiceDependencies(expectedVersions, deployedVersions) {
 async function checkLibrary2ServiceDependencies(config, proxy, deployedServices) {
     const result = new CheckEntryHolder("Library2ServiceDependencies");
 
-    if (require('fs').existsSync('package.json')) {
-        log.info("installing npm packages to collect library2service dependencies...");
-        const output = await proxy.executeCommand_L('npm install');
-        log.severe(output);
-        log.debug("...finished installing packages.")
-    } else
-        return result;
+    const dependencyEntries = fetchLibrary2ServiceDependencies(proxy);
+    if (!dependencyEntries)
+        return;
 
-    const dependencyFiles = fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/);
-    log.debug("found andariel_dependencies.json-files: ", dependencyFiles);
+    log.info("found andariel_dependencies.json-files: ", dependencyEntries);
 
-    for (const file of dependencyFiles) {
-        const fileContent = fileHelper.loadFile2Object(file);
+    for (const dependencies in dependencyEntries) {
 
-        for (const entry in fileContent.serviceDependencies) {  // entry is name of a lib
+        for (const entry in dependencies.serviceDependencies) {  // entry is name of a lib
             const deployedVersion = deployedServices[entry];
-            const expectedVersion = fileContent.serviceDependencies[entry];
+            const expectedVersion = dependencies.serviceDependencies[entry];
             let compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
 
             if (entry === 'consul') {
@@ -169,14 +177,12 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
 
             if (compareResult < 0) {
                 log.warn(`Version of '${entry}' is incompatible`);
-                result.addFailingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, fileContent.name))
+                result.addFailingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, dependencies.name))
             } else {
-                result.addPassingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, fileContent.name))
+                result.addPassingEntry(new ServiceCheckEntry(entry, expectedVersion, deployedVersion, dependencies.name))
             }
-
         }
     }
-
     return result;
 }
 
@@ -247,15 +253,19 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
         throw new Error(`could not get container-information for service '${serviceName}' on node '${serviceTask.node}'`);
 
     const command = `docker exec -t ${container.containerId} cat task_template.json`;
-    const taskTemplate = await proxy.executeCommand_N(serviceTask.node, command);
+    const taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
+    const parsedTaskTemplate = JSON.parse(taskTemplateContent);
 
-    return await fetchLibraryVersionDependencies(config, JSON.parse(taskTemplate));
+    if (parsedTaskTemplate) {
+        return fetchLibraryVersionDependencies(config, loadTaskTemplate(config['TARGET_ENV'], parsedTaskTemplate))
+    }
 }
 
 
 module.exports = {
     getLibraryVersion,
     fetchServiceVersionDependencies,
+    fetchLibrary2ServiceDependencies,
     checkLibraryDependencies,
     loadServiceVersionsFromEnv,
     checkService2ServiceDependencies,
