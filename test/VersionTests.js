@@ -118,6 +118,21 @@ function run() {
         it("merges with broken versions", () => {
             assert.throws(() => versionHelper.mergeVersionDependencies(false, "kevin", b), Error, "");
         })
+    });
+    describe("validate version", () => {
+        const a = "1.0.0";
+        const b = "1.0.0-dev-1";
+        const c = "ole ola olalala";
+
+        it("gets a valid main-version", () => {
+            assert.equal(versionHelper.validateVersion(a), true);
+        });
+        it("gets a valid dev-version", () => {
+            assert.equal(versionHelper.validateVersion(b), true);
+        });
+        it("get a broken version", () => {
+            assert.equal(versionHelper.validateVersion(c), false);
+        });
     })
 }
 

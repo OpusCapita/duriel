@@ -26,7 +26,7 @@ const padLeft = function (input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
-    input = `${input}`;
+    input = input ? `${input}` : "";
     while (input.length < length) {
         input = character + input;
     }
@@ -37,7 +37,7 @@ const padRight = function (input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
-    input = `${input}`;
+    input = input ? `${input}` : "";
     while (input.length < length) {
         input = input + character;
     }
@@ -48,7 +48,7 @@ const padBoth = function (input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
-    input = `${input}`;
+    input = input ? `${input}` : "";
     let left = true;
     while (input.length < length) {
         if (left)

@@ -81,22 +81,6 @@ async function calculateImageTag(config) {
 }
 
 /**
- * Read a File "VERSION"
- * @param config
- * @returns content of the VERSION-file
- */
-async function readVersionFile(config) {
-    let versionFileContent;
-    if (!fs.existsSync(VERSION_FILE)) {
-        log.error('no VERSION-File found! exiting!');
-        throw new Error('no VERSION-File found! exiting!');
-    } else {
-        versionFileContent = fs.readFileSync(VERSION_FILE, "utf8");
-        return versionFileContent.replace(/(\r\n|\n|\r)/gm, "");
-    }
-}
-
-/**
  * Bumps a Version for a production release.
  * Checks whether the master-commit came from a hotfix- or release-branch
  * @param config {BaseConfig}

@@ -7,6 +7,7 @@ const constants = require('./TestConstants');
 
 const fileHelper = require('../actions/filehandling/fileHandler');
 const loadConfigFile = require('../actions/filehandling/loadConfigFile');
+const loadTaskTemplate = require('../actions/filehandling/loadTaskTemplate');
 
 module.exports.run = run;
 
@@ -53,5 +54,45 @@ function run() {
             assert.notEqual(fromCode, null);
             assert.equal(fromFile, fromCode);
         });
+        describe("loads a task_template", () => {
+            const content = {
+                default: {
+                    kevin: 3
+                },
+                develop: {
+                    kevin: 4
+                }
+            };
+            const expected_develop = {
+                kevin: 4
+            };
+            const expected_del_pocko = {
+                kevin: 3
+            };
+            it("loads for an env", () => {
+                const taskTemplate_develop = loadTaskTemplate("develop", content);
+                assert.deepEqual(expected_develop, taskTemplate_develop);
+            });
+            it("loads without an env", () => {
+                const taskTemplate_del_pocko = loadTaskTemplate("del_pocko", content);
+                assert.deepEqual(expected_del_pocko, taskTemplate_del_pocko);
+            });
+
+            it("get no env and no content", () => {
+                assert.doesNotThrow(() => {
+                    loadTaskTemplate(undefined, undefined)
+                }, Error, "")
+            });
+            it("get no env", () => {
+                assert.doesNotThrow(() => {
+                    loadTaskTemplate(undefined, content)
+                }, Error, "")
+            });
+            it("get no content", () => {
+                assert.doesNotThrow(() => {
+                    loadTaskTemplate("develop", undefined)
+                }, Error, "")
+            });
+        })
     });
 }

@@ -156,6 +156,120 @@ function run() {
                     assert.equal(utilHelper.getLongestStringInObject(333), 3);
                 });
             })
+        });
+        describe("padding", () => {
+            it("pads left", () => {
+                assert.equal(
+                    utilHelper.padLeft("Hi", "0", 5),
+                    "000Hi"
+                );
+                assert.equal(
+                    utilHelper.padLeft("23", "0", 5),
+                    "00023"
+                );
+                assert.equal(
+                    utilHelper.padLeft("AlphaOmega", "0", 5),
+                    "AlphaOmega"
+                );
+                assert.equal(
+                    utilHelper.padLeft(24, 0, 5),
+                    "00024"
+                );
+                assert.equal(
+                    utilHelper.padLeft(undefined, 0, 5),
+                    "00000"
+                );
+            });
+            it("pads right", () => {
+                assert.equal(
+                    utilHelper.padRight("Hi", "0", 5),
+                    "Hi000"
+                );
+                assert.equal(
+                    utilHelper.padRight("23", "0", 5),
+                    "23000"
+                );
+                assert.equal(
+                    utilHelper.padRight("AlphaOmega", "0", 5),
+                    "AlphaOmega"
+                );
+                assert.equal(
+                    utilHelper.padRight(24, 0, 5),
+                    "24000"
+                );
+                assert.equal(
+                    utilHelper.padRight(undefined, 0, 5),
+                    "00000"
+                );
+            });
+            it("pads right", () => {
+                assert.equal(
+                    utilHelper.padBoth("Hi", "0", 6),
+                    "00Hi00"
+                );
+                assert.equal(
+                    utilHelper.padBoth("23", "0", 6),
+                    "002300"
+                );
+                assert.equal(
+                    utilHelper.padBoth("AlphaOmega", "0", 5),
+                    "AlphaOmega"
+                );
+                assert.equal(
+                    utilHelper.padBoth(24, 0, 6),
+                    "002400"
+                );
+                assert.equal(
+                    utilHelper.padBoth(undefined, 0, 5),
+                    "00000"
+                );
+            })
+        });
+        describe("isEqual", () => {
+            it("compares numbers", () => {
+                assert.equal(
+                    utilHelper.isEqual(2, 2),
+                    true
+                );
+                assert.equal(
+                    utilHelper.isEqual(2, 3),
+                    false
+                )
+            });
+            it("compares strings", () => {
+                assert.equal(
+                    utilHelper.isEqual("2a", "2a"),
+                    true
+                );
+                assert.equal(
+                    utilHelper.isEqual("2a", "3b"),
+                    false
+                )
+            });
+            it("compares array", () => {
+                assert.equal(
+                    utilHelper.isEqual(["2a"], ["2a"]),
+                    true
+                );
+                assert.equal(
+                    utilHelper.isEqual(["2a"], ["3b"]),
+                    false
+                )
+            });
+            it("compares objects", () => {
+                assert.equal(
+                    utilHelper.isEqual({a:"2a"}, {a:"2a"}),
+                    true
+                );
+                assert.equal(
+                    utilHelper.isEqual({a: "2a"}, {a: "3a"}),
+                    false
+                );
+                assert.equal(
+                    utilHelper.isEqual({a:"2a"}, {b:"2a"}),
+                    false
+                )
+            })
         })
     });
 }
