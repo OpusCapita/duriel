@@ -13,6 +13,11 @@ const log = new Logger();
  * @returns {Promise<void>}
  */
 module.exports = async function (config, proxy) {
+
+    if(!config['MYSQL_PW']) {
+        log.warn("MySQL functions disabled as no database-password in env-vars.")
+        return
+    }
     let injectServiceUser = false;
     try{
         await proxy.getKeyValueFromConsul(`${config['serviceName']}/service-client/password`);
