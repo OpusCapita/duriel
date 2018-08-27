@@ -78,7 +78,7 @@ function getDatabasePassword(config) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return process.env[valueKey];
     } else {
-        log.warn(`'${valueKey}' found in env-vars. this will disable database-functions of the deployment.`);
+        log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
         //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
