@@ -61,7 +61,7 @@ async function checkAccessability(config) {
             if (error.status === 302) {
                 return "successfully found redirect hell";
             }
-            log.error("error durring accessability test: ", error.message);
+            log.error(`error durring accessability test to url '${testUrl}' `, error);
             return null;
         })
 }
