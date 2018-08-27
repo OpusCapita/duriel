@@ -10,7 +10,7 @@ const request = require('superagent');
 
 module.exports = {
     runIntegrationTests,
-    checkAccessability,
+    checkAccessibility,
     getConsulData
 };
 
@@ -34,7 +34,7 @@ async function runIntegrationTests(config, proxy, attempts = 30, interval = 5000
         const logBase = `${consulData.checks.passing.length} of ${consulData.checks.total.length} checks are passing`;
         if (consulData && (consulData.checks.passing.length === consulData.checks.total.length || config['chris_little_secret'])) {
             log.info(`${logBase} - service is healthy!`);
-            return await checkAccessability(config);
+            return await checkAccessibility(config);
         } else {
             log.info(`${logBase} - waiting for ${interval}ms.`);
             log.debug("Currently failing nodes: ", consulData.nodes.failing.join(", "));
@@ -52,17 +52,19 @@ async function runIntegrationTests(config, proxy, attempts = 30, interval = 5000
  * @param config
  * @returns success: body of the response, failure: null
  */
-async function checkAccessability(config) {
+async function checkAccessibility(config) {
     const testUrl = `${config['public_scheme']}://${config['public_hostname']}:${config['public_port']}/bnp/`;
-    log.debug("url for testing accessability:", testUrl);
+    log.debug(`testing accessibility of ${testUrl}`);
     return await request.get(testUrl)
+        .timeout(1000)
+        .retry(5)
         .then(res => res.body)
         .catch(error => {
             if (error.status === 302) {
                 return "successfully found redirect hell";
             }
-            log.error(`error durring accessability test to url '${testUrl}' `, error);
-            return null;
+            log.error(`error durring accessability test to url '${testUrl}' `);
+            throw error
         })
 }
 

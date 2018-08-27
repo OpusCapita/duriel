@@ -29,13 +29,15 @@ async function run() {
             });
             it("loads a valid inspect", async () => {
                 const serviceConfig = await proxy.getServiceInspect_E("kong");
-
+                assert.equal(!!serviceConfig, true);
             });
             it("loads an invalid inspect", async () => {
                 const serviceConfig = await proxy.getServiceInspect_E("adriano");
+                assert.equal(serviceConfig, undefined)
             });
             it("loads inspect without servicename", async () => {
-                const serviceConfig = await proxy.getServiceInspect_E("adriano");
+                const serviceConfig = await proxy.getServiceInspect_E();
+                assert.equal(serviceConfig, undefined)
             });
         });
         describe("getTasksOfServices_E | getDeployedVersions_E | getReplicaCount_E", () => {
@@ -68,9 +70,9 @@ async function run() {
                 const deployedVersions = await proxy.getDeployedVersions_E(serviceName);
                 assert.equal(typeof deployedVersions === 'object', true);
 
-                const table = renderVersionTable(deployedVersions);
-
-                console.log(table)
+                assert.doesNotThrow(() => {
+                    renderVersionTable(deployedVersions);
+                })
 
 
             });

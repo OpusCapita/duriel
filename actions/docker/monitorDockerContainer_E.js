@@ -71,7 +71,7 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
 };
 
 const checkUpdateStatus = async function (config, proxy) {
-    const check = {state: 'unknown'};
+    const check = {state: 'failure'};
 
     const inspection = await proxy.getServiceInspect_E(config['serviceName']);
     await proxy.getDeployedVersions_E(config['serviceName'])
@@ -83,7 +83,7 @@ const checkUpdateStatus = async function (config, proxy) {
     try {
         state = inspection[0]['UpdateStatus']['State'];
     } catch (error) {
-        log.error("could not fetch update-status", error);
+        log.warn("could not fetch any update-status", error);
         return check;
     }
     if (state === 'updating') {
@@ -132,3 +132,5 @@ function renderVersionTable(versions) {
 }
 
 module.exports.renderVersionTable = renderVersionTable;
+module.exports.checkCreateStatus = checkCreateStatus;
+module.exports.checkUpdateStatus = checkUpdateStatus;

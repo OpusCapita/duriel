@@ -29,6 +29,6 @@ module.exports = {
         if (process.env.admin_user)
             proxyConfig.admin_user = process.env.admin_user;
         return await new EnvProxy().init(proxyConfig)
-            .catch(e => log.error(e))
+            .catch(e => console.error(e))
     }
 };
