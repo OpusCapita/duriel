@@ -12,6 +12,11 @@ const queryExecuter = require('./queryExecuter');
  * @returns -
  */
 module.exports = async function (config, proxy, forceUserCreate = false) {
+    if(!config['MYSQL_PW']) {
+        log.warn("MySQL functions disabled as no database-password in env-vars.");
+        return
+    }
+
     const task_template = loadTaskTemplate(config);
     const db_init_settings = getTaskTemplateSettings(config, task_template);
     if (!db_init_settings) {
