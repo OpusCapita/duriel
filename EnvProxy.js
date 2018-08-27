@@ -278,28 +278,31 @@ class EnvProxy {
      * @param secretName
      * @returns {*}
      */
-    insertDockerSecret(secret, secretName) {
-        return this.executeCommand_E(`echo '${secret}' | docker secret create '${secretName}' - `);
+    insertDockerSecret(secret, secretName, ...labels) {
+        if (labels)
+            labels.filter(it => !new RegExp(/[[:alnum:]-_]+=[[:alnum:]-_]+/).test(it));
+
+        return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`)} '${secretName}' - `);
     }
 
-    getDockerSecrets(){
-        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}###{{.Label}}'")
+    getDockerSecrets() {
+        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}'")
             .then(response => {
-               return response.splice(linebreak_splitter)
-                   .map(line => {
-                       const cols = line.split('###');
-                       if(cols.length === 6){
-                           return {
-                               id: cols[0],
-                               name: cols[1],
-                               createdAt: cols[2],
-                               updatedAt: cols[3],
-                               labels: cols[4],
-                               label: cols[5]
-                           }
-                       }
-                   })
-                   .filter(it => it);
+                return response.split(linebreak_splitter)
+                    .map(line => {
+                        const cols = line.split('###');
+                        if (cols.length === 5) {
+                            return {
+                                id: cols[0],
+                                name: cols[1],
+                                createdAt: cols[2],
+                                updatedAt: cols[3],
+                                labels: cols[4],
+                                label: cols[5]
+                            }
+                        }
+                    })
+                    .filter(it => it);
             })
     }
 

@@ -15,6 +15,58 @@ module.exports.run = run;
 
 async function run() {
     describe("test EnvProxy", () => {
+        describe("insertDockerSecret_E | getDockerSecrets | removeDockerSecret | generadeDockerSecret", () => {
+
+            const generateDockerSecret = require('../actions/docker/generateDockerSecret');
+            const testingSecret = `testing-secret-${new Date().getTime()}`;
+
+            let generatedSecret;
+
+            let proxy;
+            before(async () => {
+                proxy = await constants.getEnvProxy();
+            });
+            after(() => {
+                if (proxy) {
+                    log.debug("closing proxy.");
+                    proxy.close();
+                    proxy = undefined;
+                }
+            });
+            it("fetches all secrets", async () => {
+                const secrets = await generateDockerSecret.getAll(proxy)
+                assert.equal(Array.isArray(secrets), true);
+            });
+            it("fetches a specific secret", async () => {
+                const secret = await generateDockerSecret.get(proxy, "andariel-monitoring-consul-key")
+                assert.equal(!!secret, true);
+            });
+            it("fetches a non existing secret", async () => {
+                const secret = await generateDockerSecret.get(proxy, "this-is-non-existing")
+                    .catch(e => "ok");
+                assert.equal(secret, "ok");
+            });
+            it("creates a secret", async () => {
+                const createdSecret = await generateDockerSecret.create(proxy, testingSecret);
+                generatedSecret = createdSecret.secret;
+            });
+            it("fetches the testing-secret", async () => {
+                const secret = await generateDockerSecret.get(proxy, testingSecret);
+            });
+            it("replaces the testing secret", async () => {
+                const replacedSecret = await generateDockerSecret.replace(proxy, testingSecret);
+                assert.notEqual(generatedSecret, replacedSecret.secret);
+            });
+            it("removes the testing secret", async () => {
+                await generateDockerSecret.remove(proxy, testingSecret);
+            });
+            it("checks if the secret was deleted", async ()=> {
+                const secret = await generateDockerSecret.get(proxy, testingSecret)
+                    .catch(e => "ok");
+                assert.equal(secret, "ok");
+            })
+
+        });
         describe("getDockerInspect_E", () => {
             let proxy;
             before(async () => {

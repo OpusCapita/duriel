@@ -137,7 +137,6 @@ const exec = async function () {
         }
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
-        config['DS2'] = dockerCommand;
 
         const testToken = await e2eTester.prepareE2ETests(config, proxy);
         if (testToken) {

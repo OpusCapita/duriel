@@ -99,7 +99,7 @@ async function run() {
 
                         const result = libraryHelper.checkService2ServiceDependencies(expected, deployed)
                         const renderingBase = {validations: [result]};
-                        log.info(versionValidator.renderVersionValidationResult(renderingBase));
+                        log.debug(versionValidator.renderVersionValidationResult(renderingBase));
 
                         assert.doesNotThrow(() => {
                             assert.equal(result.success(), true);
@@ -170,9 +170,8 @@ async function run() {
                             }
                         }));
                         let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                        log.info(successCheck);
                         assert.equal(successCheck.success, true);
-                        assert.doesNotThrow(() => log.info(versionValidator.renderVersionValidationResult(successCheck)));
+                        assert.doesNotThrow(() => log.debug(versionValidator.renderVersionValidationResult(successCheck)));
                     });
 
                     it("checks and failes", async () => {
@@ -324,7 +323,7 @@ async function run() {
                         ]
                     };
                     assert.doesNotThrow(async () => {
-                        log.info(await versionValidator.renderVersionValidationResult(checkResult))
+                        log.debug(await versionValidator.renderVersionValidationResult(checkResult))
                     })
                 });
             });
