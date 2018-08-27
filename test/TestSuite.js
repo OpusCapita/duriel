@@ -9,9 +9,8 @@ process.env.andariel_loglevel = "warn";
 
 async function fun() {
     describe("Test duriel!", async () => {
-
-        await require("./BaseFunctionTests").run();
         await require("./EnvProxyTests").run();
+        await require("./BaseFunctionTests").run();
         await require("./FileHandlingsTests").run();
         await require("./VariableInjectionTests").run();
         await require("./VersionTests").run();

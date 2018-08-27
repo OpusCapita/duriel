@@ -15,13 +15,35 @@ module.exports.run = run;
 
 async function run() {
     describe("test EnvProxy", () => {
+        describe("getDockerInspect_E", () => {
+            let proxy;
+            before(async () => {
+                proxy = await constants.getEnvProxy();
+            });
+            after(() => {
+                if (proxy) {
+                    log.debug("closing proxy.");
+                    proxy.close();
+                    proxy = undefined;
+                }
+            });
+            it("loads a valid inspect", async () => {
+                const serviceConfig = await proxy.getServiceInspect_E("kong");
+
+            });
+            it("loads an invalid inspect", async () => {
+                const serviceConfig = await proxy.getServiceInspect_E("adriano");
+            });
+            it("loads inspect without servicename", async () => {
+                const serviceConfig = await proxy.getServiceInspect_E("adriano");
+            });
+        });
         describe("getTasksOfServices_E | getDeployedVersions_E | getReplicaCount_E", () => {
             const serviceName = "logstash";
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
             });
-
             after(() => {
                 if (proxy) {
                     log.debug("closing proxy.");
