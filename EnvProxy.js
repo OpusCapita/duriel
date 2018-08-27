@@ -282,6 +282,27 @@ class EnvProxy {
         return this.executeCommand_E(`echo '${secret}' | docker secret create '${secretName}' - `);
     }
 
+    getDockerSecrets(){
+        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}###{{.Label}}'")
+            .then(response => {
+               return response.splice(linebreak_splitter)
+                   .map(line => {
+                       const cols = line.split('###');
+                       if(cols.length === 6){
+                           return {
+                               id: cols[0],
+                               name: cols[1],
+                               createdAt: cols[2],
+                               updatedAt: cols[3],
+                               labels: cols[4],
+                               label: cols[5]
+                           }
+                       }
+                   })
+                   .filter(it => it);
+            })
+    }
+
     /**
      * Reads in all running containers the given secret.
      * @param serviceName
