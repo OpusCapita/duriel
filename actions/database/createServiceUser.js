@@ -11,6 +11,11 @@ const queryExecuter = require('./queryExecuter');
  * @returns success<boolean>
  */
 module.exports = async function (config, proxy, checkOnly = true) {
+    if(!config['MYSQL_PW']) {
+        log.warn("MySQL functions disabled as no database-password in env-vars.")
+        return true
+    }
+
     log.info("Setting up service-user");
     let injectUser = false;
     const db_init_flag = "db-Init";
