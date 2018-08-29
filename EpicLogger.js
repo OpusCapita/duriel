@@ -1,53 +1,90 @@
+/**
+ * Super epic simple logger of duriel!
+ * @class
+ */
 class EpicLogger {
-    constructor() {
-        this.logLevel = EpicLogger.getEnvLogLevel();
-        this.severe = (msg, obj) => this.log('severe', msg, null, obj, EpicLogger.getColors().CYAN);
-        this.debug = (msg, obj) => this.log('debug', msg, null, obj, EpicLogger.getColors().GREEN);
-        this.info = (msg, obj) => this.log('info', msg, null, obj, EpicLogger.getColors().WHITE);
-        this.warn = (msg, obj) => this.log('warn', msg, null, obj, EpicLogger.getColors().YELLOW);
-        this.error = (msg, error, obj) => this.log('error', msg, error, obj, EpicLogger.getColors().RED);
+    constructor(config) {
+        this.logLevel = EpicLogger.getEnvLogLevel(config);
+        this.severe = (msg, ...obj) => this.log('severe', msg, ...obj);
+        this.debug = (msg, ...obj) => this.log('debug', msg, ...obj);
+        this.info = (msg, ...obj) => this.log('info', msg, ...obj);
+        this.warn = (msg, ...obj) => this.log('warn', msg, ...obj);
+        this.error = (msg, error, ...obj) => this.log('error', msg, error, ...obj);
         this.log = this.log.bind(this);
     }
 
+    /**
+     * @static
+     * @method
+     * @returns {string[]}
+     */
     static getLogLevels() {
         return [
             "severe", "debug", "info", "warn", "error"
         ];
     }
 
-    static getEnvLogLevel() {
-        return process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
+    static getEnvLogLevel(config) {
+        let result;
+        if (config)
+            result = config.andariel_loglevel;
+        if (!result)
+            result = process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
+        return result;
     }
 
-    static getColors(){
+    static getColors() {
         return {
             RESET: "\x1b[0m",
             RED: "\x1b[31m",
-            YELLOW : "\x1b[33m",
-            GREEN :"\x1b[32m",
+            GREEN: "\x1b[32m",
+            YELLOW: "\x1b[33m",
+            BLUE: "\x1b[34m",
+            MAGENTA: "\x1b[35m",
             CYAN: "\x1b[36m",
-            WHITE: "\x1b[37m"
+            WHITE: "\x1b[37m",
         }
     }
 
-    log(level, message, error, obj, color) {
-        if (EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
+    static getLevelColor(level) {
+        switch (level) {
+            case "severe":
+                return EpicLogger.getColors().CYAN;
+            case "debug":
+                return EpicLogger.getColors().GREEN;
+            case "info":
+                return EpicLogger.getColors().WHITE;
+            case "warn":
+                return EpicLogger.getColors().YELLOW;
+            case "error":
+                return EpicLogger.getColors().RED;
+            default:
+                return EpicLogger.getColors().MAGENTA;
+        }
+    }
+
+    log(level, ...obj) {
+        if (EpicLogger.getLogLevels().indexOf(level) >= 0 && EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
             return;
         }
-        let logValue = EpicLogger.convert2ReadableString(message);
+        let logValue = "";
         if (obj) {
-            logValue += `\n${EpicLogger.convert2ReadableString(obj)}`;
+            for (const attachment of obj)
+                logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;
         }
-        console.log(`${color}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue);
-        if (error) {
-            console.error(error);
-        }
+        console.log(`${EpicLogger.getLevelColor(level)}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue);
     }
 
     static convert2ReadableString(message) {
         let logValue = "";
         if (typeof message === 'string' || message instanceof String) {
             logValue = message;
+        } else if (typeof message === 'Error' || message instanceof Error) {
+            try {
+                logValue = message.stack || message
+            } catch (e) {
+                return message
+            }
         } else {
             try {
                 logValue = JSON.stringify(message, null, 1);
@@ -59,7 +96,7 @@ class EpicLogger {
     }
 
     static formatDate2String(date) {
-        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth() + 1, '0', 2)}.${date.getFullYear()} ${this.padLeft(date.getHours() , '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
+        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth() + 1, '0', 2)}.${date.getFullYear()} ${this.padLeft(date.getHours(), '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
     }
 
     static padLeft(s, c, l) {

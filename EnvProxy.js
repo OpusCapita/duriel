@@ -3,8 +3,9 @@ const dns = require('dns');
 const net = require('net');
 const Client = require('ssh2').Client;
 const axios = require('axios');
+
 const fs = require('fs');
-const exec = require('child_process');
+const exec = require('child_process').exec;
 
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
@@ -48,6 +49,8 @@ module.exports = class EnvProxy {
                 username: this.config.admin_user,
                 agentForward: true,
                 agent: process.env.SSH_AUTH_SOCK,
+                hostHash: 'md5',
+                hostVerifier: (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
 
@@ -575,7 +578,7 @@ module.exports = class EnvProxy {
      * @returns Promise<>
      */
     changePermission_L(permission, targetPath, sudo = false) {
-        return this.executeCommand_L(`chmod ${permission} ${targetPath}`, sudo)
+        return this.executeCommand_L(`${sudo ? "sudo" : ""} chmod ${permission} ${targetPath}`)
     }
 
     /**
@@ -592,9 +595,9 @@ module.exports = class EnvProxy {
      * execute command on the ENV
      * @param command
      * @param sudo
-     * @param loggingStream -
+     * @param logOutputLevel {string} - [optional] - loglevel of the commands output if it should be logged
      */
-    async executeCommand_E(command, sudo = false) {
+    async executeCommand_E(command, sudo = false, logOutputLevel) {
         if (sudo) {
             command = 'sudo ' + command;
         }
@@ -613,6 +616,9 @@ module.exports = class EnvProxy {
                     }
                     return resolve(response);
                 }).on('data', function (data) {
+                    if (logOutputLevel) {
+                        log.log(logOutputLevel, data.toString())
+                    }
                     response += data.toString();
                 }).on('error', streamError => {
                     return reject(streamError);
@@ -638,22 +644,31 @@ module.exports = class EnvProxy {
     /**
      * execute command on local machine
      * @param command
-     * @param sudo
-     * @param bufferSize    bufferSize of stdout in Bytes - default is 500MB
+     * @param directOutput {string} - loglevel of the direct output of the command-output-stream
      */
-    executeCommand_L(command, sudo = false, bufferSize = 500 * dataSizes.MB) {
-        if (sudo) {
-            command = 'sudo ' + command;
-        }
-        return new Promise((resolve, reject) =>
-            exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
-                if (error) {
-                    log.error(`stderr: ${stderr}`);
-                    return reject(error);
-                }
-                return resolve(stdout);
-            })
-        );
+    executeCommand_L(command, directOutput) {
+        return new Promise((resolve, reject) => {
+            const eventEmitter = exec(command);
+            const buffer = [];
+            const errorBuffer = [];
+
+            eventEmitter.stdout.on('data', data => {
+                buffer.push(data);
+                if (directOutput)
+                    log.log(directOutput, data);
+            });
+
+            eventEmitter.stderr.on('data', data => {
+                errorBuffer.push(data);
+            });
+
+            eventEmitter.on('exit', code => {
+                if (code)
+                    reject(errorBuffer.join(""));
+                else
+                    resolve(buffer.join(""));
+            });
+        })
     }
 
     changeCommandDir_L(dir) {
