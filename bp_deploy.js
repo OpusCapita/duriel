@@ -8,7 +8,7 @@ const fs = require('fs');
 const versionValidator = require('./actions/versionValidator');
 
 const fileHandler = require('./actions/filehandling/fileHandler');
-const generateSecret = require('./actions/docker/generateDockerSecret');
+const dockerSecretHelper = require('./actions/helpers/dockerSecretHelper');
 
 const handleServiceDB = require('./actions/database/createServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
@@ -110,7 +110,7 @@ const exec = async function () {
                 process.exit(1);
             } else {
                 log.info("drop/creating the service secret");
-                const generatedSecret = await generateSecret(false, config, proxy);
+                const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
                 config['serviceSecret'] = generatedSecret.serviceSecret;
                 config['secretId'] = generatedSecret.secretId;
                 await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default

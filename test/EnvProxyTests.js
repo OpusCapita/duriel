@@ -17,7 +17,7 @@ async function run() {
     describe("test EnvProxy", () => {
         describe("insertDockerSecret_E | getDockerSecrets | removeDockerSecret | generadeDockerSecret", () => {
 
-            const generateDockerSecret = require('../actions/docker/generateDockerSecret');
+            const generateDockerSecret = require('../actions/helpers/dockerSecretHelper');
             const testingSecret = `testing-secret-${new Date().getTime()}`;
 
             let generatedSecret;

@@ -2,34 +2,15 @@
 const Logger = require('../../EpicLogger');
 const log = new Logger();
 
-const EnvProxy = require('../../EnvProxy')
-
-/**
- *
- * @param fullReplacement - flag thats enables removing the secret before the new value
- * @param config - {Object}
- * e.g.: {'serviceName' : '', 'serviceSecretName' : ''}
- * @param proxy - initialized EnvProxy
- * @returns {Promise<{secretId, serviceSecret}>}
- */
-module.exports = async function (fullReplacement, config, proxy) {
-    const serviceSecret = await proxy.executeCommand_L(`openssl rand -base64 32`);
-    if (!fullReplacement) {
-        log.info(`failOnExit is false --> will drop secret`);
-        await proxy.removeDockerSecret(config['serviceSecretName']);
-    }
-    const secretId = await proxy.insertDockerSecret(serviceSecret, config['serviceSecretName']);
-    return {secretId: secretId, serviceSecret: serviceSecret};
-
-};
-
+const EnvProxy = require('../../EnvProxy');
 
 async function create(proxy, secretName, length = 32, ...labels) {
-    const secret = await generateSecret(32);
-    await proxy.insertDockerSecret(secret, secretName, ...labels);
+    const serviceSecret = await generateSecret(32);
+    const secretId = await proxy.insertDockerSecret(serviceSecret, secretName, ...labels);
     return {
-        secretName: secretName,
-        secret: secret
+        secretId,
+        secretName,
+        serviceSecret
     }
 }
 
