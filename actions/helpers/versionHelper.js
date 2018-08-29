@@ -19,7 +19,8 @@ module.exports = {
     compareVersion,
     calculateImageTag,
     mergeVersionDependencies,
-    validateVersion
+    validateVersion,
+    bumpProdVersion
 };
 
 /**
@@ -43,6 +44,10 @@ const tagRules = [
         rule: (env) => env === 'prod',
         postFix: undefined,
         bump: async (config) => bumpProdVersion(config)
+            .catch(e => {
+                log.warn("could not bump prod version - using 'minor' bumping", e)
+                return bumpVersion(undefined, "minor");
+            })
     },
     {
         rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
@@ -83,31 +88,27 @@ async function calculateImageTag(config) {
 /**
  * Bumps a Version for a production release.
  * Checks whether the master-commit came from a hotfix- or release-branch
- * @param config {BaseConfig}
+ * @param config {BaseConfig} - used "CIRCLE_SHA1"
  * @returns {Promise<void>}
  */
 async function bumpProdVersion(config) {
-    const version = await gitHelper.getMainVersionTags().then(versions => versions[0])
-    const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
-        .then(merges => merges.map(it => it.parents));
+    const version = await gitHelper.getMainVersionTags().then(versions => versions[0]);
+    const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')});
     log.debug(`merges of commit ${config.get('CIRCLE_SHA1')}`, commitMerges);
 
     let bumpLevel = "minor";
     if (config['major_release']) {
-        // TODO: remove var from circleci
         return await bumpVersion(version, 'major')
     }
     for (const merge of commitMerges) {
         log.debug("checking merge", merge);
-        log.debug("merge parents are: ", merge.parents);
-
-        /*for (const parent of merge.parents) {
+        for (const parent of merge.parents) {
             const tagsOfParent = await gitHelper.getTags({commit: parent});
+            log.warn("tags of parent" + parent, tagsOfParent)
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
                 bumpLevel = "patch";
             }
         }
-        */
     }
     return await bumpVersion(version, bumpLevel);
 }
@@ -202,8 +203,9 @@ function splitIntoParts(version) {
 }
 
 function mergeVersionDependencies(preferHigher = true, ...dependencies) {
+    log.debug("merging dependencies: ", dependencies);
     const result = {};
-        for (const dependency of dependencies) {
+    for (const dependency of dependencies) {
         for (const key in dependency) {
             if (!validateVersion(dependency[key]))
                 throw new Error(`${dependency[key]} is not a valid version`);
@@ -219,7 +221,7 @@ function mergeVersionDependencies(preferHigher = true, ...dependencies) {
             }
         }
     }
-    log.info(result);
+    log.debug("merged dependencies: ", result);
     return result;
 }
 

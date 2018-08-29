@@ -112,8 +112,6 @@ async function getTags(filter) {
             command = `${command} --merged ${filter.merged}`
         }
     }
-
-    log.info(command);
     return await executeCommand(command)
         .then(tags => tags.split('\n')
             .filter(tag => {
@@ -232,5 +230,5 @@ async function getStatus(filter) {
         .map(row => row.split(/[ ]+/).filter(col => col)) // splitting into cols
         .filter(it => it.length)    // removing empty rows
         .map(it => ({status: it[0], file: it[1]})) // parsing into objects
-        .filter(it => !filter|| filter.includes(it.status)) // filtering
+        .filter(it => !filter || filter.includes(it.status)) // filtering
 }
