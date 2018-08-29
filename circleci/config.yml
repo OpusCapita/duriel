@@ -21,7 +21,7 @@ jobs:
           name: "building and testing locally"
           command: "node ../buildprocess/bp_localbuild.js opuscapita/$CIRCLE_PROJECT_REPONAME"
       - store_test_results:
-          path: "junit"
+          path: "./junit"
       - run:
           name: "Deployment"
           command: "node ../buildprocess/bp_deploy.js"

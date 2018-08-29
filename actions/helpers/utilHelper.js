@@ -26,15 +26,42 @@ const padLeft = function (input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
-    input = `${input}`;
+    input = input ? `${input}` : "";
     while (input.length < length) {
         input = character + input;
     }
     return input;
 };
 
-function isEqual(obj1, obj2){
-    if (Array.isArray(obj1) && Array.isArray(obj1)) {
+const padRight = function (input, character, length) {
+    if (!`${character}` || !length) {
+        return "wrong usage! (input, character, length)";
+    }
+    input = input ? `${input}` : "";
+    while (input.length < length) {
+        input = input + character;
+    }
+    return input;
+};
+
+const padBoth = function (input, character, length) {
+    if (!`${character}` || !length) {
+        return "wrong usage! (input, character, length)";
+    }
+    input = input ? `${input}` : "";
+    let left = true;
+    while (input.length < length) {
+        if (left)
+            input = character + input;
+        else
+            input = input + character;
+        left = !left;
+    }
+    return input;
+};
+
+function isEqual(obj1, obj2) {
+    if (Array.isArray(obj1) && Array.isArray(obj2)) {
         for (const arrayEntry1 of obj1) {
             for (const arrayEntry2 of obj2) {
                 if (!isEqual(arrayEntry1, arrayEntry2)) {
@@ -57,32 +84,40 @@ function isEqual(obj1, obj2){
             }
         }
         return true;
-    } else if (typeof obj1 ===  typeof obj2) {
+    } else if (typeof obj1 === typeof obj2) {
         return obj1 === obj2;
     } else {
         return obj1 === obj2;
     }
 }
 
-function deepContains(array, obj){
-    for(const entry of array){
-        if(isEqual(entry, obj))
+function deepContains(array, obj) {
+    for (const entry of array) {
+        if (isEqual(entry, obj))
             return true;
     }
     return false;
 }
 
-function arrayMinus(array1, array2){
+function arrayMinus(array1, array2) {
     const result = [];
     for (const entry1 of array1) {
-        if(!deepContains(array2, entry1)){
+        if (!deepContains(array2, entry1)) {
             result.push(entry1);
         }
     }
     return result;
 }
 
-function arrayIntersect(array1, array2) {
+function arrayIntersect(...arrays) {
+    let result = arrays[0];
+    for (let i = 1; i < arrays.length; i++) {
+        result = twoArrayIntersect(result, arrays[i]);
+    }
+    return result;
+}
+
+function twoArrayIntersect(array1, array2) {
     const result = [];
     for (const entry1 of array1) {
         for (const entry2 of array2) {
@@ -90,15 +125,89 @@ function arrayIntersect(array1, array2) {
                 result.push(entry1);
         }
     }
+
     return result;
 }
 
+/**
+ * return the longest length of every string inside an array.
+ * e.g. {
+ *  a: 1,
+ *  b: [22, 333],
+ *  c: "4444"
+ * } --> 4
+ * @param input string
+ * @returns {number} length of longest string
+ */
+function getLongestStringInObject(input) {
+    if (typeof input === 'string')
+        return input.length;
+
+    if (Array.isArray(input))
+        return Math.max(... input.map(it => getLongestStringInObject(it)));
+
+    if (input !== Object(input))
+        return getLongestStringInObject(`${input}`);
+
+    return Math.max(... Object.keys(input).map(it => getLongestStringInObject(input[it])))
+}
+
+/**
+ * makes the entries inside the array unique.
+ * Implementation is faster than Set-solution (O[n])
+ * @param array {Array}
+ * @returns {Array<string>}
+ */
+function getUniqueArray(array) {
+    if (!array)
+        return [];
+
+    return Object.keys(
+        array.filter(it => it)
+            .map(it => `${it}`)
+            .reduce((l, r) => l[r] = l, {})
+    )
+}
+
+/**
+ *
+ * @param input {array}
+ * @param groupingFunction {function}
+ * @param  transformFunction {function} (optional)
+ */
+function groupBy(input, groupingFunction, transformFunction) {
+
+    if (!Array.isArray(input))
+        throw new Error('input musst be an Array');
+
+    if (!groupingFunction)
+        throw new Error('no grouping function passed');
+
+    const result = {};
+    for (let entry of input) {
+
+        const currentKey = groupingFunction(entry);
+        if (transformFunction)
+            entry = transformFunction(entry);
+
+        if (result[currentKey])
+            result[currentKey].push(entry);
+        else
+            result[currentKey] = [entry];
+    }
+    return result;
+}
 
 module.exports = {
-    snooze: snooze,
-    flattenArray: flattenArray,
-    padLeft: padLeft,
-    arrayMinus: arrayMinus,
-    arrayIntersect: arrayIntersect,
-    objectIsEqual: isEqual
+    snooze,
+    flattenArray,
+    padLeft,
+    padRight,
+    padBoth,
+    arrayMinus,
+    arrayIntersect,
+    isEqual,
+    getLongestStringInObject,
+    getUniqueArray,
+    groupBy
 };

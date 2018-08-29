@@ -5,6 +5,8 @@ const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
 const fs = require('fs');
 
+const versionValidator = require('./actions/versionValidator');
+
 const fileHandler = require('./actions/filehandling/fileHandler');
 const generateSecret = require('./actions/docker/generateDockerSecret');
 
@@ -31,7 +33,7 @@ const exec = async function () {
             return;
         }
 
-        if(!config['TARGET_ENV']){
+        if (!config['TARGET_ENV']) {
             log.info("no deployment to env needed.");
             process.exit(0);
         }
@@ -71,6 +73,13 @@ const exec = async function () {
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
+
+        log.info("Checking version dependencies... ");
+        await versionValidator.checkVersionDependencies(config, proxy)
+            .catch(e => log.error("Error while checking dependencies", e));  // remove me!
+        log.info("... finished checking version dependencies");
+
+
         await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = await dependsOnServiceClient();
@@ -128,7 +137,6 @@ const exec = async function () {
         }
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
-        config['DS2'] = dockerCommand;
 
         const testToken = await e2eTester.prepareE2ETests(config, proxy);
         if (testToken) {
@@ -142,18 +150,19 @@ const exec = async function () {
         log.info(`Login for Docker: '${config['DOCKER_USER']}', executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
-        if(!commandResponse ){
-            throw new Error("no response for docker command");
-        }
-        const loginSucceded = commandResponse.includes("Login Succeeded");
-        if(!loginSucceded){
-            throw new Error("invalid docker login.");
-        }
+        if (!isCreateMode) {
+            if (!commandResponse) {
+                throw new Error("no response for docker command");
+            }
+            if (!commandResponse.includes("Login Succeeded")) {
+                throw new Error("invalid docker login.");
+            }
 
-        const commandResponseSplit = commandResponse.split("Login Succeeded");
-        const successPart = commandResponseSplit.length && commandResponseSplit[commandResponseSplit.length -1].trim();
-        if(!successPart || successPart.trim() !== config['CIRCLE_PROJECT_REPONAME']){
-            throw new Error("command response is not the reponame, this means docker did not accept the command but also did not throw an error...");
+            const commandResponseSplit = commandResponse.split("Login Succeeded");
+            const successPart = commandResponseSplit.length && commandResponseSplit[commandResponseSplit.length - 1].trim();
+            if (!successPart || successPart.trim() !== config['CIRCLE_PROJECT_REPONAME']) {
+                throw new Error("command response is not the reponame, this means docker did not accept the command but also did not throw an error...");
+            }
         }
 
         log.info("monitoring service after command-execution");

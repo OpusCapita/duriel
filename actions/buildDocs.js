@@ -15,7 +15,7 @@ const fs = require("fs");
 const raml2md = require("raml-to-markdown");
 const jsdoc2md = require("jsdoc-to-markdown");
 const seq2md = require("sequelize-to-markdown");
-const libraryHelper = require('./helpers/libaryHelper');
+const libraryHelper = require('./helpers/libraryHelper');
 
 const wikiDirs = ["./wiki/rest-doc/dummy.s", "./wiki/domain-doc/dummy.d", "./wiki/api-doc/dummy.f"];
 const sourceCodeDir = "src/server";

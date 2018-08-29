@@ -2,7 +2,9 @@
 const assert = require("assert");
 const versionHelper = require("../actions/helpers/versionHelper");
 
-module.exports.run = function () {
+const getBaseConfig = require('../actions/getEnvVariables').getBaseConfigObject;
+
+function run() {
     describe("version - bump", () => {
         it("bump - major", async () => {
             const version = "1.2.3";
@@ -34,10 +36,57 @@ module.exports.run = function () {
             assert.equal(bumpedVersion, "Backpfeife")
         });
     });
+    describe("version - bump prod", () => {
+        // these are fixed commits with parents with specific tags.
+        // tags gone? test will fail
+        // commits gone? test will fail
+        const hotfixConfig = getBaseConfig({CIRCLE_SHA1: "46156f351bae4bf26d052e56d6da3d6d80fb5137"});
+        const releaseConfig = getBaseConfig({CIRCLE_SHA1: "4f3a15bd48bb09b8fae77256657fa61234d1602f"});
 
-    describe("version - compare", () => {
+        it("bumps a hotfix version", async () => {
+            const version = await versionHelper.bumpProdVersion(hotfixConfig);
+            assert.equal(!!version, true)
+        });
+        it("bumps a release version", async () => {
+            const version = await versionHelper.bumpProdVersion(releaseConfig);
+            assert.equal(!!version, true)
+        });
+    });
+    describe("main-version - compare", () => {
         const small = "0.0.1";
         const big = "1.0.0";
+        const broken = "Leonardo.0.da-Banossi";
+
+        it("is greater", () => {
+            assert.equal(versionHelper.compareVersion(big, small) > 0, true)
+            assert.equal(versionHelper.compareVersion(`^${big}`, small) > 0, true);
+            assert.equal(versionHelper.compareVersion(`~${big}`, small) > 0, true);
+        });
+        it("is lower", () => {
+            assert.equal(versionHelper.compareVersion(small, big) < 0, true)
+            assert.equal(versionHelper.compareVersion(small, `^${big}`) < 0, true);
+            assert.equal(versionHelper.compareVersion(small, `~${big}`) < 0, true);
+        });
+        it("is equal", () => {
+            assert.equal(versionHelper.compareVersion(big, big) === 0, true)
+            assert.equal(versionHelper.compareVersion(big, `~${big}`) === 0, true)
+            assert.equal(versionHelper.compareVersion(big, `^${big}`) === 0, true)
+        });
+        it("is broken", () => {
+            assert.throws(() => versionHelper.compareVersion(broken, small), Error, "")
+        });
+        it("is broken again", () => {
+            assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
+        });
+        it("has a crazy prefixes", () => {
+
+            assert.equal(versionHelper.compareVersion(`^${big}`, small) > 0, true);
+            assert.equal(versionHelper.compareVersion(`~${big}`, small) > 0, true);
+        })
+    });
+    describe("dev-version - compare", () => {
+        const small = "0.0.1-dev-123";
+        const big = "1.0.0-rc-123";
         const broken = "Leonardo.0.da-Banossi";
 
         it("is greater", () => {
@@ -55,5 +104,53 @@ module.exports.run = function () {
         it("is broken again", () => {
             assert.throws(() => versionHelper.compareVersion(small, broken), Error, "")
         });
-    })
+    });
+    describe("version dependency merging", () => {
+        const a = {
+            supplier: "0.0.1",
+            tnt: "0.0.2-dev-12"
+        };
+        const b = {
+            supplier: "1.0.0",
+            dummy: "2.2.1-hf-123"
+        };
+        it("merges with higher", () => {
+            const result = {
+                supplier: "1.0.0",
+                tnt: "0.0.2-dev-12",
+                dummy: "2.2.1-hf-123"
+            };
+            const calculated = versionHelper.mergeVersionDependencies(true, a, b);
+            assert.deepEqual(result, calculated);
+        });
+        it("merges with lower", () => {
+            const result = {
+                supplier: "0.0.1",
+                tnt: "0.0.2-dev-12",
+                dummy: "2.2.1-hf-123"
+            };
+            const calculated = versionHelper.mergeVersionDependencies(false, a, b);
+            assert.deepEqual(result, calculated);
+        });
+        it("merges with broken versions", () => {
+            assert.throws(() => versionHelper.mergeVersionDependencies(false, "kevin", b), Error, "");
+        })
+    });
+    describe("validate version", () => {
+        const a = "1.0.0";
+        const b = "1.0.0-dev-1";
+        const c = "ole ola olalala";
+
+        it("gets a valid main-version", () => {
+            assert.equal(versionHelper.validateVersion(a), true);
+        });
+        it("gets a valid dev-version", () => {
+            assert.equal(versionHelper.validateVersion(b), true);
+        });
+        it("get a broken version", () => {
+            assert.equal(versionHelper.validateVersion(c), false);
+        });
+    });
 }
+
+module.exports.run = run;

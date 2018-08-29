@@ -2,12 +2,16 @@ const Promise = require('bluebird');
 const dns = require('dns');
 const net = require('net');
 const Client = require('ssh2').Client;
-const axios = require('axios');
+
+const superagent = require('superagent');
+
 const fs = require('fs');
-const exec = require('child_process');
+const exec = require('child_process').exec;
 
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
+
+const helper = require('./actions/helpers/utilHelper');
 
 let default_config = {};
 
@@ -50,7 +54,7 @@ class EnvProxy {
                 agentForward: true,
                 agent: process.env.SSH_AUTH_SOCK,
                 hostHash: 'md5',
-                hostVerifier : (hash) => true
+                hostVerifier: (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
 
@@ -211,13 +215,8 @@ class EnvProxy {
             throw new Error('service missing');
         return await this.getContainers_N(node, onlyRunning)
             .then(result => {
-                log.debug(`containers of node ${node}`, result.map(it => {
-                    return {
-                        name: it.name,
-                        image: it.image
-                    }
-                }));
-                log.severe("unformatted containers of node:", result);
+                log.debug(`node '${node}' has ${result.length} containers.`);
+                log.severe(`containers of node ${node}`, result);
                 return result;
             })
             .then(result => result.filter(it => it.name.toLowerCase().startsWith(service.toLowerCase()))) //TODO: sauber implementieren!
@@ -279,8 +278,32 @@ class EnvProxy {
      * @param secretName
      * @returns {*}
      */
-    insertDockerSecret(secret, secretName) {
-        return this.executeCommand_E(`echo '${secret}' | docker secret create '${secretName}' - `);
+    insertDockerSecret(secret, secretName, ...labels) {
+        if (labels)
+            labels.filter(it => !new RegExp(/[[:alnum:]-_]+=[[:alnum:]-_]+/).test(it));
+
+        return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`)} '${secretName}' - `);
+    }
+
+    getDockerSecrets() {
+        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}'")
+            .then(response => {
+                return response.split(linebreak_splitter)
+                    .map(line => {
+                        const cols = line.split('###');
+                        if (cols.length === 5) {
+                            return {
+                                id: cols[0],
+                                name: cols[1],
+                                createdAt: cols[2],
+                                updatedAt: cols[3],
+                                labels: cols[4],
+                                label: cols[5]
+                            }
+                        }
+                    })
+                    .filter(it => it);
+            })
     }
 
     /**
@@ -332,14 +355,15 @@ class EnvProxy {
      * returns a list containing all tasks running the service
      * @param service
      * @param onlyRunning
-     * @returns {PromiseLike<object>} e.g. {id, name, image, node, desiredState, currentState, error, [ports]}
+     * @returns {PromiseLike<array<object>>} e.g. {id, name, image, node, desiredState, currentState, error, [ports]}
      */
-    getTasksOfServices_E(service, onlyRunning = false) {
+    async getTasksOfServices_E(service, onlyRunning = false) {
         if (!service)
             throw new Error('service missing');
+
         return this.executeCommand_E(`docker service ps ${service} --format '{{.ID}};{{.Name}};{{.Image}};{{.Node}};{{.DesiredState}};{{.CurrentState}};{{.Error}};{{.Ports}}' ${onlyRunning ? "-f 'desired-state=running'" : ""}`)
             .then(response => {
-                log.debug(`docker service ps ${service}`, response);
+                log.severe(`docker service ps ${service}`, response);
                 return response.split('\n').map(
                     row => {
                         let split = row.split(semicolon_splitter);
@@ -348,6 +372,8 @@ class EnvProxy {
                                 id: split[0],
                                 name: split[1],
                                 image: split[2],
+                                image_name: split[2].split(":")[0],
+                                image_version: split[2].split(":")[1],
                                 node: split[3],
                                 desiredState: split[4],
                                 currentState: split[5],
@@ -359,14 +385,47 @@ class EnvProxy {
                 );
             }).then(nodes => nodes.filter(it => it !== undefined))
             .then(nodes => {
-                log.debug(`tasks of service '${service}'`, nodes.map(it => {
-                    return {
-                        id: it.id,
-                        node: it.node
-                    }
-                }));
-                log.severe("unformatted tasks: " + service, nodes);
+                log.debug(`tasks of service '${service}'`, nodes.map(it => ({id: it.id, node: it.node})));
+                log.severe(`tasks of service '${service}'`, nodes);
                 return nodes;
+            })
+    }
+
+    /**
+     *
+     * @param serviceName {string}
+     * @param onlyRunning {boolean}
+     * @returns {Promise<object>}
+     * @example {
+     *  '1.0.0': [{}, {}],
+     *  '2.0.0': [{}, {}]
+     * }
+     */
+    async getDeployedVersions_E(serviceName) {
+        if (!serviceName)
+            throw new Error("serviceName is a mandatory parameter");
+        if (typeof serviceName !== 'string')
+            throw new Error("serviceName is a string (??!)");
+
+        const serviceTasks = await this.getTasksOfServices_E(serviceName, true);
+        return helper.groupBy(
+            serviceTasks,
+            it => it.image_version
+        )
+    }
+
+    async getReplicaCount_E(serviceName) {
+        if (!serviceName)
+            throw new Error('serviceName is a mandatory parameter.');
+
+        return await this.getServices_E()
+            .then(services => services.filter(service => service.name === serviceName)[0])
+            .then(serviceInfo => {
+                const up = serviceInfo.instances_up;
+                const target = serviceInfo.instances_target;
+                if (up !== target)
+                    log.warn(`seems like we are checking an unhealty service... up: ${up} target: ${target}`);
+                return up || 1
             })
     }
 
@@ -389,6 +448,8 @@ class EnvProxy {
                                 instances_up: replicasSplit[0],
                                 instances_target: replicasSplit[1],
                                 image: split[3],
+                                image_name: split[3].split(":")[0],
+                                image_version: split[3].split(":")[1],
                                 ports: split[4].split(comma_splitter)
                             };
                         }
@@ -399,7 +460,7 @@ class EnvProxy {
                     log.warn("no nodes found... this is strange...", nodes);
                     return [];
                 }
-                return nodes.filter(it => it !== undefined)
+                return nodes.filter(it => it)
             })
     }
 
@@ -578,7 +639,7 @@ class EnvProxy {
      * @returns Promise<>
      */
     changePermission_L(permission, targetPath, sudo = false) {
-        return this.executeCommand_L(`chmod ${permission} ${targetPath}`, sudo)
+        return this.executeCommand_L(`${sudo ? "sudo" : ""} chmod ${permission} ${targetPath}`)
     }
 
     /**
@@ -595,9 +656,9 @@ class EnvProxy {
      * execute command on the ENV
      * @param command
      * @param sudo
-     * @param loggingStream -
+     * @param logOutputLevel {string} - [optional] - loglevel of the commands output if it should be logged
      */
-    async executeCommand_E(command, sudo = false) {
+    async executeCommand_E(command, sudo = false, logOutputLevel) {
         if (sudo) {
             command = 'sudo ' + command;
         }
@@ -616,6 +677,9 @@ class EnvProxy {
                     }
                     return resolve(response);
                 }).on('data', function (data) {
+                    if (logOutputLevel) {
+                        log.log(logOutputLevel, data.toString())
+                    }
                     response += data.toString();
                 }).on('error', streamError => {
                     return reject(streamError);
@@ -641,22 +705,31 @@ class EnvProxy {
     /**
      * execute command on local machine
      * @param command
-     * @param sudo
-     * @param bufferSize    bufferSize of stdout in Bytes - default is 500MB
+     * @param directOutput {string} - loglevel of the direct output of the command-output-stream
      */
-    executeCommand_L(command, sudo = false, bufferSize = 500 * dataSizes.MB) {
-        if (sudo) {
-            command = 'sudo ' + command;
-        }
-        return new Promise((resolve, reject) =>
-            exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
-                if (error) {
-                    log.error(`stderr: ${stderr}`);
-                    return reject(error);
-                }
-                return resolve(stdout);
-            })
-        );
+    executeCommand_L(command, directOutput) {
+        return new Promise((resolve, reject) => {
+            const eventEmitter = exec(command);
+            const buffer = [];
+            const errorBuffer = [];
+
+            eventEmitter.stdout.on('data', data => {
+                buffer.push(data);
+                if (directOutput)
+                    log.log(directOutput, data);
+            });
+
+            eventEmitter.stderr.on('data', data => {
+                errorBuffer.push(data);
+            });
+
+            eventEmitter.on('exit', code => {
+                if (code)
+                    reject(errorBuffer.join(""));
+                else
+                    resolve(buffer.join(""));
+            });
+        })
     }
 
     changeCommandDir_L(dir) {
@@ -692,8 +765,10 @@ class EnvProxy {
 
     }
 
-    getConsulHealthCheck(serviceName) {
-        return this.queryConsul(`/v1/health/service/${serviceName}`)
+    async getConsulHealthCheck(serviceName) {
+        if (!serviceName)
+            return [];
+        return await this.queryConsul(`v1/health/service/${serviceName}`)
     }
 
     /**
@@ -701,8 +776,8 @@ class EnvProxy {
      * returns promise on an array like [ip,port]
      */
     lookupService(serviceName) {
-        log.info("looking up service " + serviceName + "...");
-        return this.queryConsul('/v1/catalog/service/' + serviceName)
+        log.debug("looking up service " + serviceName + "...");
+        return this.queryConsul('v1/catalog/service/' + serviceName)
             .then(data => {
                 log.debug(serviceName + ' looked up: ' + data[0].Address);
                 return Promise.resolve([data[0].Address, data[0].ServicePort]);
@@ -718,14 +793,18 @@ class EnvProxy {
      */
     async queryConsul(apiCall) {
         const proxy = this.proxyServers['consul'];
-        if (!proxy) return Promise.reject('no proxy for consul found!');
-        return await axios.get('http://localhost:' + proxy.port + apiCall)
-            .then((response) => {
-                return response.data;
-            })
-            .catch(error => {
-                log.error("error making http call to tunneled consul:", error);
-                return this.sshconn.e;
+        if (!proxy)
+            return Promise.reject('no proxy for consul found!');
+
+        const url = `http://localhost:${proxy.port}/${apiCall}`;
+
+        return superagent.get(url)
+            .set('Accept', 'application/json')
+            .set('accept-encoding', 'gzip')
+            .then(it => {
+                if (it.header['content-type'] === 'application/json')
+                    return JSON.parse(it.text);
+                return it.text
             });
     }
 
@@ -738,14 +817,12 @@ class EnvProxy {
     async addKeyValueToConsul(key, value) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
-        return await axios.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
-            .then((response) => {
-                return Promise.resolve(response.data);
-            })
+        return await superagent.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
+            .then(response => response.data)
             .catch(error => {
                 log.error("error making http call to tunneled consul", error);
-                return Promise.reject(this.sshconn.e);
-            });
+                throw error;
+            })
     }
 
     /**
@@ -753,8 +830,19 @@ class EnvProxy {
      * @param key
      * @returns value as String | Promise.reject
      */
-    async getKeyValue(key) {
+    async getKeyValueFromConsul(key) {
         return await this.queryConsul(`/v1/kv/${key}?raw`);
+    }
+
+    async deleteKeyValueFromConsul(key) {
+        const proxy = this.proxyServers['consul'];
+        if (!proxy) return Promise.reject('no proxy for consul found!');
+        return await superagent.delete(`http://localhost:${proxy.port}/v1/kv/${key}`)
+            .then(response => response.data)
+            .catch(error => {
+                log.error("error making http call to tunneled consul", error);
+                throw error;
+            })
     }
 
     /**
@@ -863,7 +951,7 @@ class EnvProxy {
         return result;
     };
 
-};
+}
 
 module.exports = EnvProxy;
 

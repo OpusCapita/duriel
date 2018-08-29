@@ -11,18 +11,22 @@ const VERSION_FILE = "VERSION";
 const fileHelper = require('../filehandling/fileHandler');
 
 const validBumpLevels = ["major", "minor", "patch"];
-const versionRegex = /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/;
-
+const versionRegex = /^[\^\~]?([0-9]+\.)([0-9]+\.)([0-9]+)(-dev-(\d)+)?(-rc-(\d)+)?(-hf-(\d)+)?$/;
+const devVersionSplitter = new RegExp(/(-dev-)?(-rc-)?(-hf-)?/);
 
 module.exports = {
     bumpVersion,
     compareVersion,
-    // readVersionFile,
-    // bumpAndCommitVersionFile,
     calculateImageTag,
-    //handleHotfixVersion
+    mergeVersionDependencies,
+    validateVersion,
+    bumpProdVersion
 };
 
+/**
+ * rules that check which target_env is needed for the current branch
+ * @type Array<object>
+ */
 const tagRules = [
     {
         rule: (env) => env === 'develop',
@@ -40,6 +44,10 @@ const tagRules = [
         rule: (env) => env === 'prod',
         postFix: undefined,
         bump: async (config) => bumpProdVersion(config)
+            .catch(e => {
+                log.warn("could not bump prod version - using 'minor' bumping", e)
+                return bumpVersion(undefined, "minor");
+            })
     },
     {
         rule: (env, branch) => branch && branch.toLowerCase().startsWith("hotfix/"),
@@ -55,6 +63,11 @@ const tagRules = [
     }
 ];
 
+/**
+ * Creates Versiontag based on the target_env, circle_branch and [optional] build-num
+ * @param config {BaseConfig}
+ * @returns {Promise<string>}
+ */
 async function calculateImageTag(config) {
     const targetEnv = config.get('TARGET_ENV');
     const branch = config['CIRCLE_BRANCH'];
@@ -73,43 +86,29 @@ async function calculateImageTag(config) {
 }
 
 /**
- * Read a File "VERSION"
- * @param config
- * @returns content of the VERSION-file
+ * Bumps a Version for a production release.
+ * Checks whether the master-commit came from a hotfix- or release-branch
+ * @param config {BaseConfig} - used "CIRCLE_SHA1"
+ * @returns {Promise<void>}
  */
-async function readVersionFile(config) {
-    let versionFileContent;
-    if (!fs.existsSync(VERSION_FILE)) {
-        log.error('no VERSION-File found! exiting!');
-        throw new Error('no VERSION-File found! exiting!');
-    } else {
-        versionFileContent = fs.readFileSync(VERSION_FILE, "utf8");
-        return versionFileContent.replace(/(\r\n|\n|\r)/gm, "");
-    }
-}
-
 async function bumpProdVersion(config) {
-    const version = await gitHelper.getMainVersionTags().then(versions => versions[0])
-    const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
-        .then(merges => merges.map(it => it.parents));
+    const version = await gitHelper.getMainVersionTags().then(versions => versions[0]);
+    const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')});
     log.debug(`merges of commit ${config.get('CIRCLE_SHA1')}`, commitMerges);
 
     let bumpLevel = "minor";
     if (config['major_release']) {
-        // TODO: remove var from circleci
         return await bumpVersion(version, 'major')
     }
     for (const merge of commitMerges) {
         log.debug("checking merge", merge);
-        log.debug("merge parents are: ", merge.parents);
-
-        /*for (const parent of merge.parents) {
+        for (const parent of merge.parents) {
             const tagsOfParent = await gitHelper.getTags({commit: parent});
+            log.warn("tags of parent" + parent, tagsOfParent)
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
                 bumpLevel = "patch";
             }
         }
-        */
     }
     return await bumpVersion(version, bumpLevel);
 }
@@ -145,6 +144,13 @@ async function bumpVersion(version, bumpLevel = "patch") {
  * @returns  number
  */
 function compareVersion(a, b) {
+    if (!a && !b)
+        return 0;
+    if (!a)
+        return -5;
+    if (!b)
+        return 5;
+
     const aSplit = splitIntoParts(a);
     const bSplit = splitIntoParts(b);
 
@@ -167,9 +173,9 @@ function compareVersion(a, b) {
  */
 function createBumpedVersion(version, bumpLevel) {
     const vp = splitIntoParts(version);
-    if(bumpLevel === "major"){
+    if (bumpLevel === "major") {
         vp.minor = vp.patch = 0;
-    } else if (bumpLevel === "minor"){
+    } else if (bumpLevel === "minor") {
         vp.patch = 0;
     }
     vp[bumpLevel] = 1 + vp[bumpLevel];
@@ -183,14 +189,43 @@ function createBumpedVersion(version, bumpLevel) {
  * @param version {object} (e.g. {major: 1, minor: 2, patch: 3})
  */
 function splitIntoParts(version) {
-    if(!new RegExp(versionRegex).test(version)){
-        throw new Error("Invalid version-format");
+    if (!validateVersion(version)) {
+        throw new Error(`Invalid version-format '${version}'`);
     }
     const result = {};
     const mainVersionPart = version.split(".");
-    result.major = parseInt(mainVersionPart[0]);
+    result.major = parseInt(mainVersionPart[0].replace(/[\^\~]/, ""));
     result.minor = parseInt(mainVersionPart[1]);
-    result.patch = parseInt(mainVersionPart[2]);
+    const patchSplit = mainVersionPart[2].split(devVersionSplitter);
+    result.patch = parseInt(patchSplit[0]);
+    result.deploymentNumber = parseInt(patchSplit[1]);
     return result;
 }
 
+function mergeVersionDependencies(preferHigher = true, ...dependencies) {
+    log.debug("merging dependencies: ", dependencies);
+    const result = {};
+    for (const dependency of dependencies) {
+        for (const key in dependency) {
+            if (!validateVersion(dependency[key]))
+                throw new Error(`${dependency[key]} is not a valid version`);
+            if (result[key]) {
+                const versionComparison = compareVersion(result[key], dependency[key]);
+                if (preferHigher && versionComparison <= 0) {
+                    result[key] = dependency[key]
+                } else if (!preferHigher && versionComparison >= 0) {
+                    result[key] = dependency[key];
+                }
+            } else {
+                result[key] = dependency[key];
+            }
+        }
+    }
+    log.debug("merged dependencies: ", result);
+    return result;
+}
+
+function validateVersion(version) {
+    const checker = new RegExp(versionRegex);
+    return version && checker.test(version);
+}

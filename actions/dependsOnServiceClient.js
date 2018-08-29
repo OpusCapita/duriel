@@ -6,23 +6,33 @@
 const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
+const libraryHelper = require('./helpers/libraryHelper')
+
+
+const serviceClientLibs = ['ocbesbn-service-client', 'ocbesbn-web-init', '@opuscapita/web-init'];
 
 /**
  * check for service-client of web-init dependency
  * @returns {boolean}
  */
 module.exports = function () {
+
+    log.info("Checking dependency ti service-client...");
     if (!fs.existsSync('./package.json')) {
         log.warn("could not find package.json");
         return false;
     }
-    const packageJson = fs.readFileSync('./package.json', {encoding: 'utf8'});
-    log.info("loaded package.json successfully.");
-    const parsedPackageJson = JSON.parse(packageJson);
 
-    let result = true;
-    result &= 'ocbesbn-service-client' in parsedPackageJson.dependencies;
-    result &= 'ocbesbn-web-init' in parsedPackageJson.dependencies;
+    log.debug("Checking dependencies to service-client lib...");
+    let dependsOnServiceClient = false;
+    for (const lib of serviceClientLibs) {
+        log.debug(`checking for '${lib}'`);
+        const libDependency = libraryHelper.getLibraryVersion(lib);
+        dependsOnServiceClient |= !!libDependency;
+        if(libDependency)
+            log.debug(`service is dependent to ${lib}:${libDependency}`);
+    }
 
-    return result
+    log.info(`service is ${dependsOnServiceClient ? "" : "not"} dependent on service-client`);
+    return dependsOnServiceClient;
 };

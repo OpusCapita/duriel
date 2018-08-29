@@ -14,6 +14,8 @@ jobs:
       - run:
           name: "Run Unit-Tests"
           command: "npm run test"
+      - store_test_results:
+          path: "../junit"
       - run:
           name: "Downloading wiki"
           command: "git clone https://github.com/OpusCapita/duriel.wiki.git wiki"

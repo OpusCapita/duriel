@@ -4,7 +4,7 @@ const log = new Logger();
 const EnvProxy = require('./EnvProxy');
 const EnvInfo = require('./envInfo');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
-const runIntegrationTests = require('./actions/runIntegrationTests');
+const integrationTestHelper = require('./actions/helpers/IntegrationTestHelper');
 const rollback = require('./actions/rollbackService');
 const fileHandler = require('./actions/filehandling/fileHandler');
 const gitHelper = require('./actions/helpers/gitHelper');
@@ -62,7 +62,7 @@ const exec = async function handleDeployment() {
 };
 
 async function runAfterDeploymentTests(config, proxy) {
-    if (!await runIntegrationTests(config, proxy)) {
+    if (!await integrationTestHelper.runIntegrationTests(config, proxy)) {
         log.error("integration tests not successful - rollback!");
         await rollback(config, proxy);
     }

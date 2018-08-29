@@ -1,27 +1,26 @@
 const fileHandler = require('../actions/filehandling/fileHandler');
 const loadConfigFile = require('../actions/filehandling/loadConfigFile');
 
-const dummyConfigPath = `./dummyConfig-${new Date().getTime()}.json`;
-const constants = require("./TestConstants");
-let config = {};
+const EpicLogger = require('../EpicLogger');
+const log = new EpicLogger();
+const assert = require('assert');
 
-before();
-try {
-    require("./FileHandlingsTests").run(config);
-    require("./VariableInjectionTests").run(config, constants);
-    require("./VersionTests").run();
-    require("./BaseFunctionTests").run();
-    require("./CommandBuilderTests").run();
-} catch (e) {
-    console.error(e);
-}
-after();
+process.env.andariel_loglevel = "warn";
 
-function before() {
-    fileHandler.saveObject2File(constants.testConfigFields, dummyConfigPath, true);
-    config = loadConfigFile(dummyConfigPath);
+async function fun() {
+    describe("Test duriel!", async () => {
+        await require("./VersionTests").run();
+        await require("./EnvProxyTests").run();
+        await require('./IntegrationTests').run();
+        await require("./MonitoringTests").run();
+        await require("./BaseFunctionTests").run();
+        await require("./FileHandlingsTests").run();
+        await require("./VariableInjectionTests").run();
+        await require("./CommandBuilderTests").run();
+        await require("./LibraryTests").run();
+        await require('./ConsulFunctionTests').run();
+    })
 }
 
-function after() {
-    require("fs").unlinkSync(dummyConfigPath);
-}
+
+fun();

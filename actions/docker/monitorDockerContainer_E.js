@@ -3,9 +3,11 @@ const Logger = require('../../EpicLogger');
 const log = new Logger();
 const helper = require("../helpers/utilHelper");
 
+const AsciiTable = require('ascii-table');
+
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
-    await getReplicaCount(config, proxy)
+    await proxy.getReplicaCount_E(config['serviceName'])
         .then(replicaCount => {
             log.debug("replicaCount is: ", replicaCount);
             attempts = attempts * replicaCount;
@@ -36,6 +38,10 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
             }
 
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
+            if (serviceHealth.deployedVersions) {
+                const table = renderVersionTable(serviceHealth.deployedVersions);
+                log.info("", table.toString());
+            }
 
             log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval / 1000} sec'`);
 
@@ -65,14 +71,19 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
 };
 
 const checkUpdateStatus = async function (config, proxy) {
-    const check = {state: 'unknown'};
-    const inspection = JSON.parse(await proxy.executeCommand_E(`docker inspect ${config['serviceName']}`));
+    const check = {state: 'failure'};
+
+    const inspection = await proxy.getServiceInspect_E(config['serviceName']);
+    await proxy.getDeployedVersions_E(config['serviceName'])
+        .then(it => check.deployedVersions = it)
+        .catch(e => log.warn("could not fetch deployed versions"));
+
     log.severe("docker inspect: ", inspection);
     let state;
     try {
         state = inspection[0]['UpdateStatus']['State'];
     } catch (error) {
-        log.error("could not fetch update-status", error);
+        log.warn("could not fetch any update-status", error);
         return check;
     }
     if (state === 'updating') {
@@ -109,14 +120,17 @@ const checkCreateStatus = async function (config, proxy) {
     return check;
 };
 
-async function getReplicaCount(config, proxy) {
-    return await proxy.getServices_E()
-        .then(services => services.filter(service => service.name === config['serviceName'])[0])
-        .then(serviceInfo => {
-            const up = serviceInfo.instances_up;
-            const target = serviceInfo.instances_target;
-            if (up !== target)
-                log.warn(`seems like we are updating an unhealty service... up: ${up} target: ${target}`);
-            return up || 1
-        })
+
+function renderVersionTable(versions) {
+    return Object.keys(versions)
+        .map(key => AsciiTable.factory({
+            title: `Deployed Versions (${Object.keys(versions).length})`,
+            heading: ["", "version", "node", "current state"],
+            rows: versions[key].map((it, index) => ([index + 1, key, it.node, it.currentState]))
+        }).toString())
+        .join("\n")
 }
+
+module.exports.renderVersionTable = renderVersionTable;
+module.exports.checkCreateStatus = checkCreateStatus;
+module.exports.checkUpdateStatus = checkUpdateStatus;
