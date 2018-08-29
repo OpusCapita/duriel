@@ -93,17 +93,21 @@ async function bumpProdVersion(config) {
     log.debug(`merges of commit ${config.get('CIRCLE_SHA1')}`, commitMerges);
 
     let bumpLevel = "minor";
-    if (config['major_release'] || true) { //TODO: remove me and fix belowinte
+    if (config['major_release']) {
         // TODO: remove var from circleci
         return await bumpVersion(version, 'major')
     }
     for (const merge of commitMerges) {
-        for (const parent of merge.parents) {
+        log.debug("checking merge", merge);
+        log.debug("merge parents are: ", merge.parents);
+
+        /*for (const parent of merge.parents) {
             const tagsOfParent = await gitHelper.getTags({commit: parent});
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
                 bumpLevel = "patch";
             }
         }
+        */
     }
     return await bumpVersion(version, bumpLevel);
 }
