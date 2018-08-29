@@ -90,8 +90,10 @@ async function bumpProdVersion(config) {
     const version = await gitHelper.getMainVersionTags().then(versions => versions[0])
     const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')})
         .then(merges => merges.map(it => it.parents));
+    log.debug(`merges of commit ${config.get('CIRCLE_SHA1')}`, commitMerges);
+
     let bumpLevel = "minor";
-    if (config['major_release']) {
+    if (config['major_release'] || true) { //TODO: remove me and fix belowinte
         // TODO: remove var from circleci
         return await bumpVersion(version, 'major')
     }
