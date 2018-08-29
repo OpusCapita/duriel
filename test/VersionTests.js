@@ -2,6 +2,8 @@
 const assert = require("assert");
 const versionHelper = require("../actions/helpers/versionHelper");
 
+const getBaseConfig = require('../actions/getEnvVariables').getBaseConfigObject;
+
 function run() {
     describe("version - bump", () => {
         it("bump - major", async () => {
@@ -34,7 +36,22 @@ function run() {
             assert.equal(bumpedVersion, "Backpfeife")
         });
     });
+    describe("version - bump prod", () => {
+        // these are fixed commits with parents with specific tags.
+        // tags gone? test will fail
+        // commits gone? test will fail
+        const hotfixConfig = getBaseConfig({CIRCLE_SHA1: "46156f351bae4bf26d052e56d6da3d6d80fb5137"});
+        const releaseConfig = getBaseConfig({CIRCLE_SHA1: "4f3a15bd48bb09b8fae77256657fa61234d1602f"});
 
+        it("bumps a hotfix version", async () => {
+            const version = await versionHelper.bumpProdVersion(hotfixConfig);
+            assert.equal(!!version, true)
+        });
+        it("bumps a release version", async () => {
+            const version = await versionHelper.bumpProdVersion(releaseConfig);
+            assert.equal(!!version, true)
+        });
+    });
     describe("main-version - compare", () => {
         const small = "0.0.1";
         const big = "1.0.0";
@@ -133,7 +150,7 @@ function run() {
         it("get a broken version", () => {
             assert.equal(versionHelper.validateVersion(c), false);
         });
-    })
+    });
 }
 
 module.exports.run = run;

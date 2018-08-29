@@ -656,9 +656,9 @@ class EnvProxy {
      * execute command on the ENV
      * @param command
      * @param sudo
-     * @param loggingStream -
+     * @param logOutputLevel {string} - [optional] - loglevel of the commands output if it should be logged
      */
-    async executeCommand_E(command, sudo = false) {
+    async executeCommand_E(command, sudo = false, logOutputLevel) {
         if (sudo) {
             command = 'sudo ' + command;
         }
@@ -677,6 +677,9 @@ class EnvProxy {
                     }
                     return resolve(response);
                 }).on('data', function (data) {
+                    if (logOutputLevel) {
+                        log.log(logOutputLevel, data.toString())
+                    }
                     response += data.toString();
                 }).on('error', streamError => {
                     return reject(streamError);
