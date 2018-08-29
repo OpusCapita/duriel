@@ -6,7 +6,7 @@ const Client = require('ssh2').Client;
 const superagent = require('superagent');
 
 const fs = require('fs');
-const exec = require('child_process');
+const exec = require('child_process').exec;
 
 const EpicLogger = require('./EpicLogger');
 const log = new EpicLogger();
@@ -639,7 +639,7 @@ class EnvProxy {
      * @returns Promise<>
      */
     changePermission_L(permission, targetPath, sudo = false) {
-        return this.executeCommand_L(`chmod ${permission} ${targetPath}`, sudo)
+        return this.executeCommand_L(`${sudo ? "sudo" : ""} chmod ${permission} ${targetPath}`)
     }
 
     /**
@@ -705,22 +705,31 @@ class EnvProxy {
     /**
      * execute command on local machine
      * @param command
-     * @param sudo
-     * @param bufferSize    bufferSize of stdout in Bytes - default is 500MB
+     * @param directOutput {string} - loglevel of the direct output of the command-output-stream
      */
-    executeCommand_L(command, sudo = false, bufferSize = 500 * dataSizes.MB) {
-        if (sudo) {
-            command = 'sudo ' + command;
-        }
-        return new Promise((resolve, reject) =>
-            exec.exec(command, {maxBuffer: bufferSize}, (error, stdout, stderr) => { // Copy Pasta from NodeDocu
-                if (error) {
-                    log.error(`stderr: ${stderr}`);
-                    return reject(error);
-                }
-                return resolve(stdout);
-            })
-        );
+    executeCommand_L(command, directOutput) {
+        return new Promise((resolve, reject) => {
+            const eventEmitter = exec(command);
+            const buffer = [];
+            const errorBuffer = [];
+
+            eventEmitter.stdout.on('data', data => {
+                buffer.push(data);
+                if (directOutput)
+                    log.log(directOutput, data);
+            });
+
+            eventEmitter.stderr.on('data', data => {
+                errorBuffer.push(data);
+            });
+
+            eventEmitter.on('exit', code => {
+                if (code)
+                    reject(errorBuffer.join(""));
+                else
+                    resolve(buffer.join(""));
+            });
+        })
     }
 
     changeCommandDir_L(dir) {
