@@ -54,7 +54,7 @@ async function getSecretsForDockerCommands(config, proxy) {
     const blackList = [`${config['serviceName']}-consul-key`]; // Can't touch this!
 
     const taskTemplate = loadTaskTemplate(config);
-    const taskTemplateSecrets = taskTemplate["oc-secret-injection"];
+    const taskTemplateSecrets = transformSecretEntries(taskTemplate["oc-secret-injection"]);
 
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
     const deployedSecrets = await proxy.getDockerSecretsOfService(config['serviceName'])
@@ -68,10 +68,33 @@ async function getSecretsForDockerCommands(config, proxy) {
     }
 }
 
+function transformSecretEntries(entries) {
+    if (entries && entries instanceof Object && !Array.isArray(entries)) {
+        const result = {};
+        for (const key in entries) {
+            const value = entries[key];
+            if (typeof value === "string") {
+                result[key] = value;
+            } else if (value instanceof Object) {
+                if (value.encoding) {
+                    result[key] = Buffer.from(value.value, value.encoding).toString();
+                } else if (value.value) {
+                    result[key] = value.value
+                }
+            }
+        }
+        return result;
+    } else if (entries) {
+        throw new Error("Only input of type 'Object' allowed ");
+    }
+}
 
-module.exports.getAll = getAll;
-module.exports.get = get;
-module.exports.create = create;
-module.exports.remove = remove;
-module.exports.replace = replace;
-module.exports.getSecretsForDockerCommands = getSecretsForDockerCommands;
+module.exports = {
+    getAll,
+    get,
+    create,
+    remove,
+    replace,
+    getSecretsForDockerCommands,
+    transformSecretEntries
+};

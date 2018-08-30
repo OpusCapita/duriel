@@ -32,11 +32,45 @@ function run() {
             });
             it("does its thing", async () => {
                 const secrets = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
-
                 assert.equal(secrets instanceof Object, true);
                 assert.equal(Array.isArray(secrets.create), true);
                 assert.equal(Array.isArray(secrets.remove), true);
             })
-        })
+        });
+        describe("transforms docker secret entries", () => {
+            it("transforms all valid kinds", () => {
+                const example = {
+                    alpha: "i am a string",
+                    beta: {value: "i am not encoded"},
+                    gamma: {encoding: "base64", value: "aSBhbSBlbmNvZGVk"}
+                };
+                const expected = {
+                    alpha: "i am a string",
+                    beta: "i am not encoded",
+                    gamma: "i am encoded"
+                };
+                const transformationResult = dockerSecretHelper.transformSecretEntries(example);
+                assert.deepEqual(transformationResult, expected);
+            });
+            it("transforms nothing", () => {
+                const transformationResult = dockerSecretHelper.transformSecretEntries(undefined);
+                assert.equal(transformationResult, undefined)
+            });
+            it("transforms an array", () => {
+                assert.throws(
+                    () => dockerSecretHelper.transformSecretEntries([]),
+                    Error,
+                    ""
+                );
+            });
+            it("transforms a string", () => {
+
+                assert.throws(
+                    () => dockerSecretHelper.transformSecretEntries("FALSCH!"),
+                    Error,
+                    ""
+                )
+            })
+        });
     })
 }

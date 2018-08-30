@@ -82,7 +82,7 @@ async function run() {
                 const secret = await proxy.getDockerSecretsOfService()
                     .catch(e => "ok");
                 assert.equal(secret, "ok");
-            })
+            });
         });
         describe("getDockerInspect_E", () => {
             let proxy;

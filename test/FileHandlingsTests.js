@@ -110,7 +110,6 @@ function run() {
         describe("mkdirp", () => {
             const timeStamp = new Date().getTime() + "";
             const path = require("path").resolve("./", timeStamp, "tmp");
-            console.log(path)
 
             after(() => {
                 new EnvProxy().executeCommand_L(`rm -rf ${timeStamp}`)

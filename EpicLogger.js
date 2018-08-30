@@ -72,7 +72,7 @@ class EpicLogger {
             for (const attachment of obj)
                 logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;
         }
-        console.log(`${EpicLogger.getLevelColor(level)}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue);
+        console.log(`${EpicLogger.getLevelColor(level)}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue.trim());
     }
 
     static convert2ReadableString(message) {
