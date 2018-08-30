@@ -19,7 +19,7 @@ async function exec() {
 
     const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
 
-    const taskTemplate = loadTaskTemplate(config['TARGET_ENV'])
+    const taskTemplate = loadTaskTemplate(config)
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
     log.info("s2s", s2sDependencies);
 

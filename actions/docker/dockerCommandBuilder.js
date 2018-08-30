@@ -94,7 +94,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
             const fieldPath = fieldDefinition['path'];
-            const currentValue = drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
+            const currentValue = util.drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
             const desiredValue = getDesiredValue(taskTemplate, param, config);
             const collectedData = {
                 name: param,
@@ -154,26 +154,6 @@ const getWantedParams = function (taskTemplate) {
     }
     log.debug("... finished gathering finished params", result);
     return result;
-};
-
-/**
- * Method that drills down the service-config
- * @param dataHolder
- * @param path
- * @returns {*}
- */
-const drillDown = function (dataHolder, path) {
-    const pathEntries = path.split('/');
-    if (pathEntries.length === 1) {
-        return dataHolder[path];
-    }
-    const currentLocation = pathEntries.splice(0, 1);
-    if (!dataHolder[currentLocation]) {
-        log.error("path not found");
-        return null;
-    } else {
-        return drillDown(dataHolder[currentLocation], pathEntries.join('/'));
-    }
 };
 
 /**

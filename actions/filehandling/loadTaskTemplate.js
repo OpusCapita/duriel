@@ -5,19 +5,21 @@
  */
 'use strict';
 const fileHandler = require('./fileHandler');
+const variableInjector = require('./injectVariables');
+
 
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
 const extend = require('extend');
 
-module.exports = function (environment, fileContent) {
-    try {
-        const dataFromFile = fileContent || fileHandler.loadFile2Object("./task_template.json");
-
-        return extend(true, {}, dataFromFile.default, dataFromFile[environment])
-
-    } catch (e) {
-        log.warn("could not load file", e);
+module.exports = function (config, fileContent, raw) {
+    const dataFromFile = fileContent || fileHandler.loadFile2Object("./task_template.json");
+    const mergedTemplate = extend(true, {}, dataFromFile.default, dataFromFile[config['TARGET_ENV']]);
+    if (raw)
+        return mergedTemplate;
+    else {
+        const injectionResult = variableInjector(JSON.stringify(mergedTemplate), config);
+        return JSON.parse(injectionResult);
     }
 };

@@ -307,6 +307,24 @@ class EnvProxy {
     }
 
     /**
+     * Fetches the secrets of a service/task from the env.
+     * @param serviceName
+     * @returns {Promise<Object>}
+     * @example {id: 1, name: "zwei", fileName: 3}
+     */
+    async getDockerSecretsOfService(serviceName) {
+        return await this.getServiceInspect_E(serviceName)
+            .then(it => it[0])
+            .then(it => helper.drillDown(it, "Spec/TaskTemplate/ContainerSpec/Secrets")) // <3 drillDown
+            .then(it => it.map(secret => ({
+                    id: secret.SecretID,
+                    name: secret.SecretName,
+                    fileName: secret.File.Name
+                }))
+            );
+    }
+
+    /**
      * Reads in all running containers the given secret.
      * @param serviceName
      * @param secretName

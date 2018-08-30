@@ -9,13 +9,13 @@ const AsciiTable = require("ascii-table");
 
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
 
-const renderVersionTable = require("../actions/docker/monitorDockerContainer_E").renderVersionTable
+const renderVersionTable = require("../actions/docker/monitorDockerContainer_E").renderVersionTable;
 
 module.exports.run = run;
 
 async function run() {
     describe("test EnvProxy", () => {
-        describe("insertDockerSecret_E | getDockerSecrets | removeDockerSecret | generadeDockerSecret", () => {
+        describe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
 
             const generateDockerSecret = require('../actions/helpers/dockerSecretHelper');
             const testingSecret = `testing-secret-${new Date().getTime()}`;
@@ -48,24 +48,41 @@ async function run() {
             });
             it("creates a secret", async () => {
                 const createdSecret = await generateDockerSecret.create(proxy, testingSecret);
-                generatedSecret = createdSecret.secret;
+                generatedSecret = createdSecret.id;
             });
             it("fetches the testing-secret", async () => {
                 const secret = await generateDockerSecret.get(proxy, testingSecret);
+                assert.equal(generatedSecret, secret.id);
             });
             it("replaces the testing secret", async () => {
                 const replacedSecret = await generateDockerSecret.replace(proxy, testingSecret);
-                assert.notEqual(generatedSecret, replacedSecret.secret);
+                assert.notEqual(generatedSecret, replacedSecret.id);
             });
             it("removes the testing secret", async () => {
                 await generateDockerSecret.remove(proxy, testingSecret);
             });
-            it("checks if the secret was deleted", async ()=> {
+            it("checks if the secret was deleted", async () => {
                 const secret = await generateDockerSecret.get(proxy, testingSecret)
                     .catch(e => "ok");
                 assert.equal(secret, "ok");
+            });
+            it("fetches the secrets of a service", async () => {
+                const serviceName = "customer";
+                const secrets = await proxy.getDockerSecretsOfService(serviceName);
+                assert.equal(Array.isArray(secrets), true);
+                assert.equal(secrets.length > 0, true);
+            });
+            it("fetches the secrets of a unknown service", async () => {
+                const serviceName = "santiagoDelGuzman";
+                const secret = await proxy.getDockerSecretsOfService(serviceName)
+                    .catch(e => "ok");
+                assert.equal(secret, "ok");
+            });
+            it("fetches the secrects without knowing for which service", async () => {
+                const secret = await proxy.getDockerSecretsOfService()
+                    .catch(e => "ok");
+                assert.equal(secret, "ok");
             })
-
         });
         describe("getDockerInspect_E", () => {
             let proxy;
@@ -93,7 +110,7 @@ async function run() {
             });
         });
         describe("getTasksOfServices_E | getDeployedVersions_E | getReplicaCount_E", () => {
-            const serviceName = "logstash";
+            const serviceName = "andariel-monitoring";
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
@@ -148,7 +165,7 @@ async function run() {
             });
             it("fetches the replicacount with an invalid serviceName", async () => {
                 const replicaCount = await proxy.getReplicaCount_E("Leonardo_da_Banossi_de_Fiorence")
-                    .catch(e => undefined)
+                    .catch(e => undefined);
                 assert.equal(replicaCount, undefined)
             })
         })

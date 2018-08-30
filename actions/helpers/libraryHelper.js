@@ -257,7 +257,7 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
     const parsedTaskTemplate = JSON.parse(taskTemplateContent);
 
     if (parsedTaskTemplate) {
-        return fetchLibraryVersionDependencies(config, loadTaskTemplate(config['TARGET_ENV'], parsedTaskTemplate))
+        return fetchLibraryVersionDependencies(config, loadTaskTemplate(config, parsedTaskTemplate, true))
     }
 }
 

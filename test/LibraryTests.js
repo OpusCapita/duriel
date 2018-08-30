@@ -58,25 +58,25 @@ async function run() {
                 };
 
                 it("fetches without env-settings", () => {
-                    const config = {
+                    const config = getBaseConfig({
                         TARGET_ENV: "delPocko"
-                    };
+                    });
                     const expected = {
                         dummy: "4.4.4"
                     };
-                    const taskTemplate = loadTaskTemplate("delPocko", taskTemplateContent)
+                    const taskTemplate = loadTaskTemplate(config, taskTemplateContent)
 
                     assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
                 });
 
                 it("fetches with env-settings", () => {
-                    const config = {
+                    const config = getBaseConfig({
                         TARGET_ENV: "develop"
-                    };
+                    });
                     const expected = {
                         dummy: "2.2.2"
                     };
-                    const taskTemplate = loadTaskTemplate(config.TARGET_ENV, taskTemplateContent);
+                    const taskTemplate = loadTaskTemplate(config, taskTemplateContent);
 
                     assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
                 });
@@ -138,68 +138,6 @@ async function run() {
                         const result = libraryHelper.checkService2ServiceDependencies(expected, deployed);
                         assert.equal(result.success(), false);
                     })
-                });
-                describe("check dummy", async () => {
-                    let proxy;
-                    before(async () => {
-                        proxy = await constants.getEnvProxy();
-                    });
-
-                    after(() => {
-                        if (proxy) {
-                            log.debug("closing proxy.");
-                            proxy.close();
-                            proxy = undefined;
-                        }
-                    })
-
-
-                    it("checks and has no dependencies", async () => {
-                        const config = getBaseConfig({TARGET_ENV: 'develop'});
-                        fs.writeFileSync("task_template.json", JSON.stringify({}));
-                        let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                        assert.equal(successCheck.success, true);
-                    });
-                    it("checks and has success", async () => {
-                        const config = getBaseConfig({TARGET_ENV: 'develop'});
-                        fs.writeFileSync("task_template.json", JSON.stringify({
-                            default: {
-                                serviceDependencies: {
-                                    dummy: "0.0.0"
-                                }
-                            }
-                        }));
-                        let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                        assert.equal(successCheck.success, true);
-                        assert.doesNotThrow(() => log.debug(versionValidator.renderVersionValidationResult(successCheck)));
-                    });
-
-                    it("checks and failes", async () => {
-                        const config = getBaseConfig({TARGET_ENV: 'develop'});
-                        fs.writeFileSync("task_template.json", JSON.stringify({
-                            default: {
-                                serviceDependencies: {
-                                    dummy: "999.999.999"
-                                }
-                            }
-                        }));
-
-                        let successCheck = await versionValidator.validateVersionDependencies(config, proxy);
-                        assert.equal(successCheck.success, false);
-                        assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(successCheck))
-                    });
-                    it("renders the results", () => {
-                        const checkResult = {
-                            "validations": [
-                                new libraryHelper.CheckEntryHolder(
-                                    "ServiceValidation",
-                                    [new libraryHelper.ServiceCheckEntry('dummy', '999.999.999', '1.0.0')],
-                                    [new libraryHelper.ServiceCheckEntry('lodash', '0.999.999', '1.0.0')]
-                                )
-                            ]
-                        };
-                        assert.doesNotThrow(() => versionValidator.renderVersionValidationResult(checkResult))
-                    });
                 });
                 describe("Check functions of classes", () => {
                     const entry = new libraryHelper.ServiceCheckEntry('lodash', '0.999.999', '1.0.0')
@@ -276,7 +214,7 @@ async function run() {
                         "servicenow-integration": "0.0.0",
                         "email": "0.0.0"
                     };
-                    const result = await libraryHelper.checkLibraryDependencies({}, proxy, serviceDependencies, packageJson);
+                    const result = await libraryHelper.checkLibraryDependencies(getBaseConfig({}), proxy, serviceDependencies, packageJson);
                     assert.equal(result.failing.length, 0);
                     assert.equal(result.passing.length, 1);
                 });
@@ -327,25 +265,6 @@ async function run() {
                     })
                 });
             });
-            /**describe("Does a complete check", () => {
-
-            it("runs all", async () => {
-                fs.writeFileSync("task_template.json", JSON.stringify({
-                    default: {
-                        serviceDependencies: {
-                            dummy: "0.0.0",
-                            "servicenow-integration": "0.0.0"
-                        }
-                    }
-                }));
-
-                const output = await versionValidator.checkVersionDependencies({}, proxy)
-                    .catch(e => true);
-
-
-                fs.unlinkSync("task_template.json");
-            })
-        })*/
         }
     )
     ;

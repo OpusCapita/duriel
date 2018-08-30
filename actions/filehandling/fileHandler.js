@@ -84,7 +84,7 @@ function getFilesInDir(path, regex) {
     path = pathJs.resolve(path);
     const fileFilter = new RegExp(regex);
     let result = [];
-    if(!fs.existsSync(path))
+    if (!fs.existsSync(path))
         return result;
     const current = fs.readdirSync(path);
     current.forEach(file => {
@@ -106,12 +106,10 @@ function getFilesInDir(path, regex) {
  */
 function mkdirp(path) {
     let current = "";
-    path = pathJs.resolve(path);
-    const subPaths = pathJs.dirname(path).split(pathJs.sep);
+    const subPaths = path.split(pathJs.sep);
 
     for (const subPath of subPaths) {
         current = `${current}${subPath}${pathJs.sep}`;
-
         if (!fs.existsSync(current))
             fs.mkdirSync(current);
         else if (fs.lstatSync(current).isFile())

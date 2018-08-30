@@ -9,6 +9,8 @@ const fileHelper = require('../actions/filehandling/fileHandler');
 const loadConfigFile = require('../actions/filehandling/loadConfigFile');
 const loadTaskTemplate = require('../actions/filehandling/loadTaskTemplate');
 
+const EnvProxy = require("../EnvProxy");
+
 module.exports.run = run;
 
 function run() {
@@ -25,9 +27,10 @@ function run() {
         const enhancedSimple = getBaseConfigObject(testConstants.testConfigFields);
 
         it("loads a  non existing config file", () => {
-            assert.equal(
-                loadConfigFile("kevin"),
-                undefined
+            assert.throws(
+                () => loadConfigFile("kevin"),
+                Error,
+                ""
             )
         });
 
@@ -70,29 +73,53 @@ function run() {
                 kevin: 3
             };
             it("loads for an env", () => {
-                const taskTemplate_develop = loadTaskTemplate("develop", content);
+                const config = getBaseConfigObject({
+                    TARGET_ENV: "develop"
+                });
+                const taskTemplate_develop = loadTaskTemplate(config, content);
                 assert.deepEqual(expected_develop, taskTemplate_develop);
             });
             it("loads without an env", () => {
-                const taskTemplate_del_pocko = loadTaskTemplate("del_pocko", content);
+                const config = getBaseConfigObject({});
+                const taskTemplate_del_pocko = loadTaskTemplate(config, content);
                 assert.deepEqual(expected_del_pocko, taskTemplate_del_pocko);
             });
 
             it("get no env and no content", () => {
-                assert.doesNotThrow(() => {
-                    loadTaskTemplate(undefined, undefined)
-                }, Error, "")
+                assert.throws(
+                    () => loadTaskTemplate(undefined, undefined),
+                    Error,
+                    ""
+                )
             });
             it("get no env", () => {
-                assert.doesNotThrow(() => {
-                    loadTaskTemplate(undefined, content)
-                }, Error, "")
+                assert.throws(
+                    () => loadTaskTemplate(undefined, content),
+                    Error,
+                    ""
+                )
+
             });
             it("get no content", () => {
+                const config = getBaseConfigObject({});
                 assert.doesNotThrow(() => {
-                    loadTaskTemplate("develop", undefined)
+                    loadTaskTemplate(config, undefined)
                 }, Error, "")
             });
+        });
+        describe("mkdirp", () => {
+            const timeStamp = new Date().getTime() + "";
+            const path = require("path").resolve("./", timeStamp, "tmp");
+            console.log(path)
+
+            after(() => {
+                new EnvProxy().executeCommand_L(`rm -rf ${timeStamp}`)
+            });
+
+            it("creates a folder", () => {
+                fileHelper.mkdirp(path);
+                assert.equal(require("fs").existsSync(path), true);
+            })
         })
     });
 }

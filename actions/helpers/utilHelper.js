@@ -198,6 +198,26 @@ function groupBy(input, groupingFunction, transformFunction) {
     return result;
 }
 
+/**
+ * Method that drills down the service-config
+ * @param dataHolder
+ * @param path
+ * @returns {*}
+ */
+const drillDown = function (dataHolder, path) {
+    const pathEntries = path.split('/');
+    if (pathEntries.length === 1) {
+        return dataHolder[path];
+    }
+    const currentLocation = pathEntries.splice(0, 1);
+    if (!dataHolder[currentLocation]) {
+        log.error("path not found");
+        return null;
+    } else {
+        return drillDown(dataHolder[currentLocation], pathEntries.join('/'));
+    }
+};
+
 module.exports = {
     snooze,
     flattenArray,
@@ -209,5 +229,6 @@ module.exports = {
     isEqual,
     getLongestStringInObject,
     getUniqueArray,
-    groupBy
+    groupBy,
+    drillDown
 };
