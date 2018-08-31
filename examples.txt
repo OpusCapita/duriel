@@ -1,0 +1,56 @@
+grep -R --exclude-dir=.git --exclude-dir=wiki --exclude-dir=test --exclude-dir=usecases "\.get('[^']+',"
+
+service-client
+==============
+onboarding service
+
+.post('einvoice-send', '/
+.put
+.delete
+.head
+.get
+
+regex="\.(get|head|post|delete|put)\('([^'/]+)',"
+matches=$(grep -R --exclude-dir=.git --exclude-dir=wiki --exclude-dir=test --exclude-dir=usecases -E "$regex")
+
+grep -R --exclude-dir=.git --exclude-dir=wiki --exclude-dir=test --exclude-dir=usecases -E "\.(get|head|post|delete|put)\('([^'/]+)',"
+
+event-client
+============
+onboarding service
+
+.subscribe('einvoice-send.inChannelConfig.
+
+docker-compose
+==============
+onboarding service
+
+image: opuscapita/einvoice-send:dev
+
+
+dynamic component loading
+=========================
+
+const serviceRegistry = (service) => ({ url: '/isodata' });
+        this.LanguageField = serviceComponent({ serviceRegistry, serviceName : 'isodata', moduleName : 'isodata-languages', jsFileName : 'languages-bundle' });
+        this.CountryField = serviceComponent({ serviceRegistry, serviceName: 'isodata', moduleName : 'isodata-countries', jsFileName : 'countries-bundle' });
+        
+
+user service:
+serviceComponent({
+            serviceRegistry: (service) => ({ url: `/isodata` }),
+            serviceName: 'isodata',
+            
+            
+ajax requests on client:
+========================
+sales-oder service
+
+request.get(`/supplier/api/suppliers/${id}`)
+this.ajax.get(`/onboarding/api/campaigns`)
+`request.get(`/supplier/api/suppliers/${id}`)`
+            
+
+grep -R --exclude-dir=.git --exclude-dir=wiki --exclude-dir=test --exclude-dir=usecases -E "image: opuscapita/([^:]+)"
+grep --include=*.yml -E "image: opuscapita/([^:]+)"
+
