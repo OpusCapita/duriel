@@ -12,13 +12,12 @@ const dockerSecretHelper = require('./actions/helpers/dockerSecretHelper');
 
 const handleServiceDB = require('./actions/database/createServiceDB');
 const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
-const injectConsulServiceCredentials = require('./actions/injectConsulServiceCredentials');
 const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
 const e2eTester = require('./actions/e2eTester');
-const setupServiceUser = require('./actions/database/createServiceUser');
+const setupServiceUser = require('./actions/database/updateServiceClientUser');
 const dockerHelper = require('./actions/helpers/dockerHelper');
 const rollback = require('./actions/rollbackService');
 
@@ -94,10 +93,6 @@ const exec = async function () {
             log.info("project depends on service-client.");
             const setupServiceUserSuccess = await setupServiceUser(config, proxy);
             log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
-            if (setupServiceUserSuccess) {
-                log.info("Service user does exist. checking for matching consul name....");
-                await injectConsulServiceCredentials(config, proxy);
-            }
         }
 
         log.info("loading service informations"); // docker service inspect

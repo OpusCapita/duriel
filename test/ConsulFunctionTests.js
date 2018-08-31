@@ -44,6 +44,12 @@ async function run() {
                 .catch(e => undefined);
 
             assert.equal(afterDeletion, undefined);
+        });
+        it("requests a non-existing value", async () => {
+            const fromConsul = await proxy.getKeyValueFromConsul(entryValue)
+                .catch(e => "ok");
+
+            assert.equal(fromConsul, "ok");
         })
     })
 

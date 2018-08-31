@@ -846,6 +846,8 @@ class EnvProxy {
     async addKeyValueToConsul(key, value) {
         const proxy = this.proxyServers['consul'];
         if (!proxy) return Promise.reject('no proxy for consul found!');
+
+        log.debug(`adding kv-value to consul '${key}' -> '${value.substring(0, 5)}[...]}'`);
         return await superagent.put(`http://localhost:${proxy.port}/v1/kv/${key}`, value)
             .then(response => response.data)
             .catch(error => {
