@@ -61,7 +61,7 @@ async function buildDocs(config, commit = false) {
     log.debug("all directories created!");
 
     // if (hasDocScript) {
-        await proxy.executeCommand_L("npm run doc");
+        await proxy.executeCommand_L("npm run doc", "build docs");
     // } else {
     //     // TODO: Execute a default doc creation?
     //     for (const docFunction of fallBackFunctions) {
@@ -180,7 +180,7 @@ async function fetchDocFunctions(packageJson) {
         log.info("Found sequelize dependency and models folder. Creating documentation based on sequelize-models!");
         log.info(`Installing sequelize@${sequelizeVersion} to generate docs...`);
         // await new EnvProxy().executeCommand_L(`npm install sequelize@${sequelizeVersion}`);
-        await new EnvProxy().executeCommand_L(`npm install`);
+        await new EnvProxy().executeCommand_L(`npm install`, "npm install");
         result.push(createDomainDoc);
     }
 

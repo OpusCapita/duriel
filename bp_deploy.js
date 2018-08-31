@@ -92,7 +92,7 @@ const exec = async function () {
         } else {
             log.info("project depends on service-client.");
             const setupServiceUserSuccess = await setupServiceUser(config, proxy);
-            log.info(`finished setupServiceUser - success = ${setupServiceUserSuccess}`);
+            log.info(`finished setupServiceUser - newUser = ${setupServiceUserSuccess}`);
         }
 
         log.info("loading service informations"); // docker service inspect
