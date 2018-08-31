@@ -46,7 +46,7 @@ function getLibraryVersion(library, packageJson) {
  * @param config {BaseConfig} used fields: ['TARGET_ENV']
  * @param taskTemplate {object} task_template.json content
  */
-function fetchServiceVersionDependencies(config = {}, taskTemplate) {
+function fetchServiceVersionDependencies(config, taskTemplate) {
     return fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
 }
 
@@ -55,7 +55,7 @@ function fetchServiceVersionDependencies(config = {}, taskTemplate) {
  * @param config {BaseConfig} used fields: ['TARGET_ENV']
  * @param taskTemplate {object} task_template.json content
  */
-function fetchLibraryVersionDependencies(config = {}, taskTemplate) {
+function fetchLibraryVersionDependencies(config, taskTemplate) {
     return fetchVersionDependencies(config, taskTemplate, libraryDependencyKey);
 }
 
@@ -84,8 +84,7 @@ async function fetchLibrary2ServiceDependencies(proxy) {
  * @param dependencyKey {string} key indicating what kind of dependencies are requested.
  */
 function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
-    const targetEnv = config['TARGET_ENV'];
-    taskTemplate = taskTemplate || loadTaskTemplate(targetEnv);
+    taskTemplate = taskTemplate || loadTaskTemplate(config);
 
     let result = {};
 
