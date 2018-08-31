@@ -23,9 +23,9 @@ module.exports.develop = extend(true, {}, default_config, {
 });
 
 module.exports.stage = extend(true, {}, default_config, {
-    admin_user: 'dmm',
-    public_ip: '13.81.248.126',
-    admin_address: '40.115.62.92',
+    admin_user: 'duriel-stg',
+    public_ip: '13.80.133.40',
+    admin_address: '52.136.243.168',
     public_hostname: 'stage.businessnetwork.opuscapita.com'
 });
 

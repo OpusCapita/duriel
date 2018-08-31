@@ -50,7 +50,7 @@ async function createUpdateRepo(reponame, localPath, branchname) {
   .then( () => pull(reponame, localPath) )
   .catch( (err) => {
     console.error("unable to createUpdateRepo " + repoPath + ": \n", err);
-//    throw err;
+    throw err;
   });
 }
 

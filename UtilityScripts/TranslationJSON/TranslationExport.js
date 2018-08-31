@@ -20,9 +20,16 @@ let skipPull = false;
 
 module.exports.flattenObject=flattenObject;
 
+var myArgs = process.argv.slice(2);
+var branchname = "i18n-translation-" + new Date().toISOString().substring(0,19).replace(/:/g,"");
+if (myArgs[0]) {
+  console.log("overriding default branchname " + branchname + " with " + myArgs[0] + " via cmdline args");
+  branchname = myArgs[0];
+}
+
 init()
 .then( () => getRepos() )
-.then( (repos) => collectTranslationsFromRepos(repos) )
+.then( (repos) => collectTranslationsFromRepos(repos, branchname) )
 .then( (translations) => writeTranslationsToDisk(translations));
 
 async function init() {
@@ -62,15 +69,40 @@ async function writeTranslationsToDisk(translationMap) {
 /**
  * This iterates the passed repos, assuming they are in github under OpusCapita org.
  * Each repo is either cloned or pulled to reflect latest develop branch state locally.
+ * Then the translation branch is created (or checked out if existing).
  * Then translations are extracted into the global translations map.
  */
-async function collectTranslationsFromRepos(repos) {
+async function collectTranslationsFromRepos(repos, branchname) {
 
     // check out each repo locally
     //repos = ['einvoice-send'];
     console.log(repos);
     for(let repo of repos) {
-        if(!skipPull)await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
+        if(!skipPull){
+            try {
+                await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
+            }
+            catch(err) {
+                console.log("error getting most recent develop branch state on " + repo + ": ", err);
+                throw err; 
+            }
+        }
+        let oldBranch = false;
+        try {
+            await gitHelper.branch(repo, localRepoPath, branchname);
+        }
+        catch(err) {
+            //console.log("error creating branch: ", JSON.stringify(err));
+            if(err.indexOf("already exists") > -1) {
+                console.log("branch already exists, using existing branch " + branchname);
+                oldBranch = true;
+            }
+            else {
+                throw err;
+            }
+        }
+        if(!oldBranch)
+            await gitHelper.push(repo, localRepoPath, branchname);
         await extractTranslations( localRepoPath+"/"+repo, (componentId, key, languageId, value) => {
             let serviceTranslations = translations[repo];
             if(!serviceTranslations) serviceTranslations = translations[repo] = {};
@@ -188,7 +220,8 @@ function fromDir(startPath, recurseIntoDir, processFilesInDir, fileFilter, fileP
  */
 async function getRepos() {
 
-  //return ["bnp","onboarding","pdf2invoice","supplier","auth","kong","api-registrator","isodata","redis","einvoice-send","email","user","elasticsearch","logstash","kibana","customer","notification","blob","acl","sales-invoice","a2a-integration","servicenow-integration","andariel-monitoring","service-base-ui","rabbitmq","sales-order","tnt","sirius","andariel-sirius-bridge","redis-commander","routing","business-link"];
+  //return ["bnp", "onboarding"];
+  //return [ 'bnp',  'onboarding',  'pdf2invoice',  'supplier',  'auth',  'kong',  'api-registrator',  'isodata',  'redis',  'einvoice-send',  'email',  'user',  'elasticsearch',  'logstash',  'kibana',  'customer',  'notification',  'blob',  'acl',  'sales-invoice',  'a2a-integration',  'servicenow-integration',  'andariel-monitoring',  'service-base-ui',  'rabbitmq',  'sales-order',  'tnt',  'sirius',  'andariel-sirius-bridge',  'redis-commander',  'routing',  'business-link',  'masterdata-replication',  'catalog' ]; 
 
   return gitHelper.iterateRepos([ ["microservice", "andariel", "sirius"], ["microservice", "bnp"], ["andariel", "microservice", "platform"], ["andariel", "library", "platform", "i18n"] ]);
 }
