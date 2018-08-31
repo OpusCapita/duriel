@@ -58,6 +58,8 @@ function run() {
             assert.equal(fromFile, fromCode);
         });
         describe("loads a task_template", () => {
+            before(() => fileHelper.saveObject2File(constants.task_template, "./task_template.json"));
+            after(() => require("fs").unlinkSync("./task_template.json"));
             const content = {
                 default: {
                     kevin: 3

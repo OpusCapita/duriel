@@ -30,5 +30,19 @@ module.exports = {
             proxyConfig.admin_user = process.env.admin_user;
         return await new EnvProxy().init(proxyConfig)
             .catch(e => console.error(e))
+    },
+    task_template: {
+        default: {
+            "oc-secret-injection": {
+                alpha: "i am a string",
+                beta: {value: "i am not encoded"},
+                gamma: {encoding: "base64", value: "aSBhbSBlbmNvZGVk"},
+                mysecret: "i am a secret secret that is secretly not secret!"
+            },
+            "serviceDependencies": {
+                "servicenow-integration": "0.0.0",
+                "email": "0.0.0"
+            }
+        }
     }
 };

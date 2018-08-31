@@ -285,6 +285,17 @@ class EnvProxy {
         return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`)} '${secretName}' - `);
     }
 
+    /**
+     * Create multiple secrets
+     * @param secrets {Array <object>}
+     */
+    async insertDockerSecrets(...secrets) {
+        if (!secrets)
+            throw new Error("can't insert secret if no secrets are passed a a parameter");
+        for (const secret of secrets)
+            await this.insertDockerSecret(secret.value, secret.name, ...secrets.labels)
+    }
+
     getDockerSecrets() {
         return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}'")
             .then(response => {

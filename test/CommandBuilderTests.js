@@ -18,23 +18,59 @@ function run() {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
+                fileHelper.saveObject2File(constants.task_template, "./task_template.json")
             });
             after(() => {
+                require("fs").unlinkSync("./task_template.json");
                 if (proxy) {
                     log.debug("closing proxy.");
                     proxy.close();
                     proxy = undefined;
                 }
             });
-            const config = getBaseConfigObject({
-                serviceName: "supplier",
-                TARGET_ENV: "develop"
-            });
-            it("does its thing", async () => {
+            it("fetches add | create | remove", async () => {
+                const config = getBaseConfigObject({
+                    serviceName: "andariel-monitoring",
+                    TARGET_ENV: "develop"
+                });
                 const secrets = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
                 assert.equal(secrets instanceof Object, true);
                 assert.equal(Array.isArray(secrets.create), true);
                 assert.equal(Array.isArray(secrets.remove), true);
+                assert.equal(Array.isArray(secrets.add), true);
+            });
+            it("fetches add | create | remove of a new service", async () => {
+                const config = getBaseConfigObject({
+                    serviceName: "zweiteSemesterZu",
+                    TARGET_ENV: "develop"
+                });
+                const secrets = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
+                assert.equal(secrets instanceof Object, true);
+                assert.equal(Array.isArray(secrets.create), true);
+                assert.equal(Array.isArray(secrets.remove), true);
+                assert.equal(Array.isArray(secrets.add), true);
+            });
+            it("generates the secret params for the update-command", () => {
+                const input = {
+                    add: ["alpha"],
+                    remove: ["beta"],
+                    create: [{name: "gamme", value: "delta"}]
+                };
+                const expected = "--secret-add alpha --secret-rm beta";
+                const actual = dockerSecretHelper.generateUpdateServiceSecretParam(input);
+
+                assert.equal(actual, expected);
+            });
+            it("generates the secret params for the create-command", () => {
+                const input = {
+                    add: ["alpha"],
+                    remove: ["beta"],
+                    create: [{name: "gamme", value: "delta"}]
+                };
+                const expected = "--secret alpha";
+                const actual = dockerSecretHelper.generateCreateServiceSecretParam(input);
+
+                assert.equal(actual, expected);
             })
         });
         describe("transforms docker secret entries", () => {
@@ -64,7 +100,6 @@ function run() {
                 );
             });
             it("transforms a string", () => {
-
                 assert.throws(
                     () => dockerSecretHelper.transformSecretEntries("FALSCH!"),
                     Error,

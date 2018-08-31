@@ -58,12 +58,24 @@ async function getSecretsForDockerCommands(config, proxy) {
 
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
     const deployedSecrets = await proxy.getDockerSecretsOfService(config['serviceName'])
+        .catch(e => {
+            log.warn(`could not fetch secrets for service '${config['serviceName']}'`);
+            log.severe(`could not fetch secrets for service '${config['serviceName']}'`, e);
+            return [];
+        })
         .then(secrets => secrets.map(it => it.name))
         .then(nameList => utilHelper.arrayMinus(nameList, blackList));
 
+
+    const secretsForAdding = utilHelper.arrayMinus(necessarySecrets, deployedSecrets);
+
+    const secretsOnEnv = await proxy.getDockerSecrets()
+        .then(secrets => secrets.map(it => it.name));
+
     return {
         remove: utilHelper.arrayMinus(deployedSecrets, necessarySecrets),
-        create: utilHelper.arrayMinus(necessarySecrets, deployedSecrets)
+        add: secretsForAdding,
+        create: utilHelper.arrayMinus(secretsForAdding, secretsOnEnv)
             .map(it => ({name: it, value: taskTemplateSecrets[it]}))
     }
 }
@@ -89,6 +101,21 @@ function transformSecretEntries(entries) {
     }
 }
 
+function generateUpdateServiceSecretParam(secrets) {
+    if (!secrets)
+        throw new Error("no param is no good.");
+
+    const addPart = secrets.add.map(entry => `--secret-add ${entry}`).join(" ");
+    const removePart = secrets.remove.map(entry => `--secret-rm ${entry}`).join(" ");
+    return `${addPart} ${removePart}`;
+}
+
+function generateCreateServiceSecretParam(secrets) {
+    if (!secrets)
+        throw new Error("no param is no good.");
+    return secrets.add.map(entry => `--secret ${entry}`).join(" ");
+}
+
 module.exports = {
     getAll,
     get,
@@ -96,5 +123,7 @@ module.exports = {
     remove,
     replace,
     getSecretsForDockerCommands,
-    transformSecretEntries
+    transformSecretEntries,
+    generateUpdateServiceSecretParam,
+    generateCreateServiceSecretParam
 };
