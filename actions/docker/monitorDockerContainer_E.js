@@ -121,7 +121,7 @@ function renderVersionTable(versions) {
         .map(key => AsciiTable.factory({
             title: `Deployed Versions (total: ${Object.keys(versions).length})`,
             heading: ["version", "node", "current state"],
-            rows: versions[key].map((it) => ([, key, it.node, it.currentState]))
+            rows: versions[key].map((it) => ([key, it.node, it.currentState]))
         }).toString())
         .join("\n")
 }
