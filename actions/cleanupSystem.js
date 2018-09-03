@@ -9,7 +9,9 @@ const log = new Logger();
  */
 module.exports = async function executeCleanup(proxy, config) {
     const env = config['TARGET_ENV'];
-    log.info("Cleaning up systen after deployment on: " + env);
+    log.info(`1 - Cleaning up system '${env}'`);
+
+    log.info(`1.1 - Deleting old images from nodes.`);
     const nodes = await proxy.getNodes_E();
     config['cleanups'] = config['cleanups'] ? config['cleanups'] : {};
     const entries = [];
@@ -18,7 +20,7 @@ module.exports = async function executeCleanup(proxy, config) {
             .then(response => {
                 const filteredInput = response.split(/\r\n|\r|\n/g).filter(it => it.startsWith("Total reclaimed space:"))[0];
                 if (filteredInput) {
-                    log.info(`${node.hostname}: ${filteredInput}`);
+                    log.info(`1.1 - ${node.hostname}: ${filteredInput}`);
                 }
                 log.debug(`cleaned node '${node.hostname}': `, response);
                 const entry = {
@@ -30,5 +32,15 @@ module.exports = async function executeCleanup(proxy, config) {
             .catch(error => log.warn(`could not prune node '${node.hostname}'`, error))
     }
     config['cleanups'][env] = entries;
+
+    log.info(`1.2 - Deleting removed secrets`);
+    const deploymentSecrets = config['serviceSecrets'];
+    if (deploymentSecrets && Array.isArray(deploymentSecrets.remove) && deploymentSecrets.remove.length)
+        for (const entry of deploymentSecrets.remove) {
+            log.info(`1.2 - deleting secret '${entry}'`);
+            await proxy.removeDockerSecret(entry)
+                .catch(e => log.warn(`could not delete secret '${entry}'`, e));
+        }
+
     return {success: true};
 };
