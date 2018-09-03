@@ -121,13 +121,12 @@ function transformSecretEntries(entries) {
     }
 }
 
-async function createDockerSecrets(proxy, secrets, ...labels) {
-    if (!secrets)
+async function createDockerSecrets(config, proxy, ...labels) {
+    if (!config['serviceSecrets'])
         throw new Error("You try to call createDockerSecrets without secrets?!...");
-    if (!secrets.create)
+    if (!Array.isArray(config['serviceSecrets'].create))
         throw new Error("secrets do not contain a create-Array");
-
-    for (const secret of secrets.create) {
+    for (const secret of config['serviceSecrets'].create) {
         await create(proxy, secret.name, secret.value, ...labels);
     }
 }
