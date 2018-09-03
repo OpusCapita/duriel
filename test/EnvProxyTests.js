@@ -17,7 +17,7 @@ async function run() {
     describe("test EnvProxy", () => {
         describe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
 
-            const generateDockerSecret = require('../actions/helpers/dockerSecretHelper');
+            const dockerSecretHelper = require('../actions/helpers/dockerSecretHelper');
             const testingSecret = `testing-secret-${new Date().getTime()}`;
 
             let generatedSecret;
@@ -34,35 +34,35 @@ async function run() {
                 }
             });
             it("fetches all secrets", async () => {
-                const secrets = await generateDockerSecret.getAll(proxy)
+                const secrets = await dockerSecretHelper.getAll(proxy)
                 assert.equal(Array.isArray(secrets), true);
             });
             it("fetches a specific secret", async () => {
-                const secret = await generateDockerSecret.get(proxy, "andariel-monitoring-consul-key")
+                const secret = await dockerSecretHelper.get(proxy, "andariel-monitoring-consul-key")
                 assert.equal(!!secret, true);
             });
             it("fetches a non existing secret", async () => {
-                const secret = await generateDockerSecret.get(proxy, "this-is-non-existing")
+                const secret = await dockerSecretHelper.get(proxy, "this-is-non-existing")
                     .catch(e => "ok");
                 assert.equal(secret, "ok");
             });
             it("creates a secret", async () => {
-                const createdSecret = await generateDockerSecret.create(proxy, testingSecret);
+                const createdSecret = await dockerSecretHelper.generate(proxy, testingSecret);
                 generatedSecret = createdSecret.id;
             });
             it("fetches the testing-secret", async () => {
-                const secret = await generateDockerSecret.get(proxy, testingSecret);
+                const secret = await dockerSecretHelper.get(proxy, testingSecret);
                 assert.equal(generatedSecret, secret.id);
             });
             it("replaces the testing secret", async () => {
-                const replacedSecret = await generateDockerSecret.replace(proxy, testingSecret);
+                const replacedSecret = await dockerSecretHelper.replace(proxy, testingSecret);
                 assert.notEqual(generatedSecret, replacedSecret.id);
             });
             it("removes the testing secret", async () => {
-                await generateDockerSecret.remove(proxy, testingSecret);
+                await dockerSecretHelper.remove(proxy, testingSecret);
             });
             it("checks if the secret was deleted", async () => {
-                const secret = await generateDockerSecret.get(proxy, testingSecret)
+                const secret = await dockerSecretHelper.get(proxy, testingSecret)
                     .catch(e => "ok");
                 assert.equal(secret, "ok");
             });
@@ -132,8 +132,9 @@ async function run() {
                 assert.equal(tasks, undefined);
             });
             it("fetches tasks with invalid serviceName", async () => {
-                const tasks = await proxy.getTasksOfServices_E("Leonardo_da_Banossi_de_Fiorence");
-                assert.deepEqual(tasks, []);
+                const tasks = await proxy.getTasksOfServices_E("Leonardo_da_Banossi_de_Fiorence")
+                    .catch(e => "ok");
+                assert.deepEqual(tasks, "ok");
             });
             it("fetches deployed versions", async () => {
                 const deployedVersions = await proxy.getDeployedVersions_E(serviceName);
@@ -142,17 +143,16 @@ async function run() {
                 assert.doesNotThrow(() => {
                     renderVersionTable(deployedVersions);
                 })
-
-
             });
             it("fetches deployed versions without serviceName", async () => {
                 const deployedVersions = await proxy.getDeployedVersions_E()
-                    .catch(e => undefined);
-                assert.equal(deployedVersions, undefined);
+                    .catch(e => "ok");
+                assert.equal(deployedVersions, "ok");
             });
             it("fetches deployed versions with an invalid serviceName", async () => {
-                const deployedVersions = await proxy.getDeployedVersions_E("Leonardo_da_Banossi_de_Fiorence");
-                assert.deepEqual(deployedVersions, {});
+                const deployedVersions = await proxy.getDeployedVersions_E("Leonardo_da_Banossi_de_Fiorence")
+                    .catch(e => "ok");
+                assert.deepEqual(deployedVersions, "ok");
             });
             it("fetches the replicacount", async () => {
                 const replicaCount = await proxy.getReplicaCount_E("logstash");

@@ -2,20 +2,15 @@
 const Logger = require('../../EpicLogger');
 const log = new Logger();
 const helper = require("../helpers/utilHelper");
+const loadTaskTemplate = require("../filehandling/loadTaskTemplate");
 
 const AsciiTable = require('ascii-table');
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
-    await proxy.getReplicaCount_E(config['serviceName'])
-        .then(replicaCount => {
-            log.debug("replicaCount is: ", replicaCount);
-            attempts = attempts * replicaCount;
-        })
-        .catch(e => {
-            log.warn("could not fetch replicacount.", e);
-            return 1;
-        });
+    const replicaCount = await getReplicaCount(config);
+    log.info("replicaCount:", replicaCount);
+    attempts = attempts * replicaCount;
 
     let lastState = {};
 
@@ -129,6 +124,26 @@ function renderVersionTable(versions) {
             rows: versions[key].map((it, index) => ([index + 1, key, it.node, it.currentState]))
         }).toString())
         .join("\n")
+}
+
+async function getReplicaCount(config, proxy) {
+
+    const taskTemplate = loadTaskTemplate(config, undefined, true);
+    let replicaCountTaskTemplate;
+    try {
+        if (taskTemplate['replicas'])
+            replicaCountTaskTemplate = parseInt(taskTemplate['replicas']);
+        else
+            log.warn("replicaCout not set in task_template");
+    } catch (e) {
+        log.warn("could not fetch replicaCount from task_template.json", e);
+    }
+
+    const replicasOnSystem = await proxy.getReplicaCount_E(config['serviceName'])
+        .then(it => parseInt(it))
+        .catch(e => log.warn("could not fetch replicaCount from ENV", e));
+
+    return replicaCountTaskTemplate || replicasOnSystem || 1;
 }
 
 module.exports.renderVersionTable = renderVersionTable;

@@ -211,7 +211,6 @@ const drillDown = function (dataHolder, path) {
     }
     const currentLocation = pathEntries.splice(0, 1);
     if (!dataHolder[currentLocation]) {
-        log.error("path not found");
         return null;
     } else {
         return drillDown(dataHolder[currentLocation], pathEntries.join('/'));

@@ -103,6 +103,11 @@ const exec = async function () {
         let dockerCommand;
         const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
+
+        config['serviceSecrets']= await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
+
+        await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
+
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
             if (!fs.existsSync('./task_template_mapped.json')) {

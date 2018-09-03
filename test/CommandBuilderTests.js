@@ -71,6 +71,27 @@ function run() {
                 const actual = dockerSecretHelper.generateCreateServiceSecretParam(input);
 
                 assert.equal(actual, expected);
+            });
+            it("create docker secrets", async () => {
+                const testingSecretName = "duriel-unit-testing-secret";
+                const input = {
+                    add: ["alpha"],
+                    remove: ["beta"],
+                    create: [{name: testingSecretName, value: "delta"}]
+                };
+                const secretCreationResult = await dockerSecretHelper.createDockerSecrets(proxy, input, "createdBy=duriel", "createdFor=unit-testing");
+                log.info(secretCreationResult);
+
+                const afterCreation = await dockerSecretHelper.get(proxy, testingSecretName);
+
+                log.info(afterCreation)
+                assert.equal(!!afterCreation, true);
+
+                await dockerSecretHelper.remove(proxy, testingSecretName);
+                const afterRemoval = await dockerSecretHelper.get(proxy, testingSecretName)
+                    .catch(e => "ok");
+                assert.equal(afterRemoval, 'ok');
+
             })
         });
         describe("transforms docker secret entries", () => {

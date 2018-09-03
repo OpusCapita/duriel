@@ -9,6 +9,8 @@ const fs = require('fs');
 const fieldDefs = require('../../fieldDefs');
 const util = require("../helpers/utilHelper");
 
+const dockerSecretHelper = require('../helpers/dockerSecretHelper');
+
 const byteMappingValidation = /[0-9]+[KMGT]/;
 const integerExtractor = /[0-9]+/;
 const byteSuffixExtractor = /[KMGT]/;
@@ -27,7 +29,14 @@ const buildDockerCreate = function (config) {
     const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}))
     const wantedParams = getWantedParams(taskTemplate);
 
-    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`;
+    const serviceSecrets = config['serviceSecrets'];
+
+    let additionalSecrets = "";
+    if (serviceSecrets) {
+        additionalSecrets = dockerSecretHelper.generateCreateServiceSecretParam(serviceSecrets)
+    }
+
+    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}' ${additionalSecrets}`;
     const addedFields = [];
 
     for (let param of wantedParams) {
@@ -83,11 +92,18 @@ const buildDockerUpdate = function (config, addSecret = false) {
     const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
     const wantedParams = getWantedParams(taskTemplate);
 
+    const serviceSecrets = config['serviceSecrets'];
+
+    let additionalSecrets = "";
+    if (serviceSecrets) {
+        additionalSecrets = dockerSecretHelper.generateUpdateServiceSecretParam(serviceSecrets)
+    }
+
     let serviceSecretPart = " ";
     if (addSecret && config['serviceSecretName']) {
-        serviceSecretPart = ` --secret-add '${config['serviceSecretName']}' `
+        serviceSecretPart = `--secret-add '${config['serviceSecretName']}'`
     }
-    const base_cmd = `docker service update -d${serviceSecretPart}--with-registry-auth`;
+    const base_cmd = `docker service update -d ${serviceSecretPart} ${additionalSecrets} --with-registry-auth`;
     let addedFields = [];
     for (let param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];
@@ -279,7 +295,7 @@ const updateMart = function (param) {
 
     const tt2fdMap = {};
     const fd2ttMap = {};
-    if(fieldMap) {
+    if (fieldMap) {
         for (let key of Object.keys(fieldMap)) {
             const tt_value = key.toLowerCase();
             const fd_value = fieldMap[key];
@@ -329,11 +345,11 @@ const updateMart = function (param) {
     log.severe("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
 
     let command = "";
-    for(let dv of pairsForAdding){
+    for (let dv of pairsForAdding) {
         command += ` --${param.name}-add ${Object.keys(dv).sort().map(it => `${it}=${dv[it]}`).join(',')}`;
     }
 
-    for(let cv of pairsForRemoving){
+    for (let cv of pairsForRemoving) {
         command += ` --${param.name}-remove ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
     }
 

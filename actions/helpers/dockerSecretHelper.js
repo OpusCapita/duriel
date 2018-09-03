@@ -7,7 +7,16 @@ const EnvProxy = require('../../EnvProxy');
 const utilHelper = require('./utilHelper');
 const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 
-async function create(proxy, secretName, length = 32, ...labels) {
+async function create(proxy, secretName, value, ...labels) {
+    const secretId = await proxy.insertDockerSecret(value, secretName, ...labels);
+    return {
+        id: secretId.trim(),
+        name: secretName.trim(),
+        serviceSecret: value.trim()
+    }
+}
+
+async function generate(proxy, secretName, length = 32, ...labels) {
     const serviceSecret = await generateSecret(32);
     const secretId = await proxy.insertDockerSecret(serviceSecret, secretName, ...labels);
     return {
@@ -19,7 +28,7 @@ async function create(proxy, secretName, length = 32, ...labels) {
 
 async function replace(proxy, secretName) {
     await remove(proxy, secretName);
-    return await create(proxy, secretName);
+    return await generate(proxy, secretName);
 }
 
 async function remove(proxy, secretName) {
@@ -27,15 +36,7 @@ async function remove(proxy, secretName) {
 }
 
 async function get(proxy, secretName) {
-    return await proxy.getDockerSecrets()
-        .then(secrets => secrets.filter(it => it.name === secretName))
-        .then(secrets => {
-            if (secrets.length === 1) {
-                return secrets[0]
-            } else {
-                throw new Error(`could not find specific secret with name ${secretName}.\n found (${secrets.length})`);
-            }
-        })
+    return await proxy.getDockerSecret(secretName);
 }
 
 async function getAll(proxy) {
@@ -48,15 +49,26 @@ async function generateSecret(length) {
     return await new EnvProxy().executeCommand_L(`openssl rand -base64 ${length}`)
 }
 
-
+/**
+ *
+ * Loading the secret-data from the task_template and concluding the entry-data for docker-commands
+ * (e.g. which secrets to add/remove/create)
+ * @param config {BaseConfig}
+ * @param proxy {EnvProxy}
+ * @returns {Promise<{remove: Array, add: Array, create: Array<{name: string, value: string}>}>}
+ */
 async function getSecretsForDockerCommands(config, proxy) {
+
+    log.info("1 - Fetching docker secrets from task_template");
 
     const blackList = [`${config['serviceName']}-consul-key`]; // Can't touch this!
 
+    log.info("1.1 - Loading task_template-data");
     const taskTemplate = loadTaskTemplate(config);
     const taskTemplateSecrets = transformSecretEntries(taskTemplate["oc-secret-injection"]);
 
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
+    log.info("1.2 - Loading Secrets on Env.");
     const deployedSecrets = await proxy.getDockerSecretsOfService(config['serviceName'])
         .catch(e => {
             log.warn(`could not fetch secrets for service '${config['serviceName']}'`);
@@ -67,17 +79,25 @@ async function getSecretsForDockerCommands(config, proxy) {
         .then(nameList => utilHelper.arrayMinus(nameList, blackList));
 
 
+    log.info("2.0 - Fetching secrets for adding, removing and creating.");
     const secretsForAdding = utilHelper.arrayMinus(necessarySecrets, deployedSecrets);
-
     const secretsOnEnv = await proxy.getDockerSecrets()
         .then(secrets => secrets.map(it => it.name));
 
-    return {
+    const result = {
         remove: utilHelper.arrayMinus(deployedSecrets, necessarySecrets),
         add: secretsForAdding,
         create: utilHelper.arrayMinus(secretsForAdding, secretsOnEnv)
             .map(it => ({name: it, value: taskTemplateSecrets[it]}))
-    }
+    };
+    log.debug("2.1 - secret fetching result: ", {
+        add: result.add,
+        remove: result.remove,
+        create: result.create.map(it => ({name: it.name, value: `${it.value.substring(0, 4)}`}))
+    });
+
+    log.info("... finished fetching docker secrets.");
+    return result;
 }
 
 function transformSecretEntries(entries) {
@@ -101,6 +121,17 @@ function transformSecretEntries(entries) {
     }
 }
 
+async function createDockerSecrets(proxy, secrets, ...labels) {
+    if (!secrets)
+        throw new Error("You try to call createDockerSecrets without secrets?!...");
+    if (!secrets.create)
+        throw new Error("secrets do not contain a create-Array");
+
+    for (const secret of secrets.create) {
+        await create(proxy, secret.name, secret.value, ...labels);
+    }
+}
+
 function generateUpdateServiceSecretParam(secrets) {
     if (!secrets)
         throw new Error("no param is no good.");
@@ -119,11 +150,13 @@ function generateCreateServiceSecretParam(secrets) {
 module.exports = {
     getAll,
     get,
+    generate,
     create,
     remove,
     replace,
     getSecretsForDockerCommands,
     transformSecretEntries,
     generateUpdateServiceSecretParam,
-    generateCreateServiceSecretParam
+    generateCreateServiceSecretParam,
+    createDockerSecrets
 };

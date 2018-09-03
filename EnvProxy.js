@@ -276,13 +276,12 @@ class EnvProxy {
      * add a secret into the docker swarm
      * @param secret
      * @param secretName
+     * @param labels
      * @returns {*}
      */
     insertDockerSecret(secret, secretName, ...labels) {
-        if (labels)
-            labels.filter(it => !new RegExp(/[[:alnum:]-_]+=[[:alnum:]-_]+/).test(it));
-
-        return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`)} '${secretName}' - `);
+        labels = helper.flattenArray(labels); // in case someone messes up :)
+        return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
     }
 
     /**
@@ -296,8 +295,13 @@ class EnvProxy {
             await this.insertDockerSecret(secret.value, secret.name, ...secrets.labels)
     }
 
+    /**
+     * Returns a list of all docker secrets on the ENV.
+     * @returns {Promise<Object>}
+     * @example [{id: 2, name: "alpha", createdAt: "", updatedAt: ""}]
+     */
     getDockerSecrets() {
-        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}###{{.Labels}}'")
+        return this.executeCommand_E("docker secret ls --format '{{.ID}}###{{.Name}}###{{.CreatedAt}}###{{.UpdatedAt}}'")
             .then(response => {
                 return response.split(linebreak_splitter)
                     .map(line => {
@@ -307,14 +311,32 @@ class EnvProxy {
                                 id: cols[0],
                                 name: cols[1],
                                 createdAt: cols[2],
-                                updatedAt: cols[3],
-                                labels: cols[4],
-                                label: cols[5]
+                                updatedAt: cols[3]
                             }
                         }
                     })
                     .filter(it => it);
             })
+    }
+
+    /**
+     * Returns a specific docker secret.
+     * @param secretName
+     * @returns {Promise<Object>}
+     * @example:
+     * {id: 2, name: "beta", createdAt: "", updatedAt: "", labels: {createdBy: "duriel"}}
+     */
+    async getDockerSecret(secretName) {
+        return this.executeCommand_E(`docker secret inspect ${secretName}`)
+            .then(response => JSON.parse(response)[0])
+            .then(it => ({
+                    id: it.ID,
+                    name: secretName,
+                    createdAt: it.CreatedAt,
+                    updatedAt: it.UpdatedAt,
+                    labels: helper.drillDown(it, "Spec/Labels")
+                })
+            )
     }
 
     /**
@@ -692,33 +714,26 @@ class EnvProxy {
             command = 'sudo ' + command;
         }
         return new Promise((resolve, reject) => {
-            let response = "";
-            let stdError = [];
             this.sshconn.exec(command, function (err, stream) {
                 if (err) {
                     log.error('SECOND :: exec error: ', err);
-                    log.warn("output before error: ", response);
                     return reject(err);
                 }
-                stream.on('end', () => {
-                    if (stdError && stdError.length) {
-                        log.warn(stdError.join(''));
-                    }
-                    return resolve(response);
+                let buffer = "";
+                stream.on('close', function (code) {
+                    if (code > 0)
+                        reject(buffer);
+                    else
+                        resolve(buffer);
                 }).on('data', function (data) {
-                    if (logOutputLevel) {
-                        log.log(logOutputLevel, data.toString())
-                    }
-                    response += data.toString();
-                }).on('error', streamError => {
-                    return reject(streamError);
+                    buffer += data;
+                }).stderr.on('data', function (data) {
+                    buffer += data;
                 });
-                stream.stderr.on('data', error => {
-                    stdError.push(error);
-                })
             });
         });
-    };
+    }
+    ;
 
     readFile_L(filePath, fileName, encoding = 'utf8') {
         const path = `${filePath}/${fileName}`;
