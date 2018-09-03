@@ -79,7 +79,7 @@ async function getSecretsForDockerCommands(config, proxy) {
         .then(secrets => secrets.map(it => it.name))
         .then(nameList => utilHelper.arrayMinus(nameList, blackList));
 
-    log.debug("1.2 - secrets on env: ", deployedSecrets.map(it => it.name));
+    log.debug("1.2 - secrets on env: ", deployedSecrets);
 
     log.info("2.0 - Fetching secrets for adding, removing and creating.");
     const secretsForAdding = utilHelper.arrayMinus(necessarySecrets, deployedSecrets);
