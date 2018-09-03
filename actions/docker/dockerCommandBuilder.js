@@ -103,7 +103,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
     if (addSecret && config['serviceSecretName']) {
         serviceSecretPart = `--secret-add '${config['serviceSecretName']}'`
     }
-    const base_cmd = `docker service update -d ${serviceSecretPart} ${additionalSecrets} --with-registry-auth`;
+    const base_cmd = ['docker service update -d', serviceSecretPart, additionalSecrets, '--with-registry-auth'].join(" ");
     let addedFields = [];
     for (let param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];

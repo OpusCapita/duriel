@@ -60,12 +60,12 @@ async function generateSecret(length) {
 async function getSecretsForDockerCommands(config, proxy) {
 
     log.info("1 - Fetching docker secrets from task_template");
-
     const blackList = [`${config['serviceName']}-consul-key`]; // Can't touch this!
 
     log.info("1.1 - Loading task_template-data");
     const taskTemplate = loadTaskTemplate(config);
     const taskTemplateSecrets = transformSecretEntries(taskTemplate["oc-secret-injection"]);
+    log.debug("1.1 - secrets from task_template: ", Object.keys(taskTemplateSecrets));
 
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
     log.info("1.2 - Loading Secrets on Env.");
@@ -78,6 +78,7 @@ async function getSecretsForDockerCommands(config, proxy) {
         .then(secrets => secrets.map(it => it.name))
         .then(nameList => utilHelper.arrayMinus(nameList, blackList));
 
+    log.debug("1.2 - secrets on env: ", deployedSecrets.map(it => it.name));
 
     log.info("2.0 - Fetching secrets for adding, removing and creating.");
     const secretsForAdding = utilHelper.arrayMinus(necessarySecrets, deployedSecrets);
@@ -96,7 +97,7 @@ async function getSecretsForDockerCommands(config, proxy) {
         create: result.create.map(it => ({name: it.name, value: `${it.value.substring(0, 4)}`}))
     });
 
-    log.info("... finished fetching docker secrets.");
+    log.info("2 - ...finished fetching docker secrets.");
     return result;
 }
 

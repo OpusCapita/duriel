@@ -906,7 +906,7 @@ class EnvProxy {
         this.proxyServers[proxyKey] = proxy;
 
         proxy.server = net.createServer((conn) => {
-            log.debug(`proxySrv for ${targetHostName}:${targetPort} handling client request, remote port = ${conn.remotePort}`);
+            log.severe(`proxySrv for ${targetHostName}:${targetPort} handling client request, remote port = ${conn.remotePort}`);
             conn.on('end', () => {
                 log.severe('proxySrv client disconnected from socket');
             });

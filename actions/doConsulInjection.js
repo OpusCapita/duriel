@@ -31,7 +31,7 @@ module.exports = async function (config, proxy) {
             } else {
                 log.debug(`... injecting '${key}' to consul`);
                 await proxy.addKeyValueToConsul(`${key}`, `${injectionValues[key]}`);
-                log.debug(`... done.`);
+                log.severe(`... done.`);
             }
         } catch (error) {
             log.warn('error while injecting kv-pairs to consul!', error);
