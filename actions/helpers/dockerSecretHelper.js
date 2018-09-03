@@ -136,9 +136,16 @@ function generateUpdateServiceSecretParam(secrets) {
     if (!secrets)
         throw new Error("no param is no good.");
 
-    const addPart = secrets.add.map(entry => `--secret-add ${entry}`).join(" ");
-    const removePart = secrets.remove.map(entry => `--secret-rm ${entry}`).join(" ");
-    return `${addPart} ${removePart}`;
+    const addPart = secrets.add
+        .filter(it => it)
+        .map(entry => `--secret-add ${entry}`);
+    const removePart = secrets.remove
+        .filter(it => it)
+        .map(entry => `--secret-rm ${entry}`);
+
+    return addPart
+        .concat(removePart)
+        .join(" ");
 }
 
 function generateCreateServiceSecretParam(secrets) {
