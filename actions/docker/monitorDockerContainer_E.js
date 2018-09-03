@@ -8,7 +8,7 @@ const AsciiTable = require('ascii-table');
 
 module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
-    const replicaCount = await getReplicaCount(config);
+    const replicaCount = await getReplicaCount(config, proxy);
     log.info("replicaCount:", replicaCount);
     attempts = attempts * replicaCount;
 
