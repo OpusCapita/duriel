@@ -8,6 +8,7 @@ const utilHelper = require('./utilHelper');
 const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 
 async function create(proxy, secretName, value, ...labels) {
+    log.info(`Creating secret '${secretName}' with the labels [${labels.join(", ")}]`);
     const secretId = await proxy.insertDockerSecret(value, secretName, ...labels);
     return {
         id: secretId.trim(),
@@ -128,7 +129,7 @@ async function createDockerSecrets(config, proxy, ...labels) {
     if (!Array.isArray(config['serviceSecrets'].create))
         throw new Error("secrets do not contain a create-Array");
     for (const secret of config['serviceSecrets'].create) {
-        await create(proxy, secret.name, secret.value, ...labels);
+        await create(proxy, secret.name, secret.value, ...labels)
     }
 }
 
