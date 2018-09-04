@@ -74,7 +74,7 @@ class EpicLogger {
             for (const attachment of obj)
                 logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;
         }
-        console.log(`${prefix} ${logValue} ${postfix}`);
+        console.log(`${prefix} ${logValue.trim()} ${postfix}`);
     }
 
     static convert2ReadableString(message) {

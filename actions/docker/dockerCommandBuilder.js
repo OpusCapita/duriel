@@ -38,7 +38,8 @@ const buildDockerCreate = function (config) {
         additionalSecrets = dockerSecretHelper.generateCreateServiceSecretParam(serviceSecrets)
     }
 
-    const base_cmd = `docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}' ${additionalSecrets}`;
+    const base_cmd = [`docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}`, additionalSecrets]
+        .filter(it => it).join(" ");
     const addedFields = [];
 
     for (let param of wantedParams) {
@@ -82,7 +83,11 @@ const buildDockerCreate = function (config) {
         }
     }
     log.debug("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
-    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} ${config['HUB_REPO']}:${config['VERSION']}`;
+    return [
+        base_cmd,
+        ... addedFields.map(it => it.trim()),
+        `${config['HUB_REPO']}:${config['VERSION']}`
+    ].filter(it => it).join(" ");
 };
 
 const buildDockerUpdate = function (config, addSecret = false) {
@@ -152,47 +157,13 @@ const buildDockerUpdate = function (config, addSecret = false) {
         }
     }
     log.debug("added fields: ", addedFields.map(it => it.trim()).filter(it => it));
-    return `${base_cmd} ${addedFields.map(it => it.trim()).filter(it => it).join(' ')} --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
-};
-/**
- * Adds up params for 'production' and 'default'
- * @param taskTemplate
- * @returns Array<string> fields for docker-command
- */
-const getWantedParams = function (taskTemplate) {
-    log.debug("gathering wanted params...");
-    let result = [];
-    if (taskTemplate['production']) {
-        log.debug("... adding production keys ...");
-        result = result.concat(Object.keys(taskTemplate['production']));
-    }
-    if (taskTemplate["default"]) {
-        log.debug("... adding default keys ...");
-        result = result.concat(Object.keys(taskTemplate["default"]));
-    }
-    log.debug("... finished gathering finished params", result);
-    return result;
+    return [base_cmd,
+        ...addedFields.map(it => it.trim()),
+        `--force --image ${config['HUB_REPO']}:${config['VERSION']}`,
+        config['CIRCLE_PROJECT_REPONAME']
+    ].filter(it => it).join(" ");
 };
 
-/**
- * returns the value of a param from loadTaskTemplate
- * value = loadTaskTemplate[env] ?: loadTaskTemplate[default]
- * @param taskTemplate
- * @param param
- * @param config
- * @returns {*}
- */
-const getDesiredValue = function (taskTemplate, param, config) {
-    const env = config['TARGET_ENV'];
-    if (taskTemplate[`${env}`]) {
-        if (taskTemplate[`${env}`][`${param}`]) {
-            return taskTemplate[`${env}`][`${param}`];
-        }
-    }
-    if (taskTemplate[`default`][`${param}`]) {
-        return taskTemplate[`default`][`${param}`];
-    }
-};
 /**
  *
  * @param result - string - changed by method
