@@ -217,7 +217,7 @@ const updateMarh = function (param) {
             if (mappedKV[key]) {
                 mappedKV[key].cv = value
             } else {
-                result += ` --${param.name}-rm ${name}`;
+                result += ` --${param.name}-rm ${entry}`;
             }
         }
     );
