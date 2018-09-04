@@ -113,7 +113,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
             const type = fieldDefinition['type'];
             const fieldPath = fieldDefinition['path'];
             const currentValue = util.drillDown(serviceConfig, fieldPath); // current Value from service_config via DrillDown
-            const desiredValue = getDesiredValue(taskTemplate, param, config);
+            const desiredValue = taskTemplate[param];
             const collectedData = {
                 name: param,
                 cv: currentValue,
