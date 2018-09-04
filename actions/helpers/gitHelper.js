@@ -8,6 +8,8 @@ const EnvProxy = require("../../EnvProxy");
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
+const versionHelpr = require('./versionHelper');
+
 module.exports = {
     addFiles,
     addAll,
@@ -126,32 +128,8 @@ async function getTags(filter) {
 }
 
 async function getMainVersionTags() {
-    function compareVersion(a, b) {
-        const aSplit = a.split('.');
-        const bSplit = b.split('.');
-        if (aSplit[0] !== bSplit[0]) {
-            const aMajor = parseInt(aSplit[0]) ? parseInt(aSplit[0]) : 0;
-            const bMajor = parseInt(bSplit[0]) ? parseInt(bSplit[0]) : 0;
-            return bMajor - aMajor;
-        } else {
-            if (aSplit[1] !== bSplit[1]) {
-                const aMinor = parseInt(aSplit[1]) ? parseInt(aSplit[1]) : 0;
-                const bMinor = parseInt(bSplit[1]) ? parseInt(bSplit[1]) : 0;
-                return bMinor - aMinor;
-            } else {
-                if (aSplit[2] !== bSplit[2]) {
-                    const aPatch = parseInt(aSplit[2]) ? parseInt(aSplit[2]) : 0;
-                    const bPatch = parseInt(bSplit[2]) ? parseInt(bSplit[2]) : 0;
-                    return bPatch - aPatch;
-                } else {
-                    return 0;
-                }
-            }
-        }
-    }
-
     return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(compareVersion))
+        .then(tags => tags.sort(versionHelpr.compareVersion))
         .then(tags => {
             if (!tags.length)
                 return ['0.0.0'];
