@@ -29,7 +29,7 @@ const nanoFactor = 1000000000;
 const buildDockerCreate = function (config) {
     log.info("Building docker create command");
     const taskTemplate = loadTaskTemplate(config);
-    const wantedParams = getWantedParams(taskTemplate);
+    const wantedParams = Object.keys(taskTemplate);
 
     const serviceSecrets = config['serviceSecrets'];
 
@@ -45,7 +45,7 @@ const buildDockerCreate = function (config) {
         const fieldDefinition = fieldDefs[`${param}`];
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
-            const desiredValue = getDesiredValue(taskTemplate, param, config);
+            const desiredValue = taskTemplate[param];
             const collectedData = {
                 name: param,
                 dv: desiredValue,
@@ -92,7 +92,7 @@ const buildDockerUpdate = function (config, addSecret = false) {
     }
     const taskTemplate = loadTaskTemplate(config);
     const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
-    const wantedParams = getWantedParams(taskTemplate);
+    const wantedParams = Object.keys(taskTemplate);
 
     const serviceSecrets = config['serviceSecrets'];
 

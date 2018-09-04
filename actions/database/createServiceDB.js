@@ -20,7 +20,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
 
     const task_template = loadTaskTemplate(config);
-    const db_init_settings = getTaskTemplateSettings(config, task_template);
+    const db_init_settings = task_template["oc-db-init"];
     if (!db_init_settings) {
         log.info(`skipping db handling - no setting inside task_template.json`);
         return;
@@ -94,25 +94,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
 
 };
-
-function getTaskTemplateSettings(config, taskTemplate) {
-    const db_init_flag = "oc-db-init";
-    let db_init_settings;
-    if (taskTemplate[`${config['TARGET_ENV']}`]) {
-        db_init_settings = taskTemplate[`${config['TARGET_ENV'][db_init_flag]}`];
-    } else {
-        log.debug("no env-specific settings inside task_template.");
-    }
-
-    if (!db_init_settings) {
-        if (taskTemplate['default']) {
-            db_init_settings = taskTemplate['default'][db_init_flag]
-        } else {
-            log.debug("no default settings inside task_template.")
-        }
-    }
-    return db_init_settings;
-}
 
 
 
