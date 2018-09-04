@@ -6,6 +6,8 @@ const Logger = require('../EpicLogger');
 const log = new Logger();
 const fs = require('fs');
 
+const loadTaskTemplate = require('./filehandling/loadTaskTemplate');
+
 /**
  * Inject variables from the task_template.json and inject them into consul
  * @param config {BaseConfig}
@@ -15,7 +17,7 @@ const fs = require('fs');
 module.exports = async function (config, proxy) {
     log.info(`Starting to service-values into consul...`);
     log.debug("loading task_template...");
-    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));
+    const taskTemplate = loadTaskTemplate(config);
     log.debug("...finished downloading");
     log.severe("loadTaskTemplate: ", taskTemplate);
 

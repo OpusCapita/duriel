@@ -35,23 +35,6 @@ async function downloadURL2File(url, targetFile) {
     });
 }
 
-async function loadTaskTemplate(config) {
-    if (!fs.existsSync('./task_template.json')) {
-        log.error("no task_template");
-        throw new Error("could not find task_template.json");
-    }
-    const taskTemplate = fs.readFileSync('./task_template.json', {encoding: 'utf8'});
-    log.info("loaded task_template successfully.");
-
-    log.info("Injecting values into task_template.json");
-    const injectorResult = variableInjector(JSON.stringify(taskTemplate), config);
-    log.debug("Trying to parse edited data back to JSON");
-    JSON.parse(injectorResult);
-    log.debug("Writing mapped task_template.json");
-    fs.writeFileSync("./task_template_mapped.json", JSON.parse(injectorResult), {encoding: 'utf8'});
-    return injectorResult;
-}
-
 function loadFileFromPrivateGit(url, config) {
     return request.get(url)
         .set('Authorization', `token ${config['GIT_TOKEN']}`)
@@ -84,8 +67,13 @@ function getFilesInDir(path, regex) {
     path = pathJs.resolve(path);
     const fileFilter = new RegExp(regex);
     let result = [];
+
     if (!fs.existsSync(path))
-        return result;
+        throw new Error(`path '${path}' does not exist.`)
+
+    if (fs.statSync(path).isFile())
+        return [path];
+
     const current = fs.readdirSync(path);
     current.forEach(file => {
         const entry = pathJs.join(path, file);
@@ -119,7 +107,6 @@ function mkdirp(path) {
 
 module.exports = {
     downloadURL2File,
-    loadTaskTemplate,
     loadFileFromPrivateGit,
     saveObject2File,
     loadFile2Object,

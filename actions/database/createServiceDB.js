@@ -4,6 +4,8 @@ const log = new Logger();
 const fs = require('fs');
 const queryExecuter = require('./queryExecuter');
 
+const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
+
 /**
  *
  * @param config - used fields: [serviceName, TARGET_ENV]
@@ -92,15 +94,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
 
 };
-
-function loadTaskTemplate() {
-    if (!fs.existsSync('./task_template_mapped.json')) {
-        throw new Error("could not find task_template.json");
-    }
-    const taskTemplate = JSON.parse(fs.readFileSync('./task_template_mapped.json', {encoding: 'utf8'}));   // TODO: wtf? like... ??!
-    log.info("successfully loaded task_template_json");
-    return taskTemplate;
-}
 
 function getTaskTemplateSettings(config, taskTemplate) {
     const db_init_flag = "oc-db-init";

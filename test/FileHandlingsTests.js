@@ -57,6 +57,27 @@ function run() {
             assert.notEqual(fromCode, null);
             assert.equal(fromFile, fromCode);
         });
+        describe("get files in dir", () => {
+            it("fetches the filenames in a dir", () => {
+                const files = fileHelper.getFilesInDir(__dirname);
+                assert.equal(Array.isArray(files), true);
+                assert.equal(files.includes(__filename), true);
+            });
+            it("fetches the filenames in a dir", () => {
+                const files = fileHelper.getFilesInDir(require("path").join(__dirname, ".."));
+                assert.equal(Array.isArray(files), true);
+                assert.equal(files.includes(__filename), true);
+            });
+            it("fetches form a non existing dir", () => {
+                assert.throws(() => fileHelper.getFilesInDir("allessandroDel/Pocko"))
+            });
+            it("fetches form a file as path", () => {
+                const files = fileHelper.getFilesInDir(require("path").join(__filename));
+                assert.equal(Array.isArray(files), true);
+                assert.equal(files.includes(__filename), true);
+
+            });
+        });
         describe("loads a task_template", () => {
             before(() => fileHelper.saveObject2File(constants.task_template, "./task_template.json"));
             after(() => require("fs").unlinkSync("./task_template.json"));

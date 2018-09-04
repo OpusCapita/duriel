@@ -15,6 +15,56 @@ module.exports.run = run;
 
 async function run() {
     describe("test EnvProxy", () => {
+        describe("executeCommand_L", () => {
+            const proxy = new EnvProxy();
+            it("executes successfully", async () => {
+                const result = await proxy.executeCommand_L("ls")
+                    .then(it => "ok")
+                    .catch(e => "not even close");
+                assert.equal(result, "ok");
+            });
+            it("executes with error-code", async () => {
+                const result = await proxy.executeCommand_L("throwMeBabyOneMoreTime")
+                    .then(it => "not even close")
+                    .catch(e => "ok");
+                assert.equal(result, "ok");
+            });
+            it("executes with error-logs", async () => {
+                const result = await proxy.executeCommand_L(">&2 echo \"ok\"")
+                    .catch(e => "not even close");
+                assert.equal(result.trim(), "ok");
+            })
+        });
+        describe("executeCommand_E", () => {
+            let proxy;
+            before(async () => {
+                proxy = await constants.getEnvProxy();
+            });
+            after(() => {
+                if (proxy) {
+                    log.debug("closing proxy.");
+                    proxy.close();
+                    proxy = undefined;
+                }
+            });
+            it("executes successfully", async () => {
+                const result = await proxy.executeCommand_E("ls")
+                    .then(it => "ok")
+                    .catch(e => "not even close");
+                assert.equal(result, "ok");
+            });
+            it("executes with error-code", async () => {
+                const result = await proxy.executeCommand_E("throwMeBabyOneMoreTime")
+                    .then(it => "not even close")
+                    .catch(e => "ok");
+                assert.equal(result, "ok");
+            });
+            it("executes with error-logs", async () => {
+                const result = await proxy.executeCommand_E(">&2 echo \"ok\"")
+                    .catch(e => "not even close");
+                assert.equal(result.trim(), "ok");
+            })
+        });
         describe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
 
             const dockerSecretHelper = require('../actions/helpers/dockerSecretHelper');

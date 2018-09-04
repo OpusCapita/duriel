@@ -15,6 +15,7 @@ const dependsOnServiceClient = require('./actions/dependsOnServiceClient');
 const dockerCommandBuilder = require('./actions/docker/dockerCommandBuilder');
 const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
+const loadTaskTemplate = require('./actions/filehandling/loadTaskTemplate');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
 const e2eTester = require('./actions/e2eTester');
 const setupServiceUser = require('./actions/database/updateServiceClientUser');
@@ -70,7 +71,7 @@ const exec = async function () {
         }
 
         log.info("loading task template...");
-        await fileHandler.loadTaskTemplate(config);
+        await loadTaskTemplate(config);
         log.debug("...finished task template");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
@@ -110,8 +111,8 @@ const exec = async function () {
 
         if (isCreateMode) {
             log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
-            if (!fs.existsSync('./task_template_mapped.json')) {
-                log.info(`service not found on '${config['TARGET_ENV']}', create mode unsupported`);
+            if (!fs.existsSync('./task_template.json')) {
+                log.info(`no task_template found, create mode unsupported`);
                 process.exit(1);
             } else {
                 log.info("drop/creating the service secret");
@@ -155,20 +156,6 @@ const exec = async function () {
         log.info(`Login for Docker: '${config['DOCKER_USER']}', executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
-        if (!isCreateMode) {
-            if (!commandResponse) {
-                throw new Error("no response for docker command");
-            }
-            if (!commandResponse.includes("Login Succeeded")) {
-                throw new Error("invalid docker login.");
-            }
-
-            const commandResponseSplit = commandResponse.split("Login Succeeded");
-            const successPart = commandResponseSplit.length && commandResponseSplit[commandResponseSplit.length - 1].trim();
-            if (!successPart || successPart.trim() !== config['CIRCLE_PROJECT_REPONAME']) {
-                throw new Error("command response is not the reponame, this means docker did not accept the command but also did not throw an error...");
-            }
-        }
 
         log.info("monitoring service after command-execution");
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.

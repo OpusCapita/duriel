@@ -765,6 +765,7 @@ class EnvProxy {
 
             eventEmitter.stderr.on('data', data => {
                 errorBuffer.push(data);
+                buffer.push(data);
             });
 
             eventEmitter.on('exit', code => {

@@ -67,12 +67,14 @@ class EpicLogger {
         if (EpicLogger.getLogLevels().indexOf(level) >= 0 && EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
             return;
         }
+        const prefix = `${EpicLogger.getLevelColor(level)}${level} - ${EpicLogger.formatDate2String(new Date())} -`;
+        const postfix = `${EpicLogger.getColors().RESET}`;
         let logValue = "";
         if (obj) {
             for (const attachment of obj)
                 logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;
         }
-        console.log(`${EpicLogger.getLevelColor(level)}%s - %s - %s${EpicLogger.getColors().RESET}`, EpicLogger.formatDate2String(new Date()), level, logValue.trim());
+        console.log(`${prefix} ${logValue} ${postfix}`);
     }
 
     static convert2ReadableString(message) {
