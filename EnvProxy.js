@@ -476,7 +476,7 @@ class EnvProxy {
                 const target = serviceInfo.instances_target;
                 if (up !== target)
                     log.warn(`seems like we are checking an unhealty service... up: ${up} target: ${target}`);
-                return up || 1
+                return target || 1
             })
     }
 
