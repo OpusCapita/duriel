@@ -31,8 +31,6 @@ When deploying successfully to a "hotfix/" or "release/" branch, the build-proce
 | release/* | master |
 | hotfix    | master, develop |
 
-## known issues
-- some nodes block secreet-reading and the deployment thinks, it need to create a new secret.
 
 ## task_template.json
 
@@ -75,6 +73,11 @@ example:
     "oc-consul-injection": {
       "redis/password": "${SECRET_:env_REDIS}",
     },
+    "oc-secret-injection": {
+            "alpha": "i am a string",
+    	    "beta": {"value": "i am not encoded"},
+    	    "gamma": {"encoding": "base64", "value": "aSBhbSBlbmNvZGVk"}
+    },
     "limit-cpu": "0.2",
     "limit-memory": "300M",
     "reserve-cpu": "0.01",
@@ -84,10 +87,42 @@ example:
     "limit-cpu": "0.3",
     "oc-consul-injection": {
         "special_dev_var": "secret"
+    }
   }
 }
 
 ```
+
+## task_template.json explanation
+
+### oc-consul-injection
+Inject values into consul
+
+### oc-secret-injection
+Inject secrets into the docker-swarm on ENV.
+Values can be flat strings of JS-Objects.
+Objects musst have a "value"-attribute. Optional an "encoding"-attribute can be added (e.g. "base64").
+Other "encoding"-types can be used if they are compatible with the Node-Buffer-Class (Buffer.from("", "${encoding}")) 
+
+### limit-cpu
+number of cores that can be used by one instance of a service.
+e.g. "0,5" means 50% of one Core of a node can be utilized by the service
+
+### reserve-cpu
+number of cores that are blocked by one instance of a service.
+
+### limit-memory
+maximum RAM-Usage of a container.
+
+### reservce-memory
+RAM amount that will be blocked by the service.
+
+### constraint
+constraints regarding the location of a service inside the docker swarm.
+
+e.g. 
+- "engine.labels.nodetype==worker" for worker-nodes
+- "engine.labels.nodetype==edge" for edge-nodes
 
 
 ## overview
