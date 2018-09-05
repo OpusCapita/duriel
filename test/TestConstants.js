@@ -42,7 +42,8 @@ module.exports = {
             "serviceDependencies": {
                 "servicenow-integration": "0.0.0",
                 "email": "0.0.0"
-            }
+            },
+            "replicas": 2
         }
     }
 };

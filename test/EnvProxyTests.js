@@ -23,7 +23,7 @@ async function run() {
                     .catch(e => "not even close");
                 assert.equal(result, "ok");
             });
-            it("executes with error-code", async () => {
+            it("executesg with error-code", async () => {
                 const result = await proxy.executeCommand_L("throwMeBabyOneMoreTime")
                     .then(it => "not even close")
                     .catch(e => "ok");

@@ -28,6 +28,27 @@ module.exports.run = run;
 
 async function run() {
     describe("Dependency Tests", () => {
+            describe("libraryHelper", () => {
+                let proxy;
+                before(async () => {
+                    proxy = await constants.getEnvProxy();
+                });
+
+                after(() => {
+                    if (proxy) {
+                        log.debug("closing proxy.");
+                        proxy.close();
+                        proxy = undefined;
+                    }
+                });
+
+                it("loads service version from env", async () => {
+                    const versions = await libraryHelper.loadServiceVersionsFromEnv(proxy);
+                    assert.equal( versions instanceof Object, true);
+                    assert.equal(Object.keys(versions).length > 0, true);
+                    assert.equal(!!versions['email'], true);
+                })
+            });
 
             describe("library - fetching", () => {
                 it("loads a the packageJson", () => {
@@ -201,7 +222,7 @@ async function run() {
                         proxy.close();
                         proxy = undefined;
                     }
-                })
+                });
 
                 const packageJson = {
                     "dependencies": {
@@ -209,6 +230,7 @@ async function run() {
                         "@opuscapita/config": "1.0.0"
                     }
                 };
+
                 it("loads valid dependencies", async () => {
                     const serviceDependencies = {
                         "servicenow-integration": "0.0.0",

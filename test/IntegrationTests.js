@@ -1,5 +1,6 @@
 'use strict';
 const assert = require("assert");
+const extend = require("extend");
 const EpicLogger = require('../EpicLogger');
 const log = new EpicLogger();
 
@@ -7,11 +8,33 @@ const envInfo = require('../envInfo');
 const getBaseConfig = require('../actions/getEnvVariables').getBaseConfigObject
 const IntegrationTestHelper = require("../actions/helpers/IntegrationTestHelper");
 
+const devEnvInfo = require("../envInfo").develop;
 const constants = require('./TestConstants');
 
 module.exports.run = run;
 
 async function run() {
+    describe("checks the healthcheck-data-fetching", () => {
+        let proxy;
+        before(async () => {
+            proxy = await constants.getEnvProxy();
+        });
+
+        after(() => {
+            if (proxy) {
+                log.debug("closing proxy.");
+                proxy.close();
+                proxy = undefined;
+            }
+        });
+        it("run an integrationTest", async () => {
+            const config = getBaseConfig(
+                extend(true, {},
+                    {serviceName: "servicenow-integration"},
+                    devEnvInfo));
+            await IntegrationTestHelper.runIntegrationTests(config, proxy)
+        })
+    });
     describe("checks the healthcheck-data-fetching", () => {
         let proxy;
         before(async () => {
