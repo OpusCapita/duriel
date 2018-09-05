@@ -34,11 +34,6 @@ function run() {
                 const password = getEnvVariables.getDatabasePassword(config);
                 assert.equal(password, "ok");
             });
-            it("has an ENV and no PW", () => {
-                const config = getBaseConfigObject({TARGET_ENV: "develop"});
-                const password = getEnvVariables.getDatabasePassword(config);
-                assert.equal(password, undefined);
-            });
             it("has no ENV and a PW", () => {
                 const config = getBaseConfigObject({SECRET_develop_MYSQL: "ok"});
                 const password = getEnvVariables.getDatabasePassword(config);
