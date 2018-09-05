@@ -101,14 +101,13 @@ function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
 /**
  *
  * @param proxy {EnvProxy} initialized Instance of an EnvProxy
- * @param services {Array<string>} ServiceNames
  * @returns {object}
  */
-async function loadServiceVersionsFromEnv(proxy, services) {
+async function loadServiceVersionsFromEnv(proxy) {
     return await proxy.getServices_E()
-        .then(filteredServices => {
+        .then(services => {
             const result = {};
-            filteredServices.forEach(it => result[it.name] = it.image_version);
+            services.forEach(it => result[it.name] = it.image_version);
             return result;
         })
 }

@@ -45,7 +45,7 @@ const tagRules = [
         postFix: undefined,
         bump: async (config) => bumpProdVersion(config)
             .catch(e => {
-                log.warn("could not bump prod version - using 'minor' bumping", e)
+                log.warn("could not bump prod version - using 'minor' bumping", e);
                 return bumpVersion(undefined, "minor");
             })
     },
@@ -104,7 +104,6 @@ async function bumpProdVersion(config) {
         log.debug("checking merge", merge);
         for (const parent of merge.parents) {
             const tagsOfParent = await gitHelper.getTags({commit: parent});
-            log.warn("tags of parent" + parent, tagsOfParent)
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
                 bumpLevel = "patch";
             }

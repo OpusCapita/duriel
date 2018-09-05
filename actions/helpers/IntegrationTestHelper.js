@@ -17,7 +17,7 @@ module.exports = {
 /**
  * Run integration tests on a service.
  * aka. check if consul says the service is healthy + check general availability of the application
- * @param config {BaseConfig}
+ * @param config {BaseConfig} - using 'serviceName', 'public_scheme', 'public_hostname', 'public_port'
  * @param proxy {EnvProxy}
  * @param attempts {number} @default 30 - attempts done before failure
  * @param interval {number} @default 5000 - interval between attempts in milliseconds

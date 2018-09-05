@@ -68,15 +68,22 @@ function calculateRepoPath(andariel_branch, circle_branch) {
     return result;
 }
 
+module.exports.calculateRepoPath = calculateRepoPath;
+
+/**
+ * Fetches the db-password for the targetEnv
+ * @param config
+ * @returns {string} password
+ */
 function getDatabasePassword(config) {
     if(!config['TARGET_ENV']){
-        return "5up€r5€C12ET";
+        return "none";
     }
     //TODO: check if Service needs DB;
     const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
-    if (process.env[valueKey]) {
+    if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
-        return process.env[valueKey];
+        return config.get(valueKey);
     } else {
         log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
         //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);

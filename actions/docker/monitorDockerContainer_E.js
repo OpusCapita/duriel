@@ -149,3 +149,4 @@ async function getReplicaCount(config, proxy) {
 module.exports.renderVersionTable = renderVersionTable;
 module.exports.checkCreateStatus = checkCreateStatus;
 module.exports.checkUpdateStatus = checkUpdateStatus;
+module.exports.getReplicaCount = getReplicaCount;

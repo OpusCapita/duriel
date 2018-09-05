@@ -2,6 +2,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigObject;
+const getEnvVariables = require("../actions/getEnvVariables");
 const versionHelper = require("../actions/helpers/versionHelper");
 const libraryHelper = require("../actions/helpers/libraryHelper");
 const calculatEnv = require("../actions/calculateEnv");
@@ -12,6 +13,38 @@ module.exports.run = run;
 
 function run() {
     describe("Base Functions", () => {
+        describe('calculate repo-path', () => {
+            const andarielBranch = "email";
+            const masterBranch = "master";
+            const outlowBranch = "pocko";
+
+            it("calculates a master path", () => {
+                const expected = `OpusCapita/andariel/master`;
+                assert.equal(getEnvVariables.calculateRepoPath(andarielBranch, masterBranch), expected);
+            });
+
+            it("calculates a outloaw path", () => {
+                const expected = `OpusCapita/andariel/${andarielBranch}`;
+                assert.equal(getEnvVariables.calculateRepoPath(andarielBranch, outlowBranch), expected);
+            })
+        });
+        describe("getDataBasePassword", () => {
+            it("has an ENV and a PW", () => {
+                const config = getBaseConfigObject({TARGET_ENV: "develop", SECRET_develop_MYSQL: "ok"});
+                const password = getEnvVariables.getDatabasePassword(config);
+                assert.equal(password, "ok");
+            });
+            it("has an ENV and no PW", () => {
+                const config = getBaseConfigObject({TARGET_ENV: "develop"});
+                const password = getEnvVariables.getDatabasePassword(config);
+                assert.equal(password, undefined);
+            });
+            it("has no ENV and a PW", () => {
+                const config = getBaseConfigObject({SECRET_develop_MYSQL: "ok"});
+                const password = getEnvVariables.getDatabasePassword(config);
+                assert.equal(password, "none");
+            });
+        });
         describe("calculate target-envs", () => {
             it("calculates target-envs", () => {
                 assert.equal("develop", calculatEnv.getTargetEnv("develop"));
@@ -258,7 +291,7 @@ function run() {
             });
             it("compares objects", () => {
                 assert.equal(
-                    utilHelper.isEqual({a:"2a"}, {a:"2a"}),
+                    utilHelper.isEqual({a: "2a"}, {a: "2a"}),
                     true
                 );
                 assert.equal(
@@ -266,7 +299,7 @@ function run() {
                     false
                 );
                 assert.equal(
-                    utilHelper.isEqual({a:"2a"}, {b:"2a"}),
+                    utilHelper.isEqual({a: "2a"}, {b: "2a"}),
                     false
                 )
             })
