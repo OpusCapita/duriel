@@ -61,7 +61,7 @@ async function generateSecret(length) {
 async function getSecretsForDockerCommands(config, proxy) {
 
     log.info("1 - Fetching docker secrets from task_template");
-    const blackList = [`${config['serviceName']}-consul-key`]; // Can't touch this!
+    const blackList = [`${config['serviceName']}-consul-key`, 'kong-ssl-key']; // Can't touch this!
 
     log.info("1.1 - Loading task_template-data");
     const taskTemplate = loadTaskTemplate(config);
