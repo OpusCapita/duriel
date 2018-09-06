@@ -42,7 +42,7 @@ the demanded library-version musst be used.
 
 In addition every service can have 'serviceDependencies' and 'libraryDependencies' inside the task_template.json.
 
-_**Currently this feature is logging it's results but will impact the deployment**_
+_**Currently this feature is logging it's results but will not impact the deployment**_
 
 ### example: serviceDependencies
 ```javascript
