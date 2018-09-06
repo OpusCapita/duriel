@@ -1,0 +1,13 @@
+{
+  "develop": {
+    "@opuscapita/web-init": "^3.0.50",
+    "@opuscapita/config": ">0.0.0",
+    "lodash": "999.999.999"
+  },
+  "stage": {
+
+  },
+  "prod": {
+
+  }
+}
