@@ -47,7 +47,9 @@ function getLibraryVersion(library, packageJson) {
  * @param taskTemplate {object} task_template.json content
  */
 function fetchServiceVersionDependencies(config, taskTemplate) {
-    return fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
+    const fromTaskTemplate = fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
+    log.debug("Service-dependencies from task_template.json: ", fromTaskTemplate);
+    return extend(true, {auth: "0.0.0"}, fromTaskTemplate)  // adding auth as default
 }
 
 /**
@@ -197,6 +199,12 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
 async function checkLibraryDependencies(config, proxy, serviceDependencies, packageJson) {
     log.info("Checking library-dependencies of services: ", serviceDependencies);
     const result = new CheckEntryHolder("Library2ServiceDependencies");
+
+    if (!require('fs').existsSync('package.json')) {
+        log.info("Service has no package.json - skipping library-dependency-check");
+        return result;
+    }
+
     for (const service in serviceDependencies) {
 
         log.info(`checking libs of service '${service}'`);
