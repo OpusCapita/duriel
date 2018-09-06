@@ -237,17 +237,36 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
     return result
 }
 
-function checkSystem2LibraryDependencies(config) {
+async function checkSystem2LibraryDependencies(config, proxy) {
     log.info("1. Checking system dependencies");
     const result = new CheckEntryHolder("System2LibraryDependencies");
     if (!require('fs').existsSync("./package.json")) {
         return result;
     }
 
-    log.info("1.1 - loading package.json");
-    const packageJson = fileHelper.loadFile2Object('./package.json');
+    log.info("1.1 - loading installed versions of service.");
+    let installedVersions = {};
+    try {
+        log.debug("executing npm install");
+        await proxy.executeCommand_L("npm install", "npm install");
 
-    log.info("1.1 - loading envLibsDependencies.json");
+        await proxy.executeCommand_E("npm ls --json --depth=0")
+            .then(response => {
+                const parsed = JSON.parse(response);
+                const dependencies = parsed.dependencies;
+                for(const lib in dependencies){
+                    const version = dependencies[lib].version;
+                    log.info(`1.1 - adding version '${version}' for lib '${lib}'`);
+                    installedVersions[lib] = version;
+                }
+            })
+    } catch (e) {
+        log.warn("error during version fetching", e);
+        installedVersions = {}
+    }
+    log.info("1.1 - fetched installed lib-versions: ", installedVersions);
+
+    log.info("1.2 - loading envLibsDependencies.json");
     const systemDependencies = require('../../envLibDependencies')[config['TARGET_ENV']];
     if (!systemDependencies) {
         log.warn(`could not find dependencies for env '${config['TARGET_ENV']}'`)
@@ -257,7 +276,7 @@ function checkSystem2LibraryDependencies(config) {
 
     for (const systemDependency in systemDependencies) {
         log.info(`2.1 - Checking version of '${systemDependency}'`);
-        const versionOfService = getLibraryVersion(systemDependency, packageJson);
+        const versionOfService = installedVersions[systemDependency];
         const expected = systemDependencies[systemDependency];
         log.debug(`2.1 - Found versions [service: '${versionOfService}', expected: '${expected}']`);
         if (versionOfService) {
