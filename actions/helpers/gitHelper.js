@@ -129,7 +129,7 @@ async function getTags(filter) {
 
 async function getMainVersionTags() {
     return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(versionHelpr.compareVersion))
+        .then(tags => tags.sort(versionHelpr.compareVersion).reverse())
         .then(tags => {
             if (!tags.length)
                 return ['0.0.0'];
