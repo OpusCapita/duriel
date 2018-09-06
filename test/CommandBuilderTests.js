@@ -91,6 +91,19 @@ function run() {
                     .catch(e => "ok");
                 assert.equal(afterRemoval, 'ok');
 
+            });
+            it("gets an empty task_template", async () => {
+                fileHelper.saveObject2File({}, "./task_template.json", true);
+                const config = getBaseConfigObject({
+                    serviceName: "servicenow-integration",
+                    TARGET_ENV: "develop"
+                });
+                const secrets = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
+                log.info(secrets)
+                assert.equal(secrets instanceof Object, true);
+                assert.equal(Array.isArray(secrets.create), true);
+                assert.equal(Array.isArray(secrets.remove), true);
+                assert.equal(Array.isArray(secrets.add), true);
             })
         });
         describe("transforms docker secret entries", () => {

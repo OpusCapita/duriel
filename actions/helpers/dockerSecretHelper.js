@@ -65,8 +65,11 @@ async function getSecretsForDockerCommands(config, proxy) {
 
     log.info("1.1 - Loading task_template-data");
     const taskTemplate = loadTaskTemplate(config);
-    const taskTemplateSecrets = transformSecretEntries(taskTemplate["oc-secret-injection"]);
-    log.debug("1.1 - secrets from task_template: ", Object.keys(taskTemplateSecrets));
+    let taskTemplateSecrets = transformSecretEntries(taskTemplate["oc-secret-injection"]);
+    if (taskTemplateSecrets)
+        log.debug("1.1 - secrets from task_template: ", Object.keys(taskTemplateSecrets));
+    else
+        taskTemplateSecrets = {};
 
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
     log.info("1.2 - Loading Secrets on Env.");
