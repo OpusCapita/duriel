@@ -50,7 +50,7 @@ function getLibraryVersion(library, packageJson) {
 function fetchServiceVersionDependencies(config, taskTemplate) {
     const fromTaskTemplate = fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
     log.debug("Service-dependencies from task_template.json: ", fromTaskTemplate);
-    return extend(true, {auth: "0.0.0"}, fromTaskTemplate)  // adding auth as default
+    return extend(true, {}, fromTaskTemplate)  // adding auth as default
 }
 
 /**
@@ -256,7 +256,7 @@ async function checkSystem2LibraryDependencies(config, proxy) {
                 const dependencies = parsed.dependencies;
                 for(const lib in dependencies){
                     const version = dependencies[lib].version;
-                    log.info(`1.1 - adding version '${version}' for lib '${lib}'`);
+                    log.severe(`1.1 - adding lib '${lib}' with version '${version}'`);
                     installedVersions[lib] = version;
                 }
             })
@@ -269,9 +269,10 @@ async function checkSystem2LibraryDependencies(config, proxy) {
     log.info("1.2 - loading envLibsDependencies.json");
     const systemDependencies = require('../../envLibDependencies')[config['TARGET_ENV']];
     if (!systemDependencies) {
-        log.warn(`could not find dependencies for env '${config['TARGET_ENV']}'`)
+        log.warn(`could not find dependencies for env '${config['TARGET_ENV']}'`);
         return;
     }
+    log.debug(`1.2 - fetched envLibDependencies of '${config['TARGET_ENV']}'`, systemDependencies);
     log.info("2 - Checking the dependencies...");
 
     for (const systemDependency in systemDependencies) {
