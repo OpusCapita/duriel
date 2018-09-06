@@ -1,6 +1,6 @@
 {
   "develop": {
-    "@opuscapita/web-init": "^3.0.50",
+    "@opuscapita/web-init": "3.0.x",
     "@opuscapita/config": ">0.0.0",
     "lodash": "999.999.999"
   },

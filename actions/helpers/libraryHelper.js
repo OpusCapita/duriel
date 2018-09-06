@@ -237,10 +237,10 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
     return result
 }
 
-function checkSystem2LibraryDependencies(config){
+function checkSystem2LibraryDependencies(config) {
     log.info("1. Checking system dependencies");
     const result = new CheckEntryHolder("System2LibraryDependencies");
-    if(!require('fs').existsSync("./package.json")){
+    if (!require('fs').existsSync("./package.json")) {
         return result;
     }
 
@@ -249,27 +249,36 @@ function checkSystem2LibraryDependencies(config){
 
     log.info("1.1 - loading envLibsDependencies.json");
     const systemDependencies = require('../../envLibDependencies')[config['TARGET_ENV']];
-    if(!systemDependencies){
+    if (!systemDependencies) {
         log.warn(`could not find dependencies for env '${config['TARGET_ENV']}'`)
         return;
     }
     log.info("2 - Checking the dependencies...");
 
-    for(const systemDependency in systemDependencies){
+    for (const systemDependency in systemDependencies) {
         log.info(`2.1 - Checking version of '${systemDependency}'`);
         const versionOfService = getLibraryVersion(systemDependency, packageJson);
         const expected = systemDependencies[systemDependency];
         log.debug(`2.1 - Found versions [service: '${versionOfService}', expected: '${expected}']`);
-        if(versionOfService){
+        if (versionOfService) {
 
-          if(semver.satisfies(versionOfService, systemDependencies[systemDependency])){
-              result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService,config['TARGET_ENV']))
-          }  else {
-              result.addFailingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService,config['TARGET_ENV'], "invalid version"))
-          }
+            let isValid = true;
+
+            try {
+                isValid = semver.satisfies(versionOfService, systemDependencies[systemDependency]);
+            } catch (e) {
+                log.warn("could not validate version", e);
+                isValid = true;
+            }
+
+            if (isValid) {
+                result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV']))
+            } else {
+                result.addFailingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "invalid version"))
+            }
 
         } else {
-            result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService,config['TARGET_ENV'], "not used"))
+            result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "not used"))
         }
     }
     return result;
