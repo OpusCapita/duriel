@@ -157,7 +157,7 @@ e.g.
 
 ## overview
 
-![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/feature/hotfix-impl/images/nbp_v2.png)
+![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/master/images/nbp_v2.png)
 
 # libVersionFetcher
 ## function
