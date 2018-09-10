@@ -27,12 +27,13 @@ module.exports = async function (config, proxy) {
         log.info('not values set for injection');
         return;
     }
+    log.info(`Adding keys to consul: ${Object.keys(injectionValues)}`);
     for (let key in injectionValues) {
         try {
             if (!injectionValues[key]) {
                 log.warn(`...will not insert empty value for '${key}'`);
             } else {
-                await proxy.addKeyValueToConsul(`${key}`, `${injectionValues[key]}`);
+                await proxy.addKeyValueToConsul(`${config['serviceName']}/${key}`, `${injectionValues[key]}`);
                 log.severe(`... done.`);
             }
         } catch (error) {
