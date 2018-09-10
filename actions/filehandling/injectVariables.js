@@ -20,15 +20,15 @@ const EnvProxy = require('../../EnvProxy');
  * @returns input with injections
  */
 module.exports = function (input, config) {
-    const regex = /(?:\${)(?:[^'"}]*)(?:})/; //find'${' + anything but '}"' + find '}'
-    const regExp = new RegExp(regex, 'g');
+    const regex = /\${([^'"}]+)}/; //find'${' + anything but '}"' + find '}'
     const targetEnv = config['TARGET_ENV'];
     const envMarker = ":env";
 
     let i = 0;
     let missingConfigVars = [];
-    let regexResult = regExp.exec(input);
+    let regexResult = input.match(regex);
     while (regexResult) {
+
         const varName = regexResult[0].substring(2, regexResult[0].length - 1);
         let varOrigin = varName;
 
@@ -38,6 +38,7 @@ module.exports = function (input, config) {
         }
 
         let replacement = config.get(varOrigin);
+
         if (!replacement) {
             log.error(`${i++}: config variable ${varName} is missing`);
             replacement = "missing";
@@ -45,8 +46,8 @@ module.exports = function (input, config) {
         }
 
         log.debug(`injecting ${(replacement + "").substr(0, 4)}[...] for ${regexResult}`);
-        input = input.replace(regexResult, `${replacement}`.trim());
-        regexResult = regExp.exec(input);
+        input = input.replace(regexResult[0], `${replacement}`.trim());
+        regexResult = input.match(regex);
     }
     if (missingConfigVars.length > 0) {
         throw new Error(`injection failed: ${missingConfigVars.join(", ")}`);
