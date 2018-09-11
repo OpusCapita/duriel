@@ -78,7 +78,7 @@ const prepareE2ETests = async function (config, proxy) {
 
     const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
     if ((!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret'))
-        && !config['force_e2e']) {
+        && !config.fromProcessEnv('force_e2e')) {
         log.info("This service needs no e2e testing");
         return;
     }
