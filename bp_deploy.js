@@ -17,7 +17,7 @@ const doConsulInjection = require('./actions/doConsulInjection');
 const loadConfigFile = require('./actions/filehandling/loadConfigFile');
 const loadTaskTemplate = require('./actions/filehandling/loadTaskTemplate');
 const monitorDockerContainer_E = require('./actions/docker/monitorDockerContainer_E');
-const e2eTester = require('./actions/e2eTester');
+const bn_e2eTester = require('./actions/bn_e2eTester');
 const setupServiceUser = require('./actions/database/updateServiceClientUser');
 const dockerHelper = require('./actions/helpers/dockerHelper');
 const rollback = require('./actions/rollbackService');
@@ -105,7 +105,7 @@ const exec = async function () {
         const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
 
-        config['serviceSecrets']= await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
+        config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
 
@@ -144,14 +144,7 @@ const exec = async function () {
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
 
-        const testToken = await e2eTester.prepareE2ETests(config, proxy);
-        if (testToken) {
-            log.info(`Preparing E2E result:`, testToken);
-            if (testToken['testStatus'] === 'running') {
-                const waitToken = await e2eTester.waitForTest(config);
-                log.debug(`e2e token after waiting for test: `, waitToken);
-            }
-        }
+        const bn_testToken = await bn_e2eTester.prepareE2ETests(config, proxy);
 
         log.info(`Login for Docker: '${config['DOCKER_USER']}', executing dockerCommand ... `);
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
@@ -161,22 +154,18 @@ const exec = async function () {
         const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
         if (monitorResult === 'failure') {
             log.error("service unhealthy after deployment, starting rollback!");
-            if (testToken && testToken['syncToken'])
-                await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
             await rollback(config, proxy);
-        } else {
-            log.info(`Monitoring exited with status: '${monitorResult}'`);
-        }
+        } else
+            log.info(`E2E - Monitoring exited with status: '${monitorResult}'`);
 
-        if (testToken && testToken['syncToken']) {
-            await e2eTester.removeSyncToken(config, proxy, testToken['syncToken']);
-            const e2eTestStatus = await e2eTester.getTestStatus(config, proxy);
-            log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${testToken ? testToken['testNumber'] : ''}'`);
-            if (testToken['testNumber'] !== e2eTestStatus['testNumber']) {
-                log.info(`last e2e test was not the one we were waiting for. triggering new e2e test run!`);
-                await e2eTester.triggerE2ETest(config);    // add rollback on failure?
+        if (bn_testToken) {
+            const e2eTestStatus = await bn_e2eTester.getTestStatus(config, proxy);
+            log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${bn_testToken ? bn_testToken['testNumber'] : ''}'`);
+            if (bn_testToken['testNumber'] !== e2eTestStatus['testNumber'] || !['running', 'queued'].includes(e2eTestStatus['status'])) {
+                log.info(`triggering a new e2e test run!`);
+                await bn_e2eTester.triggerE2ETest(config);    // add rollback on failure?
             }
-            await e2eTester.waitForTest(config)
+            await bn_e2eTester.waitForTest(config);
         }
 
         await setupServiceUser(config, proxy, false);
