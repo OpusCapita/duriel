@@ -15,8 +15,8 @@ const bn_e2e_report_file = "home/circleci/repo/reports/report.txt";
 const urlBase = "https://circleci.com/api/v1.1/project/github/OpusCapita/bn-e2e-tests/";
 const runningStatus = ['running', 'queued'];
 
-const testCases = ["confirmCase", "grCase", "partialRejectionCase"]; //DANIIL sdo?
-//const testCases = ["grCase"];
+//const testCases = ["confirmCase", "grCase", "partialRejectionCase"];
+const testCases = ["dummyCase"];
 
 /**
  *

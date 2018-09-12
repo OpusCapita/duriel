@@ -31,9 +31,6 @@ const exec = async function () {
         try {
             config = loadConfigFile(config_file_name);
         } catch (e) {
-            // Do nothing :)
-        }
-        if (!config) {
             log.info("no config file could be loaded - ending step");
             return;
         }
