@@ -53,7 +53,7 @@ describe("monitoring tests", ()=>{
         it("fetches status",async () => {
             const config = getBaseConfigObject({serviceName: "logstash"});
             const updateStatus = await monitorDockerContainer_E.checkUpdateStatus(config, proxy);
-            assert.equal(updateStatus.state, 'success')
+            assert.equal(!!updateStatus.state, true)
         });
         it("fetches status of unknown service", async () => {
             const config = getBaseConfigObject({serviceName: "KLAUS"});
@@ -84,7 +84,7 @@ describe("monitoring tests", ()=>{
         it("fetches status",async () => {
             const config = getBaseConfigObject({serviceName: "logstash"});
             const updateStatus = await monitorDockerContainer_E.checkCreateStatus(config, proxy);
-            assert.equal(updateStatus.state, 'success')
+            assert.equal(!!updateStatus.state , true)
         });
         it("fetches status of unknown service", async () => {
             const config = getBaseConfigObject({serviceName: "KLAUS"});
