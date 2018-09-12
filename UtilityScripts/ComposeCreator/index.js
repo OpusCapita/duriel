@@ -1,6 +1,8 @@
 'use strict';
 const extend = require('extend');
 const yaml = require('yaml').default;
+const request = require('superagent');
+const semver = require('semver');
 
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
@@ -17,7 +19,7 @@ const loadTaskTemplate = require('../../actions/filehandling/loadTaskTemplate');
 
 async function exec() {
 
-        const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
+    const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
 
     const taskTemplate = loadTaskTemplate(config);
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
@@ -44,12 +46,25 @@ async function exec() {
 
 
     const baseServices = getBaseServices();
-    for(const service in baseServices){
+    for (const service in baseServices) {
         result.services[service] = baseServices[service];
     }
 
     log.info(yaml.stringify(result));
     proxy.close();
+}
+
+async function getMinimalSupportedVersion(imageName, semVerValue) {
+    return await loadImageVersions(imageName)
+        .then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue)))
+        .then(filtered => semver.sort(filtered))
+        .then(sorted => sorted[0]);
+}
+
+async function loadImageVersions(imageName) {
+    return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`)
+        .then(response => response.body)
+        .then(tags => tags.map(it => it.name));
 }
 
 function createMainEntry(config, taskTemplate, dependencies) {
@@ -81,7 +96,7 @@ function getServiceBaseConfig(serviceName) {
 
 }
 
-function getBaseServices(){
+function getBaseServices() {
     return {
         consul: {
             image: "consul:latest",
@@ -89,7 +104,28 @@ function getBaseServices(){
             labels: {
                 SERVICE_IGNORE: true
             },
-            command: "[agent, '-server', '-ui', '-bootstrap', '-client=0.0.0.0']"
+            command: "agent -server -ui -bootstrap -client=0.0.0.0"
+        },
+        mysql: {
+            image: 'mysql:5.6',
+            ports: ["3306:3306"],
+            labels: {
+                SERVICE_3306_NAME: "mysql"
+            },
+            environment: {
+                MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}",
+                MYSQL_DATABASE: "${MYSQL_DATABASE}"
+            },
+            depends_on: ["registrator"]
+        },
+        registrator: {
+            image: "gliderlabs/registrator",
+            command: "consul://consul:8500",
+            volumes: [
+                "/var/run/docker.sock:/tmp/docker.sock"
+            ],
+            depends_on: ["consul"],
+            restart: "on-failure"
         }
     }
 }
