@@ -17,14 +17,14 @@ const loadTaskTemplate = require('../../actions/filehandling/loadTaskTemplate');
 
 async function exec() {
 
-    const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
+        const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
 
-    const taskTemplate = loadTaskTemplate(config)
+    const taskTemplate = loadTaskTemplate(config);
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
     log.info("s2s", s2sDependencies);
 
     const proxy = await new EnvProxy().init(envInfo.develop);
-    const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy)
+    const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy);
     log.info("l2s", l2sDependencies);
 
     const serviceDependencies = extend(true, {}, s2sDependencies, ...l2sDependencies.map(it => it.serviceDependencies));
@@ -40,6 +40,12 @@ async function exec() {
 
     for (const service in serviceDependencies) {
         result.services[service] = getServiceBaseConfig(service);
+    }
+
+
+    const baseServices = getBaseServices();
+    for(const service in baseServices){
+        result.services[service] = baseServices[service];
     }
 
     log.info(yaml.stringify(result));
@@ -75,5 +81,17 @@ function getServiceBaseConfig(serviceName) {
 
 }
 
+function getBaseServices(){
+    return {
+        consul: {
+            image: "consul:latest",
+            ports: ['8400:8400', '8500:8500', '8600:53/udp'],
+            labels: {
+                SERVICE_IGNORE: true
+            },
+            command: "[agent, '-server', '-ui', '-bootstrap', '-client=0.0.0.0']"
+        }
+    }
+}
 
 exec();
