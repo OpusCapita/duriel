@@ -105,7 +105,7 @@ const exec = async function () {
         const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
 
-        config['serviceSecrets']= await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
+        config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
 
@@ -178,8 +178,8 @@ const exec = async function () {
             }
             await e2eTester.waitForTest(config)
         }
-
-        await setupServiceUser(config, proxy);
+        if (dependsOnServiceClient())
+            await setupServiceUser(config, proxy);
         await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
