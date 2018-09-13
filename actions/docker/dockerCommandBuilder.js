@@ -38,7 +38,7 @@ const buildDockerCreate = function (config) {
         additionalSecrets = dockerSecretHelper.generateCreateServiceSecretParam(serviceSecrets)
     }
 
-    const base_cmd = [`docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}`, additionalSecrets]
+    const base_cmd = [`docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`, additionalSecrets]
         .filter(it => it).join(" ");
     const addedFields = [];
 
