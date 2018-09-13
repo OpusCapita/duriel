@@ -92,7 +92,7 @@ const exec = async function () {
             log.info("project does not depend on service-client. skipping name injection");
         } else {
             log.info("project depends on service-client.");
-            const setupServiceUserSuccess = await setupServiceUser(config, proxy);
+            const setupServiceUserSuccess = await setupServiceUser(config, proxy, false);
             log.info(`finished setupServiceUser - newUser = ${setupServiceUserSuccess}`);
         }
 
@@ -180,7 +180,7 @@ const exec = async function () {
         }
 
         await setupServiceUser(config, proxy, false);
-        await fileHandler.saveObject2File(config, config_file_name, true);
+        await fileHandler.saveObject2File(config, config_file_name);
         await proxy.close();
     } catch (error) {
         log.error("ERROR!", error);
