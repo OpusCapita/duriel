@@ -28,7 +28,8 @@ async function generate(proxy, secretName, length = 32, ...labels) {
 }
 
 async function replace(proxy, secretName) {
-    await remove(proxy, secretName);
+    await remove(proxy, secretName).
+        catch(e => log.warn(`could not delete secret '${secretName}'`, e));
     return await generate(proxy, secretName);
 }
 
