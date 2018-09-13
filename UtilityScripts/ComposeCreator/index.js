@@ -67,6 +67,7 @@ async function getMinimalSupportedVersion(imageName, semVerValue) {
 }
 
 async function loadImageVersions(imageName) {
+    log.info(`fetching tags for ${imageName}`)
     return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`)
         .then(response => response.body)
         .then(tags => tags.map(it => it.name));
@@ -99,16 +100,10 @@ async function getServiceBaseConfig(serviceName, semVer) {
     const proxy = new EnvProxy();
 
     await proxy.executeCommand_L(`docker pull ${repository}:${tag}`, `pull ${repository}:${tag}`);
-    //const containerId = await proxy.executeCommand_L(`docker create ${repository}:${tag}`);
-    //const copyCommand = `docker cp ${containerId.trim()}:task_template.json  task_template_${serviceName}.json`;
-    //log.info(copyCommand);
-    //await proxy.executeCommand_L(copyCommand);
-    //await proxy.executeCommand_L(`docker exec -it ${containerId} ls`);
-    //await proxy.executeCommand_L(`docker rm -v ${containerId}`);
 
-    const fetched_task_template = await proxy.executeCommand_L(`docker run --rm --entrypoint cat ${repository}:${tag}  task_template.json`);
+    const fetched_task_template = await proxy.executeCommand_L(`docker run --rm --entrypoint cat ${repository}:${tag} task_template.json`);
 
-    const taskTemplate = loadTaskTemplate(getBaseConfig({}), JSON.parse(fetched_task_template));
+    const taskTemplate = loadTaskTemplate(getBaseConfig({}), JSON.parse(fetched_task_template), true);
 
     log.info(taskTemplate);
 
@@ -125,7 +120,7 @@ async function getServiceBaseConfig(serviceName, semVer) {
         image: `${repository}:${tag}`,
         links: ["consul"],
         labels: {SERVICE_NAME: serviceName},
-        environments
+        environments: extend(true, {}, environments, {SERVICE_NAME: serviceName})
     };
 }
 
