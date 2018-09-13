@@ -179,8 +179,8 @@ const exec = async function () {
             await e2eTester.waitForTest(config)
         }
 
-        await setupServiceUser(config, proxy, false);
-        await fileHandler.saveObject2File(config, config_file_name);
+        await setupServiceUser(config, proxy);
+        await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
     } catch (error) {
         log.error("ERROR!", error);
