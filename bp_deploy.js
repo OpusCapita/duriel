@@ -164,8 +164,8 @@ const exec = async function () {
             }
             await bn_e2eTester.waitForTest(config);
         }
-        if(dependsOnServiceClient()) {
-            await setupServiceUser(config, proxy, false);
+        if (dependsOnServiceClient()) {
+            await setupServiceUser(config, proxy);
         }
         await fileHandler.saveObject2File(config, config_file_name, true);
         await proxy.close();
