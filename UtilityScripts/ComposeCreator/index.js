@@ -19,17 +19,22 @@ const loadTaskTemplate = require('../../actions/filehandling/loadTaskTemplate');
 
 async function exec() {
 
+    if (process.argv.length < 4)
+        throw new Error("usage: <serviceName> <target_env>");
+
     const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
 
     const taskTemplate = loadTaskTemplate(config);
+    log.info("tt", taskTemplate)
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
     log.info("s2s", s2sDependencies);
 
     const proxy = await new EnvProxy().init(envInfo.develop);
-    const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy);
-    log.info("l2s", l2sDependencies);
+    //const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy);
+    //log.info("l2s", l2sDependencies);
 
-    const serviceDependencies = extend(true, {}, s2sDependencies, ...l2sDependencies.map(it => it.serviceDependencies));
+    //const serviceDependencies = extend(true, {}, s2sDependencies, ...l2sDependencies.map(it => it.serviceDependencies));
+    const serviceDependencies = extend(true, {}, s2sDependencies);
 
     log.info("serviceDependencies", serviceDependencies);
 
@@ -41,7 +46,7 @@ async function exec() {
     };
 
     for (const service in serviceDependencies) {
-        result.services[service] = getServiceBaseConfig(service);
+        result.services[service] = await getServiceBaseConfig(service, serviceDependencies[service]);
     }
 
 
@@ -87,13 +92,41 @@ function createMainEntry(config, taskTemplate, dependencies) {
 
 }
 
-function getServiceBaseConfig(serviceName) {
-    return {
-        image: `opuscapita/${serviceName}`,
-        links: ["consul"],
-        labels: {SERVICE_NAME: serviceName}
-    };
+async function getServiceBaseConfig(serviceName, semVer) {
+    const repository = `opuscapita/${serviceName}`;
+    const tag = await getMinimalSupportedVersion(repository, semVer);
 
+    const proxy = new EnvProxy();
+
+    await proxy.executeCommand_L(`docker pull ${repository}:${tag}`, `pull ${repository}:${tag}`);
+    //const containerId = await proxy.executeCommand_L(`docker create ${repository}:${tag}`);
+    //const copyCommand = `docker cp ${containerId.trim()}:task_template.json  task_template_${serviceName}.json`;
+    //log.info(copyCommand);
+    //await proxy.executeCommand_L(copyCommand);
+    //await proxy.executeCommand_L(`docker exec -it ${containerId} ls`);
+    //await proxy.executeCommand_L(`docker rm -v ${containerId}`);
+
+    const fetched_task_template = await proxy.executeCommand_L(`docker run --rm --entrypoint cat ${repository}:${tag}  task_template.json`);
+
+    const taskTemplate = loadTaskTemplate(getBaseConfig({}), JSON.parse(fetched_task_template));
+
+    log.info(taskTemplate);
+
+    const environments = {};
+
+    if (taskTemplate.env) {
+        for (const entry of taskTemplate.env) {
+            const split = entry.split('=');
+            environments[split[0]] = split[1];
+        }
+    }
+
+    return {
+        image: `${repository}:${tag}`,
+        links: ["consul"],
+        labels: {SERVICE_NAME: serviceName},
+        environments
+    };
 }
 
 function getBaseServices() {
