@@ -32,6 +32,36 @@ When deploying successfully to a "hotfix/" or "release/" branch, the build-proce
 | hotfix/*    | master, develop |
 
 
+## version validation
+
+Before a env-deployment library-dependencies are checked.
+Current dependencies of an ENV are placed inside the envLibDependenciesjson-File.
+
+If an environment demands a specific version of a library and the service uses that library,
+the demanded library-version musst be used.
+
+In addition every service can have 'serviceDependencies' and 'libraryDependencies' inside the task_template.json.
+
+_**Currently this feature is logging it's results but will not impact the deployment**_
+
+### example: serviceDependencies
+```javascript
+{
+    "auth": "0.0.0"
+}
+```
+
+This will cause a check for the service "auth" on the deployment-env.
+
+### example: libraryDependencies
+```javascript
+{
+    "lodash": "5.0.0"
+}
+```
+
+If a service depends on the referenced service, it musst have the given library of the given verion.
+ 
 ## task_template.json
 
 The task_template.json is used to set up and configure a service in andariel.
@@ -127,7 +157,7 @@ e.g.
 
 ## overview
 
-![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/feature/hotfix-impl/images/nbp_v2.png)
+![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/master/images/nbp_v2.png)
 
 # libVersionFetcher
 ## function

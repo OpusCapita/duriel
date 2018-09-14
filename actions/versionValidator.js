@@ -49,6 +49,9 @@ async function validateVersionDependencies(config, proxy) {
     const service2libraryValidation = await libraryHelper.checkLibraryDependencies(config, proxy, serviceDependencies);
     result.validations.push(service2libraryValidation);
 
+    const system2libraryValidation = await libraryHelper.checkSystem2LibraryDependencies(config, proxy);
+    result.validations.push(system2libraryValidation);
+
     result.success = await concludeValidationResult(result.validations);
     return result;
 }

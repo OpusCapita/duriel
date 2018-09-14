@@ -129,6 +129,42 @@ function run() {
                     loadTaskTemplate(config, undefined)
                 }, Error, "")
             });
+            it("injects vars", async () => {
+                const config = getBaseConfigObject({
+                    alpha: "beta",
+                    logstash_ip: "1.1.1.1",
+                    serviceName: "s",
+                    TARGET_ENV: "develop",
+                    SECRET_develop_REDIS: "redis_pass",
+                    SECRET_develop_RABBITMQUSER: "admin",
+                    SECRET_develop_RABBITMQPASS: "rabbit_pass"
+                });
+                const taskTemplate = {
+                    "default":{
+                        "name":"${serviceName}",
+                        "log-driver":"gelf",
+                        "log-opt":["gelf-address=udp://${logstash_ip}:12201", "tag=\"${serviceName}\""],
+                        "constraint":["engine.labels.nodetype==worker"],
+                        "publish":["mode=host,target=3008,published=3008,protocol=tcp"],
+                        "host":["consul:172.17.0.1"],
+                        "env":[
+                            "SERVICE_NAME=${serviceName}",
+                            "SERVICE_3008_CHECK_HTTP=/api/health/check",
+                            "SERVICE_3008_CHECK_INTERVAL=15s",
+                            "SERVICE_3008_CHECK_TIMEOUT=3s",
+                            "NODE_ENV=production"
+                        ],
+                        "oc-db-init":{"populate-test-data":"true"},
+                        "oc-consul-injection":{
+                            "redis/password": "${SECRET_:env_REDIS}",
+                        }
+                    }
+                };
+                const template = loadTaskTemplate(config, taskTemplate);
+                assert.deepEqual(template['log-opt'],[`gelf-address=udp://${config.get('logstash_ip')}:12201`, `tag=\"${config.get('serviceName')}\"`]);
+                assert.equal(template['name'], config.get('serviceName'));
+                assert.equal(template['oc-consul-injection']['redis/password'], config.get('SECRET_develop_REDIS'));
+            });
         });
         describe("mkdirp", () => {
             const timeStamp = new Date().getTime() + "";

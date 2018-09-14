@@ -85,9 +85,12 @@ async function run() {
                     const expected = {
                         dummy: "4.4.4"
                     };
-                    const taskTemplate = loadTaskTemplate(config, taskTemplateContent)
+                    const taskTemplate = loadTaskTemplate(config, taskTemplateContent);
 
-                    assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
+                    assert.equal(
+                        libraryHelper.fetchServiceVersionDependencies(config, taskTemplate).dummy,
+                        expected.dummy
+                    )
                 });
 
                 it("fetches with env-settings", () => {
@@ -99,7 +102,10 @@ async function run() {
                     };
                     const taskTemplate = loadTaskTemplate(config, taskTemplateContent);
 
-                    assert.deepEqual(libraryHelper.fetchServiceVersionDependencies(config, taskTemplate), expected)
+                    assert.equal(
+                        libraryHelper.fetchServiceVersionDependencies(config, taskTemplate).dummy,
+                        expected.dummy
+                    )
                 });
 
                 describe("library dependencies ", async () => {

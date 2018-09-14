@@ -15,6 +15,7 @@ const log = new EpicLogger();
 const {ServiceCheckEntry, LibraryCheckEntry, CheckEntryHolder} = require('../classes/VersionValidation');
 
 const extend = require('extend');
+const semver = require('semver');
 
 const path = require("path");
 /**
@@ -47,7 +48,9 @@ function getLibraryVersion(library, packageJson) {
  * @param taskTemplate {object} task_template.json content
  */
 function fetchServiceVersionDependencies(config, taskTemplate) {
-    return fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
+    const fromTaskTemplate = fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
+    log.debug("Service-dependencies from task_template.json: ", fromTaskTemplate);
+    return extend(true, {}, fromTaskTemplate)  // adding auth as default
 }
 
 /**
@@ -197,8 +200,13 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
 async function checkLibraryDependencies(config, proxy, serviceDependencies, packageJson) {
     log.info("Checking library-dependencies of services: ", serviceDependencies);
     const result = new CheckEntryHolder("Library2ServiceDependencies");
-    for (const service in serviceDependencies) {
 
+    if (!require('fs').existsSync('package.json')) {
+        log.info("Service has no package.json - skipping library-dependency-check");
+        return result;
+    }
+
+    for (const service in serviceDependencies) {
         log.info(`checking libs of service '${service}'`);
         const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
             .catch(e => {
@@ -227,6 +235,73 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
             log.info(`service '${service}' has no library dependencies`);
     }
     return result
+}
+
+async function checkSystem2LibraryDependencies(config, proxy) {
+    log.info("1. Checking system dependencies");
+    const result = new CheckEntryHolder("System2LibraryDependencies");
+    if (!require('fs').existsSync("./package.json")) {
+        return result;
+    }
+
+    log.info("1.1 - loading installed versions of service.");
+    let installedVersions = {};
+    try {
+        log.debug("executing npm install");
+        await proxy.executeCommand_L("npm install", "npm install");
+
+        await proxy.executeCommand_L("npm ls --json --depth=0")
+            .then(response => {
+                const parsed = JSON.parse(response);
+                const dependencies = parsed.dependencies;
+                for(const lib in dependencies){
+                    const version = dependencies[lib].version;
+                    log.severe(`1.1 - adding lib '${lib}' with version '${version}'`);
+                    installedVersions[lib] = version;
+                }
+            })
+    } catch (e) {
+        log.warn("error during version fetching", e);
+        installedVersions = {}
+    }
+    log.info("1.1 - fetched installed lib-versions: ", installedVersions);
+
+    log.info("1.2 - loading envLibsDependencies.json");
+    const systemDependencies = require('../../envLibDependencies')[config['TARGET_ENV']];
+    if (!systemDependencies) {
+        log.warn(`could not find dependencies for env '${config['TARGET_ENV']}'`);
+        return;
+    }
+    log.debug(`1.2 - fetched envLibDependencies of '${config['TARGET_ENV']}'`, systemDependencies);
+    log.info("2 - Checking the dependencies...");
+
+    for (const systemDependency in systemDependencies) {
+        log.info(`2.1 - Checking version of '${systemDependency}'`);
+        const versionOfService = installedVersions[systemDependency];
+        const expected = systemDependencies[systemDependency];
+        log.debug(`2.1 - Found versions [service: '${versionOfService}', expected: '${expected}']`);
+        if (versionOfService) {
+
+            let isValid = true;
+
+            try {
+                isValid = semver.satisfies(versionOfService, systemDependencies[systemDependency]);
+            } catch (e) {
+                log.warn("could not validate version", e);
+                isValid = true;
+            }
+
+            if (isValid) {
+                result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV']))
+            } else {
+                result.addFailingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "invalid version"))
+            }
+
+        } else {
+            result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "not used"))
+        }
+    }
+    return result;
 }
 
 /**
@@ -268,6 +343,7 @@ module.exports = {
     loadServiceVersionsFromEnv,
     checkService2ServiceDependencies,
     checkLibrary2ServiceDependencies,
+    checkSystem2LibraryDependencies,
     ServiceCheckEntry,
     LibraryCheckEntry,
     CheckEntryHolder
