@@ -159,6 +159,12 @@ e.g.
 
 ![alt text](https://raw.githubusercontent.com/OpusCapita/duriel/master/images/nbp_v2.png)
 
+# composeCreator
+
+- trigger compose creation via 
+```curl -d build_parameters[CIRCLE_JOB]=build_compose https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-monitoring/tree/develop?circle-token=<CircleCiToken>```
+
+
 # libVersionFetcher
 ## function
 Fetches the version of specific libraries from every container inside an env.

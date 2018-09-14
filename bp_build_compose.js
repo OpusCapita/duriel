@@ -19,9 +19,9 @@ const calculateEnv = require('./actions/calculateEnv');
 
 async function exec() {
 
-    const targtEnv = calculateEnv(process.env.CIRCLE_BRANCH);
+    const targetEnv = calculateEnv.getTargetEnv(process.env.CIRCLE_BRANCH);
 
-    const config = getBaseConfig({serviceName: process.env.CIRCLE_PROJECT_REPONAME, TARGET_ENV: targtEnv});
+    const config = getBaseConfig({serviceName: process.env.CIRCLE_PROJECT_REPONAME, TARGET_ENV: targetEnv});
 
     const taskTemplate = loadTaskTemplate(config);
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
