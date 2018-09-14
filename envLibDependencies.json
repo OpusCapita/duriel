@@ -1,13 +1,20 @@
 {
   "develop": {
-    "@opuscapita/web-init": "3.0.x",
-    "@opuscapita/config": ">0.0.0",
-    "lodash": "999.999.999"
+      "@opuscapita/web-init": ">=3.0.63",
+      "@opuscapita/config": ">=1.1.52",
+      "@opuscapita/db-init": ">=2.0.18",
+      "@opuscapita/config": ">=3.0.14",
   },
   "stage": {
-
+      "@opuscapita/web-init": ">=3.0.63",
+      "@opuscapita/config": ">=1.1.52",
+      "@opuscapita/db-init": ">=2.0.18",
+      "@opuscapita/config": ">=3.0.14",
   },
   "prod": {
-
+      "@opuscapita/web-init": ">=3.0.63",
+      "@opuscapita/config": ">=1.1.52",
+      "@opuscapita/db-init": ">=2.0.18",
+      "@opuscapita/config": ">=3.0.14",
   }
 }
