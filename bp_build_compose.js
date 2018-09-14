@@ -116,7 +116,7 @@ async function getServiceBaseConfig(serviceName, semVer) {
         links: ["consul"],
         labels: {SERVICE_NAME: serviceName},
         environments: extend(true, {}, environments, {SERVICE_NAME: serviceName}),
-        depends_on: Object.keys(taskTemplate.serviceDependencies),
+        depends_on: taskTemplate.serviceDependencies ? Object.keys(taskTemplate.serviceDependencies) : [],
         command: 'npm run dev'
     };
 }
@@ -155,4 +155,5 @@ function getBaseServices() {
     }
 }
 
-exec();
+exec()
+    .catch(e => log.error("error while building compose file", e))
