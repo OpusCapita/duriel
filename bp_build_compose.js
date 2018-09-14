@@ -40,7 +40,7 @@ async function exec() {
     };
 
     for (const service in serviceDependencies) {
-        result.services[service] = await getServiceBaseConfig(config, serviceDependencies[service]);
+        result.services[service] = await getServiceBaseConfig(config, service, serviceDependencies[service]);
     }
 
 
@@ -89,8 +89,7 @@ function createMainEntry(config, taskTemplate, dependencies) {
 
 }
 
-async function getServiceBaseConfig(config, semVer) {
-    const serviceName = config['serviceName'];
+async function getServiceBaseConfig(config, serviceName, semVer) {
     const repository = `opuscapita/${serviceName}`;
     const tag = await getMinimalSupportedVersion(repository, semVer);
 
