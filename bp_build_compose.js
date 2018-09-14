@@ -40,7 +40,7 @@ async function exec() {
     };
 
     for (const service in serviceDependencies) {
-        result.services[service] = await getServiceBaseConfig(service, serviceDependencies[service]);
+        result.services[service] = await getServiceBaseConfig(config, serviceDependencies[service]);
     }
 
 
@@ -89,14 +89,15 @@ function createMainEntry(config, taskTemplate, dependencies) {
 
 }
 
-async function getServiceBaseConfig(serviceName, semVer) {
+async function getServiceBaseConfig(config, semVer) {
+    const serviceName = config['serviceName'];
     const repository = `opuscapita/${serviceName}`;
     const tag = await getMinimalSupportedVersion(repository, semVer);
 
     const proxy = new EnvProxy();
     await proxy.executeCommand_L(`docker pull ${repository}:${tag}`, `pull ${repository}:${tag}`);
 
-    const fetched_task_template = await proxy.executeCommand_L(`docker run --rm --entrypoint cat ${repository}:${tag} task_template.json`);
+    const fetched_task_template = await proxy.executeCommand_L(`docker login -u ${config.get('DOCKER_USER')} -p ${config.get('DOCKER_PASS')} &> /dev/null ; docker run --rm --entrypoint cat ${repository}:${tag} task_template.json`);
 
     const taskTemplate = loadTaskTemplate(getBaseConfig({}), JSON.parse(fetched_task_template), true);
 
