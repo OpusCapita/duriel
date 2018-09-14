@@ -115,7 +115,9 @@ async function getServiceBaseConfig(serviceName, semVer) {
         image: `${repository}:${tag}`,
         links: ["consul"],
         labels: {SERVICE_NAME: serviceName},
-        environments: extend(true, {}, environments, {SERVICE_NAME: serviceName})
+        environments: extend(true, {}, environments, {SERVICE_NAME: serviceName}),
+        depends_on: Object.keys(taskTemplate.serviceDependencies),
+        command: 'npm run dev'
     };
 }
 
