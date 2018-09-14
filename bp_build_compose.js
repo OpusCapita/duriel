@@ -97,7 +97,9 @@ async function getServiceBaseConfig(config, semVer) {
     const proxy = new EnvProxy();
     await proxy.executeCommand_L(`docker pull ${repository}:${tag}`, `pull ${repository}:${tag}`);
 
-    const fetched_task_template = await proxy.executeCommand_L(`docker login -u ${config.get('DOCKER_USER')} -p ${config.get('DOCKER_PASS')} &> /dev/null ; docker run --rm --entrypoint cat ${repository}:${tag} task_template.json`);
+    const fetched_task_template = await proxy.executeCommand_L(`docker login -u ${config.get('DOCKER_USER')} -p ${config.get('DOCKER_PASS')} &>/dev/null ; docker run --rm --entrypoint cat ${repository}:${tag} task_template.json`);
+
+    log.info(fetched_task_template);
 
     const taskTemplate = loadTaskTemplate(getBaseConfig({}), JSON.parse(fetched_task_template), true);
 
