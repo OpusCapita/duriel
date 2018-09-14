@@ -19,9 +19,8 @@ async function checkVersionDependencies(config, proxy) {
     const validationResult = await validateVersionDependencies(config, proxy);
     const output = renderVersionValidationResult(validationResult);
 
-    if (validationResult.success) {
-        log.info("version validation was successfull: ", output);
-    } else {
+    log.info("version validation result: ", output);
+    if (!validationResult.success) {
         throw new Error("version validation failed!");
     }
 }

@@ -77,8 +77,10 @@ const exec = async function () {
         const proxy = await new EnvProxy().init(config);
 
         log.info("Checking version dependencies... ");
-        await versionValidator.checkVersionDependencies(config, proxy)
-            .catch(e => log.error("Error while checking dependencies", e));  // remove me!
+        if (config.get('ignore_version_errors'))
+            log.warn("'ignore_version_errors is used. skipping version-validation");
+        else
+            await versionValidator.checkVersionDependencies(config, proxy);
         log.info("... finished checking version dependencies");
 
 
