@@ -104,18 +104,22 @@ async function createPullRequests(config) {
         const pullRequestsBranches = pullRequestRules.filter(it => it.rule(config['CIRCLE_BRANCH']));
         if (pullRequestsBranches.length) {
             for (const matchingRules of pullRequestsBranches) {
-                for (const base of matchingRules.base) {
-                    const pullRequest = {
-                        title: "Pull-Request from duriel-build-automation",
-                        body: `Deployment of ${config['VERSION']} was successfull. Please merge your changes.`,
-                        head: config['CIRCLE_BRANCH'],
-                        base: base,
-                        maintainer_can_modity: true
-                    };
-                    const response = await gitHubHelper.createPullRequest(config, pullRequest);
-                    if (response) {
-                        log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+                try {
+                    for (const base of matchingRules.base) {
+                        const pullRequest = {
+                            title: "Pull-Request from duriel-build-automation",
+                            body: `Deployment of ${config['VERSION']} was successfull. Please merge your changes.`,
+                            head: config['CIRCLE_BRANCH'],
+                            base: base,
+                            maintainer_can_modity: true
+                        };
+                        const response = await gitHubHelper.createPullRequest(config, pullRequest);
+                        if (response) {
+                            log.info(`### created pull-request! ###\nnumber: ${response.number}\nurl: ${response.url}}`)
+                        }
                     }
+                } catch (e) {
+                    log.info(`no pull-request will be created for branch '${config['CIRCLE_BRANCH']}'`)
                 }
             }
         } else {

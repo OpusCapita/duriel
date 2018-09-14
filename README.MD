@@ -7,7 +7,7 @@
 | feature/* | -         |
 | develop   | develop   |
 | release/* | stage     |
-| hotfix    | -         |
+| hotfix/*    | -         |
 | master    | prod      |
 
 ## behaviour flags
@@ -29,7 +29,7 @@ When deploying successfully to a "hotfix/" or "release/" branch, the build-proce
 | Branch    | PR's to |
 |-----------|-----------|
 | release/* | master |
-| hotfix    | master, develop |
+| hotfix/*    | master, develop |
 
 
 ## task_template.json
