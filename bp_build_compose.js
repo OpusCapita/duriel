@@ -23,6 +23,8 @@ async function exec() {
 
     const config = getBaseConfig({serviceName: process.env.CIRCLE_PROJECT_REPONAME, TARGET_ENV: targetEnv});
 
+    await getDockerHubToken(config);
+
     const taskTemplate = loadTaskTemplate(config);
     const s2sDependencies = await libraryHelper.fetchServiceVersionDependencies(config, taskTemplate);
 
@@ -55,6 +57,25 @@ async function exec() {
     proxy.close();
 }
 
+async function getDockerHubToken(config) {
+
+    const data = {
+        username: config.get('DOCKER_PASS'),
+        password: config.get('DOCKER_USER')
+    }
+
+    return await request.post("https://hub.docker.com/v2/users/login/", data)
+        .set("Content-Type", "application/json")
+        .then(reponse => response.body.token)
+        .then(token => {
+                log.info("token", token);
+                config.dockerToken = token
+            }
+        )
+        .catch(e => log.error(e))
+
+}
+
 async function getMinimalSupportedVersion(imageName, semVerValue) {
     return await loadImageVersions(imageName)
         .then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue)))
@@ -65,6 +86,7 @@ async function getMinimalSupportedVersion(imageName, semVerValue) {
 async function loadImageVersions(imageName) {
     log.info(`fetching tags for ${imageName}`);
     return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`)
+        .set("Authorization", `JWT ${config['dockerToken']}`)
         .then(response => response.body)
         .then(tags => tags.map(it => it.name));
 }
