@@ -2,16 +2,19 @@
   "develop": {
       "@opuscapita/web-init": ">=3.0.63",
       "@opuscapita/db-init": ">=2.0.18",
-      "@opuscapita/config": ">=3.0.14"
+      "@opuscapita/config": ">=3.0.14",
+      "@opuscapita/service-base-ui": ">=1.1.54"
   },
   "stage": {
       "@opuscapita/web-init": ">=3.0.63",
       "@opuscapita/db-init": ">=2.0.18",
-      "@opuscapita/config": ">=3.0.14"
+      "@opuscapita/config": ">=3.0.14",
+      "@opuscapita/service-base-ui": ">=1.1.54"
   },
   "prod": {
       "@opuscapita/web-init": ">=3.0.63",
       "@opuscapita/db-init": ">=2.0.18",
-      "@opuscapita/config": ">=3.0.14"
+      "@opuscapita/config": ">=3.0.14",
+      "@opuscapita/service-base-ui": ">=1.1.54"
   }
 }
