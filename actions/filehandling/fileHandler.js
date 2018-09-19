@@ -97,11 +97,13 @@ function mkdirp(path) {
     const subPaths = path.split(pathJs.sep);
 
     for (const subPath of subPaths) {
-        current = `${current}${subPath}${pathJs.sep}`;
+        current = `${current}${subPath}`;
         if (!fs.existsSync(current))
             fs.mkdirSync(current);
         else if (fs.lstatSync(current).isFile())
             throw new Error(`path '${current}' is a File.`);
+
+        current += pathJs.sep;
     }
 }
 
