@@ -101,7 +101,7 @@ function mkdirp(path) {
         if (!fs.existsSync(current))
             fs.mkdirSync(current);
         else if (fs.lstatSync(current).isFile())
-            throw new Error(`path '${current}' is a File.`);
+            break; //throw new Error(`path '${current}' is a File.`);
 
         current += pathJs.sep;
     }
