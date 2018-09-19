@@ -28,7 +28,7 @@ jobs:
             cd wiki
             git config --global user.email $GIT_MAIL
             git config --global user.name $GIT_USER
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            if [ "${CIRCLE_BRANCH}" == "master" ] && [ "" != "$(git diff . 2>&1)" ]; then
               git add --all .
               git commit -am 'Updated wiki.'
               git push origin master
