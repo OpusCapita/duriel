@@ -253,7 +253,6 @@ async function checkSystem2LibraryDependencies(config, proxy) {
         await proxy.executeCommand_L("npm ls --json --depth=0 --silent")
             .catch(e => log.warn("Something did not go well...", e))
             .then(response => {
-                log.warn(response);
                 const parsed = response && JSON.parse(response);
                 const dependencies = parsed ? parsed.dependencies : { };
                 for(const lib in dependencies){
