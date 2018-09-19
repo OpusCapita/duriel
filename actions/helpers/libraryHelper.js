@@ -250,7 +250,7 @@ async function checkSystem2LibraryDependencies(config, proxy) {
         log.debug("executing npm install");
         await proxy.executeCommand_L("npm install", "npm install");
 
-        await proxy.executeCommand_L("npm ls --json --depth=0")
+        await proxy.executeCommand_L("npm ls --json --depth=0 --silent")
             .catch(e => log.warn("Something did not go well...", e))
             .then(response => {
                 const parsed = response && JSON.parse(response);
