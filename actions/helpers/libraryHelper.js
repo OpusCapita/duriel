@@ -251,9 +251,10 @@ async function checkSystem2LibraryDependencies(config, proxy) {
         await proxy.executeCommand_L("npm install", "npm install");
 
         await proxy.executeCommand_L("npm ls --json --depth=0")
+            .catch(e => log.warn("Something did not go well...", e))
             .then(response => {
-                const parsed = JSON.parse(response);
-                const dependencies = parsed.dependencies;
+                const parsed = response && JSON.parse(response);
+                const dependencies = parsed ? parsed.dependencies : { };
                 for(const lib in dependencies){
                     const version = dependencies[lib].version;
                     log.severe(`1.1 - adding lib '${lib}' with version '${version}'`);
