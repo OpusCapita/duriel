@@ -286,7 +286,7 @@ class EnvProxy {
 
     /**
      * Create multiple secrets
-     * @param secrets {Array <object>}
+     * @param {object[]} secrets
      */
     async insertDockerSecrets(...secrets) {
         if (!secrets)
@@ -1001,29 +1001,3 @@ class EnvProxy {
 }
 
 module.exports = EnvProxy;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
