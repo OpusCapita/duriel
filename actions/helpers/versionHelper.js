@@ -152,10 +152,10 @@ function compareVersion(a, b) {
 
     const aSplit = splitIntoParts(a);
     const bSplit = splitIntoParts(b);
-    log.info(a+' <> '+b);
-    log.info(aSplit.major - bSplit.major);
-    log.info(aSplit.minor - bSplit.minor);
-    log.info(aSplit.patch - bSplit.patch);
+    console.log(a+' <> '+b);
+    console.log(aSplit.major - bSplit.major);
+    console.log(aSplit.minor - bSplit.minor);
+    console.log(aSplit.patch - bSplit.patch);
     if (aSplit.major !== bSplit.major) {
         return aSplit.major - bSplit.major;
     } else if (aSplit.minor !== bSplit.minor) {
