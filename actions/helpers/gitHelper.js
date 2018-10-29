@@ -127,7 +127,7 @@ async function getTags(filter) {
 
 async function getMainVersionTags() {
     return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(compareVersion).reverse())
+        .then(tags => tags.sort(compareVersion))
         .then(tags => {
             if (!tags.length)
                 return ['0.0.0'];
@@ -219,17 +219,17 @@ function compareVersion(a, b) {
     if (!a && !b)
         return 0;
     if (!a)
-        return -5;
+        return 1;
     if (!b)
-        return 5;
+        return -1;
 
     const aSplit = a.split(".");
     const bSplit = b.split(".");
     if (parseInt(aSplit[0]) !== parseInt(bSplit[0])) {
-        return parseInt(aSplit[0]) - parseInt(bSplit[0]);
+        return parseInt(bSplit[0]) - parseInt(aSplit[0]);
     } else if (parseInt(aSplit[1]) !== parseInt(bSplit[1])) {
-        return parseInt(aSplit[1]) - parseInt(bSplit[1]);
+        return parseInt(bSplit[1]) - parseInt(aSplit[1]);
     } else {
-        return parseInt(aSplit[2]) - parseInt(bSplit[2]);
+        return parseInt(bSplit[2]) - parseInt(aSplit[2]);
     }
 }
