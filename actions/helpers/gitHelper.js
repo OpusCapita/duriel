@@ -134,6 +134,8 @@ async function getMainVersionTags() {
             if (!tags.length)
                 return ['0.0.0'];
             else
+                log.info(JSON.stringify(tags));
+                console.log(JSON.stringify(tags));
                 return tags;
         })
 }
