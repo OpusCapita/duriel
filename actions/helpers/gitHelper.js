@@ -8,8 +8,6 @@ const EnvProxy = require("../../EnvProxy");
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
-const versionHelpr = require('./versionHelper');
-
 module.exports = {
     addFiles,
     addAll,
@@ -129,7 +127,7 @@ async function getTags(filter) {
 
 async function getMainVersionTags() {
     return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(versionHelpr.compareVersion).reverse())
+        .then(tags => tags.sort(compareVersion))
         .then(tags => {
             if (!tags.length)
                 return ['0.0.0'];
@@ -209,4 +207,29 @@ async function getStatus(filter) {
         .filter(it => it.length)    // removing empty rows
         .map(it => ({status: it[0], file: it[1]})) // parsing into objects
         .filter(it => !filter || filter.includes(it.status)) // filtering
+}
+
+/**
+ * compares the two version-strings
+ * @param a: (e.g. '1.0.0')
+ * @param b: (e.g. '1.0.0')
+ * @returns  number
+ */
+function compareVersion(a, b) {
+    if (!a && !b)
+        return 0;
+    if (!a)
+        return 1;
+    if (!b)
+        return -1;
+
+    const aSplit = a.split(".");
+    const bSplit = b.split(".");
+    if (parseInt(aSplit[0]) !== parseInt(bSplit[0])) {
+        return parseInt(bSplit[0]) - parseInt(aSplit[0]);
+    } else if (parseInt(aSplit[1]) !== parseInt(bSplit[1])) {
+        return parseInt(bSplit[1]) - parseInt(aSplit[1]);
+    } else {
+        return parseInt(bSplit[2]) - parseInt(aSplit[2]);
+    }
 }
