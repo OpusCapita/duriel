@@ -143,6 +143,8 @@ async function bumpVersion(version, bumpLevel = "patch") {
  * @returns  number
  */
 function compareVersion(a, b) {
+    console.log('V comp started');
+    log.info("Compare started!");
     if (!a && !b)
         return 0;
     if (!a)
@@ -150,18 +152,18 @@ function compareVersion(a, b) {
     if (!b)
         return 5;
 
-    const aSplit = splitIntoParts(a);
-    const bSplit = splitIntoParts(b);
+    const aSplit = a.split(".");
+    const bSplit = b.split(".");
     console.log(a+' <> '+b);
-    console.log(aSplit.major - bSplit.major);
-    console.log(aSplit.minor - bSplit.minor);
-    console.log(aSplit.patch - bSplit.patch);
-    if (aSplit.major !== bSplit.major) {
-        return aSplit.major - bSplit.major;
-    } else if (aSplit.minor !== bSplit.minor) {
-        return aSplit.minor - bSplit.minor;
+    console.log(parseInt(aSplit[0]) - parseInt(bSplit[0]));
+    console.log(parseInt(aSplit[1]) - parseInt(bSplit[1]));
+    console.log(parseInt(aSplit[2]) - parseInt(bSplit[2]));
+    if (parseInt(aSplit[0]) !== parseInt(bSplit[0])) {
+        return parseInt(aSplit[0]) - parseInt(bSplit[0]);
+    } else if (parseInt(aSplit[1]) !== parseInt(bSplit[1])) {
+        return parseInt(aSplit[1]) - parseInt(bSplit[1]);
     } else {
-        return aSplit.patch - bSplit.patch;
+        return parseInt(aSplit[2]) - parseInt(bSplit[2]);
     }
 }
 
