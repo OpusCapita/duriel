@@ -134,6 +134,7 @@ async function getMainVersionTags() {
             if (!tags.length)
                 return ['0.0.0'];
             else
+                console.log(versionHelpr);
                 log.info(typeof versionHelpr.compareVersion);
                 log.info(versionHelpr.compareVersion("1.2.0","1.10.0"));
                 log.info("Tags sorted:");
