@@ -8,7 +8,7 @@ const EnvProxy = require("../../EnvProxy");
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
-const versionHelpr = require('./versionHelper');
+//const versionHelpr = require('./versionHelper');
 
 module.exports = {
     addFiles,
@@ -129,14 +129,12 @@ async function getTags(filter) {
 
 async function getMainVersionTags() {
     return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(versionHelpr.compareVersion).reverse())
+        .then(tags => tags.sort(compareVersion).reverse())
         .then(tags => {
             if (!tags.length)
                 return ['0.0.0'];
             else
-                console.log(versionHelpr);
-                log.info(typeof versionHelpr.compareVersion);
-                log.info(versionHelpr.compareVersion("1.2.0","1.10.0"));
+                log.info(compareVersion("1.2.0","1.10.0"));
                 log.info("Tags sorted:");
                 log.info(JSON.stringify(tags));
                 console.log(JSON.stringify(tags));
@@ -215,4 +213,34 @@ async function getStatus(filter) {
         .filter(it => it.length)    // removing empty rows
         .map(it => ({status: it[0], file: it[1]})) // parsing into objects
         .filter(it => !filter || filter.includes(it.status)) // filtering
+}
+
+/**
+ * compares the two version-strings
+ * @param a: (e.g. '1.0.0')
+ * @param b: (e.g. '1.0.0')
+ * @returns  number
+ */
+function compareVersion(a, b) {
+    log.info("Compare started!");
+    if (!a && !b)
+        return 0;
+    if (!a)
+        return -5;
+    if (!b)
+        return 5;
+
+    const aSplit = a.split(".");
+    const bSplit = b.split(".");
+    console.log(a+' <> '+b);
+    console.log(parseInt(aSplit[0]) - parseInt(bSplit[0]));
+    console.log(parseInt(aSplit[1]) - parseInt(bSplit[1]));
+    console.log(parseInt(aSplit[2]) - parseInt(bSplit[2]));
+    if (parseInt(aSplit[0]) !== parseInt(bSplit[0])) {
+        return parseInt(aSplit[0]) - parseInt(bSplit[0]);
+    } else if (parseInt(aSplit[1]) !== parseInt(bSplit[1])) {
+        return parseInt(aSplit[1]) - parseInt(bSplit[1]);
+    } else {
+        return parseInt(aSplit[2]) - parseInt(bSplit[2]);
+    }
 }
