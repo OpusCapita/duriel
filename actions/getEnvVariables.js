@@ -7,6 +7,7 @@ const calculateEnv = require('./calculateEnv');
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
 const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'andariel_branch', "e2e_skip", 'admin_user']; // TODO: SHA1 & Token are identical
+const BUILD_ENV_VARS = ['DOCKER_BUILD_ARGS'];
 /**
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
@@ -43,6 +44,24 @@ module.exports = async function () {
             log.debug(`skipping ${env_var} - no value set`);
         }
     }
+    config['BUILD_ARGS'] = '';
+    for (let env_var of BUILD_ENV_VARS) {
+        if (process.env[env_var]) {
+            const build_args = process.env[env_var].split(',');
+            for (let build_var of build_args) {
+                if (process.env[build_var]) {
+                    config[`${build_var}`] = process.env[build_var];
+                    config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[build_var]+' ';
+                    log.severe(`build_var ${build_var} set successfully.`);
+                } else {
+                    log.debug(`skipping build_var ${build_var} - no value set`);
+                }
+            }
+        } else {
+            log.debug(`skipping ${env_var} - no value set`);
+        }
+    }
+
     log.info(`calculating env-depending variables...`);
     if (!config['andariel_branch']) {
         config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
