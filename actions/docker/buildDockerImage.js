@@ -16,7 +16,7 @@ async function buildImage(config) {
     const proxy = new EnvProxy();
     await dockerHelper.loginLocal(config);
     log.info("building image...");
-    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true .`, "docker build");
+    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build");
     log.info('... finished');
 }
 
