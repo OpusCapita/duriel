@@ -13,51 +13,74 @@ let localRepoPath = "";
 let durielPath = "";
 let translationMap = {};
 let languagesToConsider = [];
+
+if (process.argv.length < 4)
+{
+    console.log("Usage: node UtilityScripts/TranslationJSON/TranslationImport.js BRANCHNAME LANGUAGEID [LANGUAGEIDs]")
+    process.exit(1);
+}
+
+const branchname = process.argv[2];
+
 process.argv.forEach( (val,index) => {
-  if(index > 1) languagesToConsider.push(val);
+  if(index > 2) languagesToConsider.push(val);
 });
-console.log("considered languages = " + languagesToConsider);
-//process.exit(0);
+
+console.log("Importing translations into branch:", `"${branchname}"`);
+console.log("Considered languages = " + languagesToConsider);
+// process.exit(0);
 
 init()
 .then( () => importFromExcel(durielPath, languagesToConsider, translationMap) )
 .then( (allTranslations) => applyTranslationsToServices(allTranslations, languagesToConsider) )
-.then( () => { console.log("DONE"); });
+.then( () => { console.log("DONE"); })
+.catch(error => { console.log("Error: ", error)});
 
 async function applyTranslationsToServices(allTranslations, languages) {
-    console.log("all files imported"); 
-    for (let serviceName in allTranslations) {
-        if(serviceName == "sales-invoice") continue;
-        
-        let repo = serviceName;
-        console.log("updating repo " + repo + " in directory " + localRepoPath + " ...");
-        await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
-        //i18n-translation-2018-05-30T15:03:20.560Z
-        let branchname = "i18n-translation-" + new Date().toISOString().substring(0,19).replace(/:/g,"");
-        await gitHelper.branch(repo, localRepoPath, branchname);
-        //await gitHelper.checkout(repo, localRepoPath, branchname);
-  
-        let serviceTranslations = allTranslations[serviceName];
+    console.log("all files imported");
 
+    for (let serviceName in allTranslations) {
+        if(["bnp", "onboarding"].includes(serviceName)) continue;
+
+        let repo = serviceName;
+        console.log("*******************************************************************************");
+        console.log("updating repo " + repo + " in directory " + localRepoPath + " ...");
+        console.log("*******************************************************************************");
+
+        await gitHelper.createUpdateRepo(repo, localRepoPath, branchname);
+
+        let serviceTranslations = allTranslations[serviceName];
         console.log("applying to service " + serviceName);
-        
+
         for(let componentId in serviceTranslations) {
             let componentTranslations = serviceTranslations[componentId];
             console.log("applying to component " + componentId + " in service " + serviceName);
             let i18nFolder = componentId + "/i18n";
             await applyTranslationsToComponent(localRepoPath, serviceName, i18nFolder, componentTranslations, languages);
         }
+
         await gitHelper.add(repo, localRepoPath);
-        await gitHelper.commit(repo, localRepoPath, "auto import from translation excel"); 
-        await gitHelper.push(repo, localRepoPath, branchname);
-        await gitHelper.createPR(repo, branchname);
+
+        try {
+            // TODO: Committing without changes runs into an error! Check whether we need a commit (any changed files) at all and suppress next steps.
+            //       (Maybe branch should be removed, too.)
+            await gitHelper.commit(repo, localRepoPath, "auto import from translation excel");
+            await gitHelper.push(repo, localRepoPath, branchname);
+            await gitHelper.createPR(repo, branchname);
+        }
+        catch(error) {
+            console.log("Error at commit, push, create steps: ", error);
+        }
+
+        if (serviceName === "onboarding")
+            process.exit(1);
     }
 }
 
 async function applyTranslationsToComponent(localRepoPath, repo, i18nFolder, translations, languages) {
     let componentFolder = localRepoPath + "/" + repo + "/" + i18nFolder;
     try {
-        await fileExists(componentFolder);    
+        await fileExists(componentFolder);
     }
     catch(err) {
         console.error("folder " + componentFolder + " doesnt exist");
@@ -117,4 +140,3 @@ async function init() {
     })
   });
 }
-
