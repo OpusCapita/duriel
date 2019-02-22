@@ -284,6 +284,11 @@ class EnvProxy {
         return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
     }
 
+    insertEncodedDockerSecret(secret, secretName, ...labels) {
+        labels = helper.flattenArray(labels);
+        return this.executeCommand_E(`echo '${secret}' | base64 --decode | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
+    }
+
     /**
      * Create multiple secrets
      * @param {object[]} secrets
