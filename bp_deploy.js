@@ -87,12 +87,12 @@ const exec = async function () {
         await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
         config['dependsOnServiceClient'] = await dependsOnServiceClient();
-        if (!config['dependsOnServiceClient']) {
-            log.info("project does not depend on service-client. skipping name injection");
-        } else {
+        if (config['dependsOnServiceClient'] || config['CREATE_SERVICE_USER']) {
             log.info("project depends on service-client.");
             const setupServiceUserSuccess = await setupServiceUser(config, proxy, false);
             log.info(`finished setupServiceUser - newUser = ${setupServiceUserSuccess}`);
+        } else {
+            log.info("project does not depend on service-client. skipping name injection");
         }
 
         log.info("loading service informations"); // docker service inspect
