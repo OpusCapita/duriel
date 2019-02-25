@@ -92,6 +92,7 @@ const exec = async function () {
             const setupServiceUserSuccess = await setupServiceUser(config, proxy, false);
             log.info(`finished setupServiceUser - newUser = ${setupServiceUserSuccess}`);
         } else {
+            log.info(JSON.stringify(config));
             log.info("project does not depend on service-client. skipping name injection");
         }
 
