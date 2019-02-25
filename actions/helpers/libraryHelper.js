@@ -328,6 +328,9 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
 
     const command = `docker exec -t ${container.containerId} cat task_template.json`;
     const taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
+    log.info('-------taskTemplateContent-------');
+    log.info(taskTemplateContent);
+    log.info('---------------------------------');
     const parsedTaskTemplate = JSON.parse(taskTemplateContent);
 
     if (parsedTaskTemplate) {
