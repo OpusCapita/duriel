@@ -332,7 +332,7 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
         taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
     }
     catch(e){
-        log.info(e.message);
+        log.info(e);
         taskTemplateContent = '{}';
     }
     log.info('-------taskTemplateContent-------');
