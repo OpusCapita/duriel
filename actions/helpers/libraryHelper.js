@@ -332,12 +332,10 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
         taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
     }
     catch(e){
-        log.info(e);
+        log.warn('Error:')
+        log.warn(e);
         taskTemplateContent = '{}';
     }
-    log.info('-------taskTemplateContent-------');
-    log.info(taskTemplateContent);
-    log.info('---------------------------------');
     const parsedTaskTemplate = JSON.parse(taskTemplateContent);
 
     if (parsedTaskTemplate) {
