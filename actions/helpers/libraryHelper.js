@@ -327,7 +327,14 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
         throw new Error(`could not get container-information for service '${serviceName}' on node '${serviceTask.node}'`);
 
     const command = `docker exec -t ${container.containerId} cat task_template.json`;
-    const taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
+    let taskTemplateContent = '{}';
+    try{
+        taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
+    }
+    catch(e){
+        log.info(e.message);
+        taskTemplateContent = '{}';
+    }
     log.info('-------taskTemplateContent-------');
     log.info(taskTemplateContent);
     log.info('---------------------------------');
