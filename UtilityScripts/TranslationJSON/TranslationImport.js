@@ -61,7 +61,6 @@ async function applyTranslationsToServices(allTranslations, languages)
 
         // if(!["supplier", "isodata", 'sales-invoice', 'onboarding'].includes(repositoryName)) continue;
         // if(!["service-base-ui"].includes(repositoryName)) continue;
-        if(["service-base-ui"].includes(repositoryName)) continue;
 
         console.log("");
         console.log("Preparing local copy of the repository");
@@ -73,7 +72,18 @@ async function applyTranslationsToServices(allTranslations, languages)
         console.log("-------------------------------------");
         let serviceTranslations = allTranslations[repositoryName];
 
-        for(let componentId in serviceTranslations) {
+        // console.log("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+        // console.log(allTranslations[repositoryName]);
+        // console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+
+        for (let componentId in serviceTranslations) {
+
+            if(["service-base-ui"].includes(repositoryName) && componentId === "menu")
+            {
+                console.log("Could not apply 'menu' translations for service-base-ui in an automated way. Please treat this translations manually. Omitting this component!");
+                continue;  // manually action as long as the menues are not translated properly
+            }
+
             let componentTranslations = serviceTranslations[componentId];
             console.log("applying to component " + componentId + " in service " + repositoryName);
             let i18nFolder = componentId + "/i18n";
@@ -146,11 +156,11 @@ async function writeIndexJs(componentFolder, supportedLanguages, importLanguages
             languages.push(lang);
     });
 
-    languages.forEach(languageId => {
+    languages.sort().forEach(languageId => {
         payload += "const " + languageId + " = require('./" + languageId + ".json');\n";
     });
     payload += "\n";
-    payload += "module.exports = {" + languages.join(", ") + " };\n";
+    payload += "module.exports = {" + languages.join(", ") + "};\n";
 
     fs.writeFileSync(componentFolder + "/index.js", payload);
 }
