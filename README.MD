@@ -109,6 +109,7 @@ example:
     	    "beta": {"value": "i am not encoded"},
     	    "gamma": {"encoding": "base64", "value": "aSBhbSBlbmNvZGVk"}
     },
+    "oc-service-user-create-override": "false",
     "limit-cpu": "0.2",
     "limit-memory": "300M",
     "reserve-cpu": "0.01",

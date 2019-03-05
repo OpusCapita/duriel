@@ -68,7 +68,7 @@ const exec = async function () {
         }
 
         log.info("loading task template...");
-        await loadTaskTemplate(config);
+        const taskTemplate = await loadTaskTemplate(config);
         log.debug("...finished task template");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
@@ -86,7 +86,7 @@ const exec = async function () {
 
         await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
-        config['dependsOnServiceClient'] = await dependsOnServiceClient();
+        config['dependsOnServiceClient'] = taskTemplate['oc-service-user-create-override'] && await dependsOnServiceClient();
         if (!config['dependsOnServiceClient']) {
             log.info("project does not depend on service-client. skipping name injection");
         } else {
@@ -166,7 +166,7 @@ const exec = async function () {
             }
             await bn_e2eTester.waitForTest(config);
         }
-        if (dependsOnServiceClient()) {
+        if (config['dependsOnServiceClient']) {
             await setupServiceUser(config, proxy);
         }
         await fileHandler.saveObject2File(config, config_file_name, true);
