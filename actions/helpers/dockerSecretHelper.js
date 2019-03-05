@@ -114,7 +114,7 @@ function transformSecretEntries(entries) {
             if (typeof value === "string") {
                 result[key] = value;
             } else if (value instanceof Object) {
-                if (value.encoding) {
+                if (value.encoding && ( typeof value.type == "undefined" || value.type === "plain")) {
                     result[key] = Buffer.from(value.value, value.encoding).toString();
                 } else if (value.value) {
                     result[key] = value.value

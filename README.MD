@@ -107,7 +107,8 @@ example:
     "oc-secret-injection": {
             "alpha": "i am a string",
     	    "beta": {"value": "i am not encoded"},
-    	    "gamma": {"encoding": "base64", "value": "aSBhbSBlbmNvZGVk"}
+    	    "gamma": {"encoding": "base64", "value": "aSBhbSBlbmNvZGVk"},
+    	    "teta": {"encoding": "base64", "type": "binary", "value": "aSBhbSBlbmNvZGVk"}
     },
     "oc-service-user-create-override": "false",
     "limit-cpu": "0.2",
