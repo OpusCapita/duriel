@@ -19,6 +19,11 @@ module.exports = async function () {
         process.exit(1);
     } else {
         config["HUB_REPO"] = process.argv[2];  // params start at 2 because 0 = node, 1 = js-script
+        if (process.argv.length < 4) {
+            config["MULTI_STAGE"] = false;
+        } else {
+            config["MULTI_STAGE"] = process.argv[3] === "true";
+        }
     }
 
     let all_required_vars_set = true;
