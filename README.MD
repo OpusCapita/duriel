@@ -22,6 +22,24 @@
 |skip_service_rollback| flag that disables the rollback-function |
 |skip_version_validation|skip the version validation before the deployment| 
 
+## docker build option
+
+Duriel default build option is normal one (Builder pattern) - Dockerfile doesn't contain stages
+
+MultiStage build option can be enabled in circleci config "building and testing locally" step with adding additional argument true
+```bash
+node ../buildprocess/bp_localbuild.js opuscapita/$CIRCLE_PROJECT_REPONAME true
+```
+After that Dockerfile should contain at least two stages production and dev.
+```docker
+FROM imagex AS production
+FROM imagey AS dev
+# Hint you can use production for imagey and just install additional modules/tools
+```
+Stage **production** should contain only dependicies that are needed for running, everything else should be purged/removed - *so that we have small image in the end*.
+
+Stage **dev** can contain all dependicies and tools that are needed for testing/creating documents etc - this is the image that will be used for all tests.
+
 
 ## pull-request creation
 
