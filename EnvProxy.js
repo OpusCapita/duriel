@@ -285,7 +285,6 @@ class EnvProxy {
     }
 
     insertBinaryDockerSecret(secret, secretName, ...labels) {
-        log.info(`Creating binary secret: '${secretName}'`);
         labels = helper.flattenArray(labels);
         return this.executeCommand_E(`echo '${secret}' | base64 --decode | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
     }

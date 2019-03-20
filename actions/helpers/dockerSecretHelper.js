@@ -9,7 +9,6 @@ const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 
 async function create(proxy, secretName, value, type, ...labels) {
     log.info(`Creating secret '${secretName}' with the labels [${labels.join(", ")}]`);
-    log.info(`Secret type: ${type} and ${(typeof type !== 'undefined' && type === 'binary')}`);
     const secretId = (typeof type !== 'undefined' && type === 'binary') ?
                         await proxy.insertBinaryDockerSecret(value, secretName, ...labels) :
                         await proxy.insertDockerSecret(value, secretName, ...labels);
