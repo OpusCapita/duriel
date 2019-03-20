@@ -7,9 +7,11 @@ const EnvProxy = require('../../EnvProxy');
 const utilHelper = require('./utilHelper');
 const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 
-async function create(proxy, secretName, value, decode, ...labels) {
+async function create(proxy, secretName, value, type, ...labels) {
     log.info(`Creating secret '${secretName}' with the labels [${labels.join(", ")}]`);
-    const secretId = decode ? await proxy.insertEncodedDockerSecret(value, secretName, ...labels) : await proxy.insertDockerSecret(value, secretName, ...labels);
+    const secretId = (typeof type !== 'undefined' && type === 'binary') ?
+                        await proxy.insertBinaryDockerSecret(value, secretName, ...labels) :
+                        await proxy.insertDockerSecret(value, secretName, ...labels);
     return {
         id: secretId.trim(),
         name: secretName.trim(),
@@ -97,7 +99,7 @@ async function getSecretsForDockerCommands(config, proxy) {
             .map(it => ({
                 name: it,
                 value: taskTemplateSecrets[it],
-                decode: !!taskTemplate["oc-secret-injection"][it].encoding
+                type: !!taskTemplate["oc-secret-injection"][it].type
             }))
     };
     log.debug("2.1 - secret fetching result: ", {
@@ -115,18 +117,15 @@ function transformSecretEntries(entries) {
         const result = {};
         for (const key in entries) {
             const value = entries[key];
-            // if (typeof value === "string") {
-            //     result[key] = value;
-            // } else if (value instanceof Object) {
-            //     if (value.encoding) {
-            //         result[key] = Buffer.from(value.value, value.encoding).toString();
-            //     } else if (value.value) {
-            //         result[key] = value.value
-            //     }
-            // }
-
-            // removed decoding here, get the raw - encoded value
-            result[key] = (typeof value === "string") ? value : value.value
+            if (typeof value === "string") {
+                result[key] = value;
+            } else if (value instanceof Object) {
+                if (value.encoding && (typeof value.type === 'undefined' || value.type !== 'binary')) {
+                    result[key] = Buffer.from(value.value, value.encoding).toString();
+                } else if (value.value) {
+                    result[key] = value.value
+                }
+            }
         }
         return result;
     } else if (entries) {
@@ -140,7 +139,7 @@ async function createDockerSecrets(config, proxy, ...labels) {
     if (!Array.isArray(config['serviceSecrets'].create))
         throw new Error("secrets do not contain a create-Array");
     for (const secret of config['serviceSecrets'].create) {
-        await create(proxy, secret.name, secret.value, secret.decode, ...labels)
+        await create(proxy, secret.name, secret.value, secret.type, ...labels)
     }
 }
 

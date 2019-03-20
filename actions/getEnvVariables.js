@@ -6,7 +6,7 @@ const calculateEnv = require('./calculateEnv');
 
 
 const REQUIRED_ENV_VARS = ["GIT_USER", "GIT_EMAIL", "GIT_TOKEN", "DOCKER_USER", "DOCKER_PASS"];
-const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'CREATE_SERVICE_USER', 'andariel_branch', "e2e_skip", 'admin_user']; // TODO: SHA1 & Token are identical
+const ADDITIONAL_ENV_VARS = ['CIRCLE_PROJECT_REPONAME', 'CIRCLE_BRANCH', 'CIRCLE_BUILD_NUM', 'CIRCLE_SHA1', 'CIRCLE_TOKEN', 'andariel_branch', "e2e_skip", 'admin_user']; // TODO: SHA1 & Token are identical
 const BUILD_ENV_VARS = ['DOCKER_BUILD_ARGS'];
 /**
  * initials function that gatheres and calculates all variables needed for the buildprocess
