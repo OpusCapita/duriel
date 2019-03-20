@@ -279,7 +279,10 @@ class EnvProxy {
      * @param labels
      * @returns {*}
      */
-    insertDockerSecret(secret, secretName, ...labels) {
+    insertDockerSecret(secret, secretName, secretType, ...labels) {
+        if(typeof secretType != "undefined" && secretType==="binary"){
+            return await this.insertBinaryDockerSecret(secret, secretName, ...labels);
+        }
         labels = helper.flattenArray(labels); // in case someone messes up :)
         return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
     }
