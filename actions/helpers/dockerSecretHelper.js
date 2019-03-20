@@ -100,7 +100,7 @@ async function getSecretsForDockerCommands(config, proxy) {
             .map(it => ({
                 name: it,
                 value: taskTemplateSecrets[it],
-                type: !!taskTemplate["oc-secret-injection"][it].type
+                type: taskTemplate["oc-secret-injection"][it].type
             }))
     };
     log.debug("2.1 - secret fetching result: ", {
