@@ -86,7 +86,7 @@ const exec = async function () {
 
         await dockerHelper.loginEnv(config, proxy);
         log.info(`established proxy to environment ${config['andariel_branch']}`);
-        config['dependsOnServiceClient'] = taskTemplate['oc-service-user-create-override'] && await dependsOnServiceClient();
+        config['dependsOnServiceClient'] = taskTemplate['oc-service-user-create-override'] || await dependsOnServiceClient();
         if (!config['dependsOnServiceClient']) {
             log.info("project does not depend on service-client. skipping name injection");
         } else {
