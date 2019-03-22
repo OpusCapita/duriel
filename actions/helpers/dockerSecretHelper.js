@@ -89,7 +89,7 @@ async function getSecretsForDockerCommands(config, proxy) {
     log.debug("1.3 - secrets on env: ", secretsOnEnv);
 
     log.info("2.0 - Fetching secrets for adding, removing and creating.");
-    const secretsForAdding = utilHelper.arrayMinus(utilHelper.arrayMinus(necessarySecrets, deployedSecrets), existingSecrets);
+    const secretsForAdding = utilHelper.arrayMinus(necessarySecrets, deployedSecrets);
     
     const result = {
         remove: utilHelper.arrayMinus(deployedSecrets, necessarySecrets),
