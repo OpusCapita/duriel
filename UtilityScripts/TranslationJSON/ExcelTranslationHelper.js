@@ -56,6 +56,7 @@ async function importExcelFile(filename, languageId, allTranslations) {
         if(row.values[1] != serviceName) {
 //            console.log("updating serviceName from " + serviceName + " to " + row.values[1]);
             serviceName = row.values[1];
+            componentId = "";
             serviceTranslations = allTranslations[serviceName];
             if(!serviceTranslations) serviceTranslations = allTranslations[serviceName] = {};
         }
@@ -94,7 +95,7 @@ async function exportToExcel(translationMap, from, to) {
         numberFormat: '$#,##0.00; ($#,##0.00); -',
         alignment: { vertical: 'top'}
     });
-    
+
     var headerStyle = wb.createStyle({
         font: {
             color: '#FF0800',
@@ -116,7 +117,7 @@ async function exportToExcel(translationMap, from, to) {
     ws.column(4).setWidth(5);
     ws.row(1).filter();
 
-    let row = 2; 
+    let row = 2;
     for(let serviceName in translationMap) {
         let serviceTranslations = translationMap[serviceName];
         for(let componentId in serviceTranslations) {
@@ -153,7 +154,7 @@ async function exportToExcel(translationMap, from, to) {
             }
         }
     }
-    
+
 
     let fileName = 'Translations_' + to + '.xlsx';
     wb.write(fileName, function (err, stats) {
@@ -166,5 +167,3 @@ async function exportToExcel(translationMap, from, to) {
     });
     return Promise.resolve(fileName);
 }
-
-

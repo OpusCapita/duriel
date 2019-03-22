@@ -61,6 +61,7 @@ async function applyTranslationsToServices(allTranslations, languages)
 
         // if(!["supplier", "isodata", 'sales-invoice', 'onboarding'].includes(repositoryName)) continue;
         // if(!["service-base-ui"].includes(repositoryName)) continue;
+        // if(!["auth"].includes(repositoryName)) continue;
 
         console.log("");
         console.log("Preparing local copy of the repository");
