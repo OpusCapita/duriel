@@ -9,14 +9,19 @@ const loadTaskTemplate = require('../filehandling/loadTaskTemplate');
 
 async function create(proxy, secretName, value, type, ...labels) {
     log.info(`Creating secret '${secretName}' with the labels [${labels.join(", ")}]`);
-    const secretId = (typeof type !== 'undefined' && type === 'binary') ?
-                        await proxy.insertBinaryDockerSecret(value, secretName, ...labels) :
-                        await proxy.insertDockerSecret(value, secretName, ...labels);
-    return {
-        id: secretId.trim(),
-        name: secretName.trim(),
-        serviceSecret: value.trim()
+    const result = {name: secretName, serviceSecret: value.trim()};
+    const currentSecret = await proxy.getDockerSecret(secretName).catch(e => {
+        log.error("Err: ", e);
+    });
+
+    if (currentSecret) {
+        result.id = currentSecret.id;
+    } else {
+        result.id = (typeof type !== 'undefined' && type === 'binary') ?
+            await proxy.insertBinaryDockerSecret(value, secretName, ...labels) :
+            await proxy.insertDockerSecret(value, secretName, ...labels);
     }
+    return result;
 }
 
 async function generate(proxy, secretName, length = 32, ...labels) {
