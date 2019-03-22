@@ -84,21 +84,13 @@ async function getSecretsForDockerCommands(config, proxy) {
         .then(nameList => utilHelper.arrayMinus(nameList, blackList));
     log.debug("1.2 - secrets on env for service: ", deployedSecrets);
     log.info("1.3 - Loading Secrets on Env.");
-    const existingSecrets = await proxy.getDockerSecrets()
-        .catch(e => {
-            log.warn(`could not fetch secrets`);
-            log.severe(`could not fetch secrets`, e);
-            return [];
-        })
-        .then(secrets => secrets.map(it => it.name))
-        .then(nameList => utilHelper.arrayMinus(nameList, blackList));
-    log.debug("1.3 - secrets on env: ", existingSecrets);
+    const secretsOnEnv = await proxy.getDockerSecrets()
+        .then(secrets => secrets.map(it => it.name));
+    log.debug("1.3 - secrets on env: ", secretsOnEnv);
 
     log.info("2.0 - Fetching secrets for adding, removing and creating.");
     const secretsForAdding = utilHelper.arrayMinus(utilHelper.arrayMinus(necessarySecrets, deployedSecrets), existingSecrets);
-    const secretsOnEnv = await proxy.getDockerSecrets()
-        .then(secrets => secrets.map(it => it.name));
-
+    
     const result = {
         remove: utilHelper.arrayMinus(deployedSecrets, necessarySecrets),
         add: secretsForAdding,
