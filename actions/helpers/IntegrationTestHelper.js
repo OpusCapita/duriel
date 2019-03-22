@@ -56,7 +56,7 @@ async function checkAccessibility(config) {
     const testUrl = `${config['public_scheme']}://${config['public_hostname']}:${config['public_port']}/bnp/`;
     log.debug(`testing accessibility of ${testUrl}`);
     return await request.get(testUrl)
-        .timeout(1000)
+        .timeout(5000)
         .retry(5)
         .then(res => res.body)
         .catch(error => {

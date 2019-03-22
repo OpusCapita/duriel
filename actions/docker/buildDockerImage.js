@@ -16,7 +16,12 @@ async function buildImage(config) {
     const proxy = new EnvProxy();
     await dockerHelper.loginLocal(config);
     log.info("building image...");
-    await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest -t ${config['HUB_REPO']}:dev --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build");
+    if(config["MULTI_STAGE"]){
+        await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest --target production --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build production");
+        await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:dev --target dev --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build dev");
+    } else {
+        await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:dev -t ${config['HUB_REPO']}:latest --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build");
+    }
     log.info('... finished');
 }
 

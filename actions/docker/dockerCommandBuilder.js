@@ -323,7 +323,7 @@ const updateMart = function (param) {
     }
 
     for (let cv of pairsForRemoving) {
-        command += ` --${param.name}-remove ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
+        command += ` --${param.name}-rm ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
     }
 
     return command;
