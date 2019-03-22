@@ -273,15 +273,31 @@ class EnvProxy {
     }
 
     /**
-     * add a secret into the docker swarm
+     * add a plain secret into the docker swarm
      * @param secret
      * @param secretName
      * @param labels
      * @returns {*}
      */
-    insertDockerSecret(secret, secretName, ...labels) {
+    insertDockerSecret(secret, secretName, secretType, ...labels) {
+        if(typeof secretType != "undefined" && secretType==="binary"){
+            return this.insertBinaryDockerSecret(secret, secretName, ...labels);
+        }
         labels = helper.flattenArray(labels); // in case someone messes up :)
         return this.executeCommand_E(`echo '${secret}' | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
+    }
+
+    /**
+     * add a binary secret into the docker swarm
+     * @param secret
+     * @param secretName
+     * @param labels
+     * @returns {*}
+     */
+    insertBinaryDockerSecret(secret, secretName, ...labels) {
+        log.info("inserting binary secret");
+        labels = helper.flattenArray(labels); // in case someone messes up :)
+        return this.executeCommand_E(`echo '${secret}' | base64 --decode | docker secret create ${labels.map(it => `--label ${it}`).join(' ')} '${secretName}' - `);
     }
 
     /**
@@ -291,8 +307,8 @@ class EnvProxy {
     async insertDockerSecrets(...secrets) {
         if (!secrets)
             throw new Error("can't insert secret if no secrets are passed a a parameter");
-        for (const secret of secrets)
-            await this.insertDockerSecret(secret.value, secret.name, ...secrets.labels)
+        for (const secret of secrets) 
+            await this.insertDockerSecret(secret.value, secret.name, secret.type, ...secrets.labels)
     }
 
     /**

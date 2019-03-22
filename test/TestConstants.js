@@ -37,6 +37,7 @@ module.exports = {
                 alpha: "i am a string",
                 beta: {value: "i am not encoded"},
                 gamma: {encoding: "base64", value: "aSBhbSBlbmNvZGVk"},
+                teta: {encoding: "base64", type: "binary", value: "aSBhbSBlbmNvZGVk"},
                 mysecret: "i am a secret secret that is secretly not secret!"
             },
             "serviceDependencies": {
