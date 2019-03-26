@@ -95,12 +95,12 @@ async function getSecretsForDockerCommands(config, proxy) {
         remove: utilHelper.arrayMinus(deployedSecrets, necessarySecrets),
         add: secretsForAdding,
         create: utilHelper.arrayMinus(secretsForAdding, secretsOnEnv)
-            .map(it => ({name: it, value: taskTemplateSecrets[it]}))
+            .map(it => ({name: it, value: taskTemplateSecrets[it], type: taskTemplate["oc-secret-injection"][it].type}))
     };
     log.debug("2.1 - secret fetching result: ", {
         add: result.add,
         remove: result.remove,
-        create: result.create.map(it => ({name: it.name, value: `${it.value.substring(0, 4)}`}))
+        create: result.create.map(it => ({name: it.name, value: `${it.value.substring(0, 4)}`, type: it.type}))
     });
 
     log.info("2 - ...finished fetching docker secrets.");
