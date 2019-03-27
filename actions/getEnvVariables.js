@@ -49,14 +49,15 @@ module.exports = async function () {
             log.debug(`skipping ${env_var} - no value set`);
         }
     }
+    config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
     config['BUILD_ARGS'] = '';
     for (let env_var of BUILD_ENV_VARS) {
         if (process.env[env_var]) {
             const build_args = process.env[env_var].split(',');
             for (let build_var of build_args) {
                 if (process.env[build_var]) {
-                    config[`${build_var}`] = process.env[build_var];
-                    config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[build_var]+' ';
+                    config[`${build_var}`] = process.env[config['TARGET_ENV']+"_"+build_var];
+                    config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[config['TARGET_ENV']+"_"+build_var]+' ';
                     log.severe(`build_var ${build_var} set successfully.`);
                 } else {
                     log.debug(`skipping build_var ${build_var} - no value set`);
@@ -72,7 +73,7 @@ module.exports = async function () {
         config['andariel_branch'] = config['CIRCLE_BRANCH'] === "master" ? "master" : "develop";
     }
     config['REPO_PATH'] = calculateRepoPath(config['andariel_branch'], config['CIRCLE_BRANCH']);
-    config['TARGET_ENV'] = calculateEnv.getTargetEnv(config['CIRCLE_BRANCH']);
+    
 
 
     config['MYSQL_PW'] = getDatabasePassword(config);
