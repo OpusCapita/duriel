@@ -55,7 +55,7 @@ module.exports = async function () {
         if (process.env[env_var]) {
             const build_args = process.env[env_var].split(',');
             for (let build_var of build_args) {
-                if (process.env[build_var]) {
+                if (process.env[config['TARGET_ENV']+"_"+build_var]) {
                     config[`${build_var}`] = process.env[config['TARGET_ENV']+"_"+build_var];
                     config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[config['TARGET_ENV']+"_"+build_var]+' ';
                     log.info(`build_var ${build_var} - ${config['TARGET_ENV']+"_"+build_var} set successfully.`);
