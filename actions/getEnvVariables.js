@@ -58,9 +58,9 @@ module.exports = async function () {
                 if (process.env[build_var]) {
                     config[`${build_var}`] = process.env[config['TARGET_ENV']+"_"+build_var];
                     config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[config['TARGET_ENV']+"_"+build_var]+' ';
-                    log.severe(`build_var ${build_var} set successfully.`);
+                    log.info(`build_var ${build_var} - ${config['TARGET_ENV']+"_"+build_var} set successfully.`);
                 } else {
-                    log.debug(`skipping build_var ${build_var} - no value set`);
+                    log.info(`skipping build_var ${build_var} - ${config['TARGET_ENV']+"_"+build_var}  - no value set`);
                 }
             }
         } else {
