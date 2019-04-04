@@ -336,6 +336,7 @@ async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
         log.warn(e);
         taskTemplateContent = '{}';
     }
+    log.info(taskTemplateContent);
     const parsedTaskTemplate = JSON.parse(taskTemplateContent);
 
     if (parsedTaskTemplate) {
