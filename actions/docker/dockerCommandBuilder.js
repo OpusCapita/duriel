@@ -243,14 +243,14 @@ const updateMark = function (param) {
     const mappedKV = {};
     param.dv.forEach(entry => {
             const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter).shift().join(delimiter);
+            const value = entry.split(delimiter).slice(1).join(delimiter);
             mappedKV[name] = {dv: value};
         }
     );
     param.cv.forEach(
         entry => {
             const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter).shift().join(delimiter);
+            const value = entry.split(delimiter).slice(1).join(delimiter);
             if (mappedKV[name]) {
                 mappedKV[name].cv = value;
             } else {
