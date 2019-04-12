@@ -306,7 +306,7 @@ class EnvProxy {
                 return response.split(linebreak_splitter)
                     .map(line => {
                         const cols = line.split('###');
-                        if (cols.length === 5) {
+                        if (cols.length === 4) {
                             return {
                                 id: cols[0],
                                 name: cols[1],

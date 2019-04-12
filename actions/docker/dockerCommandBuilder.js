@@ -243,14 +243,14 @@ const updateMark = function (param) {
     const mappedKV = {};
     param.dv.forEach(entry => {
             const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter)[1];
+            const value = entry.split(delimiter).slice(1).join(delimiter);
             mappedKV[name] = {dv: value};
         }
     );
     param.cv.forEach(
         entry => {
             const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter)[1];
+            const value = entry.split(delimiter).slice(1).join(delimiter);
             if (mappedKV[name]) {
                 mappedKV[name].cv = value;
             } else {
@@ -323,7 +323,7 @@ const updateMart = function (param) {
     }
 
     for (let cv of pairsForRemoving) {
-        command += ` --${param.name}-remove ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
+        command += ` --${param.name}-rm ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
     }
 
     return command;

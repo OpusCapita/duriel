@@ -13,92 +13,156 @@ let localRepoPath = "";
 let durielPath = "";
 let translationMap = {};
 let languagesToConsider = [];
+
+if (process.argv.length < 4)
+{
+    console.log("Usage: node UtilityScripts/TranslationJSON/TranslationImport.js BRANCHNAME LANGUAGEID [LANGUAGEIDs]")
+    process.exit(1);
+}
+
+const branchname = process.argv[2];
+
 process.argv.forEach( (val,index) => {
-  if(index > 1) languagesToConsider.push(val);
+  if(index > 2) languagesToConsider.push(val);
 });
-console.log("considered languages = " + languagesToConsider);
-//process.exit(0);
+
+console.log("");
+console.log("Importing translations")
+console.log(" - into branch  :", branchname);
+console.log(" - for languages: " + languagesToConsider);
+console.log("");
+// process.exit(0);
 
 init()
 .then( () => importFromExcel(durielPath, languagesToConsider, translationMap) )
-.then( (allTranslations) => applyTranslationsToServices(allTranslations, languagesToConsider) )
-.then( () => { console.log("DONE"); });
+.then( (allTranslations) => {
+    console.log("All files imported.");
+    return applyTranslationsToServices(allTranslations, languagesToConsider);
+})
+.then( () => { console.log("DONE"); })
+.catch(error => { console.log("Error: ", error)});
 
-async function applyTranslationsToServices(allTranslations, languages) {
-    console.log("all files imported"); 
-    for (let serviceName in allTranslations) {
-        if(serviceName == "sales-invoice") continue;
-        
-        let repo = serviceName;
-        console.log("updating repo " + repo + " in directory " + localRepoPath + " ...");
-        await gitHelper.createUpdateRepo(repo, localRepoPath, "develop");
-        //i18n-translation-2018-05-30T15:03:20.560Z
-        let branchname = "i18n-translation-" + new Date().toISOString().substring(0,19).replace(/:/g,"");
-        await gitHelper.branch(repo, localRepoPath, branchname);
-        //await gitHelper.checkout(repo, localRepoPath, branchname);
-  
-        let serviceTranslations = allTranslations[serviceName];
+async function applyTranslationsToServices(allTranslations, languages)
+{
+    console.log("")
+    console.log("Translations found for");
+    console.log("----------------------");
+    Object.keys(allTranslations).forEach((serviceName, index) => console.log(`  ${index + 1}. ${serviceName}`));
 
-        console.log("applying to service " + serviceName);
-        
-        for(let componentId in serviceTranslations) {
+    let index = 1;
+    for (let repositoryName in allTranslations)
+    {
+        let repo = repositoryName;
+
+        console.log("");
+        console.log(`${index++}. ${repositoryName}`);
+        console.log("=================================================================================");
+        console.log("updating repo " + repositoryName + " in directory " + localRepoPath + " ...");
+
+        // if(!["supplier", "isodata", 'sales-invoice', 'onboarding'].includes(repositoryName)) continue;
+        // if(!["service-base-ui"].includes(repositoryName)) continue;
+        // if(!["auth"].includes(repositoryName)) continue;
+
+        console.log("");
+        console.log("Preparing local copy of the repository");
+        console.log("--------------------------------------");
+        await gitHelper.createUpdateRepo(repositoryName, localRepoPath, branchname);
+
+        console.log("");
+        console.log("Applying translations into local copy");
+        console.log("-------------------------------------");
+        let serviceTranslations = allTranslations[repositoryName];
+
+        // console.log("\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+        // console.log(allTranslations[repositoryName]);
+        // console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+
+        for (let componentId in serviceTranslations) {
+
+            if(["service-base-ui"].includes(repositoryName) && componentId === "menu")
+            {
+                console.log("Could not apply 'menu' translations for service-base-ui in an automated way. Please treat this translations manually. Omitting this component!");
+                continue;  // manually action as long as the menues are not translated properly
+            }
+
             let componentTranslations = serviceTranslations[componentId];
-            console.log("applying to component " + componentId + " in service " + serviceName);
+            console.log("applying to component " + componentId + " in service " + repositoryName);
             let i18nFolder = componentId + "/i18n";
-            await applyTranslationsToComponent(localRepoPath, serviceName, i18nFolder, componentTranslations, languages);
+            await applyTranslationsToComponent(localRepoPath, repositoryName, i18nFolder, componentTranslations, languages);
         }
-        await gitHelper.add(repo, localRepoPath);
-        await gitHelper.commit(repo, localRepoPath, "auto import from translation excel"); 
-        await gitHelper.push(repo, localRepoPath, branchname);
-        await gitHelper.createPR(repo, branchname);
+
+        console.log("");
+        console.log("Pushing changes to github");
+        console.log("-------------------------");
+        await gitHelper.add(repositoryName, localRepoPath);
+        try {
+            // TODO: Committing without changes runs into an error! Check whether we need a commit (any changed files) at all and suppress next steps.
+            //       (Maybe branch should be removed, too.)
+            await gitHelper.commit(repositoryName, localRepoPath, "auto import from translation excel");
+            await gitHelper.push(repositoryName, localRepoPath, branchname);
+            await gitHelper.createPR(repositoryName, branchname);
+        }
+        catch(error) {
+            console.log("Error at commit, push, create steps: ", error);
+        }
     }
 }
 
 async function applyTranslationsToComponent(localRepoPath, repo, i18nFolder, translations, languages) {
     let componentFolder = localRepoPath + "/" + repo + "/" + i18nFolder;
     try {
-        await fileExists(componentFolder);    
+        await fileExists(componentFolder);
     }
     catch(err) {
         console.error("folder " + componentFolder + " doesnt exist");
         throw err;
     }
-    console.log("writing index.js...");
-    await writeIndexJs(componentFolder, supportedLanguages);
+    console.log(` - ${componentFolder}/index.js`);
+    await writeIndexJs(componentFolder, supportedLanguages, languages);
     for(let languageId of languages) {
-        console.log("writing json bundle for language " + languageId + " ...");
+        console.log(` - ${componentFolder}/${languageId}.json`);
         await writeJSONBundle(componentFolder, languageId, translations);
     }
 }
 
 async function writeJSONBundle(componentFolder, languageId, translations) {
     let payload = {};
-    for(let key in translations) {
-        let keyPieces = key.split(".");
-        let target = payload;
-        let prevTarget = payload;
-        let keyPiece;
-        for(keyPiece of keyPieces) {
-          let nextTarget = target[keyPiece];
-          if(!nextTarget) nextTarget = target[keyPiece] = {};
-          prevTarget = target;
-          target = nextTarget;
-        }
-        prevTarget[keyPiece] = translations[key][languageId];
+    for(let key in translations)
+    {
+        // Notation: dot separated keys
+        payload[key] = translations[key][languageId];
     }
-    console.log("payload = " + JSON.stringify(payload));
+    // console.log("payload = " + JSON.stringify(payload));
     fs.writeFileSync(componentFolder + "/" + languageId + ".json", JSON.stringify(payload, null, 4)); //process.exit(1);
 }
 
-async function writeIndexJs(componentFolder, supportedLanguages) {
+async function writeIndexJs(componentFolder, supportedLanguages, importLanguages) {
     let payload = "// this file was auto generated by duriel, don't manually change it!\n\n";
-    let exportStr = "module.exports = {";
-    for(let languageId in supportedLanguages) {
+
+    let languages = ["en"];
+
+    // read existing languages from current folder
+    let files = fs.readdirSync(componentFolder);
+
+    files.forEach(filename => {
+        const result = filename.match(/^(.{2})\.json$/);
+        const lang = result && result[1];
+        if (result && supportedLanguages[lang])
+            languages.push(lang);
+    });
+
+    // add import languages, but avoid duplicates
+    importLanguages.forEach(lang => {
+        if (!languages.includes(lang) && supportedLanguages[lang])
+            languages.push(lang);
+    });
+
+    languages.sort().forEach(languageId => {
         payload += "const " + languageId + " = require('./" + languageId + ".json');\n";
-        exportStr += languageId + ", ";
-    }
-    exportStr = exportStr.substring(0, exportStr.length -2);
-    payload += "\n" + exportStr + " };\n"
+    });
+    payload += "\n";
+    payload += "module.exports = {" + languages.join(", ") + "};\n";
+
     fs.writeFileSync(componentFolder + "/index.js", payload);
 }
 
@@ -117,4 +181,3 @@ async function init() {
     })
   });
 }
-
