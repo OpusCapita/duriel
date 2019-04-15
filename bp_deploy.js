@@ -68,7 +68,7 @@ const exec = async function () {
         }
 
         log.info("loading task template...");
-        await loadTaskTemplate(config);
+        const taskTemplate = await loadTaskTemplate(config);
         log.debug("...finished task template");
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
@@ -107,9 +107,8 @@ const exec = async function () {
         config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
-
-        if (isCreateMode) {
-            log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
+        if(taskTemplate['infra-service']) {
+            log.info(`infra service --> running create mode`);
             if (!fs.existsSync('./task_template.json')) {
                 log.info(`no task_template found, create mode unsupported`);
                 process.exit(1);
@@ -122,23 +121,38 @@ const exec = async function () {
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
             }
         } else {
-            log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
-            await handleServiceDB(config, proxy, true);
-            log.info("Trying to fetch secrets from target env.");
-            const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key`);
-
-            const addSecret = fetchedSecrets.length !== 1;
-            if (addSecret) {
-                log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
-                //const secrets = await generateSecret(true, config, proxy);
-                //config['serviceSecret'] = secrets.serviceSecret;
-                //config['serviceId'] = secrets.serviceId;
+            if (isCreateMode) {
+                log.info(`service not found on '${config['TARGET_ENV']}' --> running create mode`);
+                if (!fs.existsSync('./task_template.json')) {
+                    log.info(`no task_template found, create mode unsupported`);
+                    process.exit(1);
+                } else {
+                    log.info("drop/creating the service secret");
+                    const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
+                    config['serviceSecret'] = generatedSecret.serviceSecret;
+                    config['secretId'] = generatedSecret.secretId;
+                    await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
+                    dockerCommand = dockerCommandBuilder.dockerCreate(config);
+                }
             } else {
-                log.debug("service secret retrieved from running instance.");
-                config['serviceSecret'] = fetchedSecrets[0];
+                log.info(`service exists on ${config['TARGET_ENV']}, going to run update mode`);
+                await handleServiceDB(config, proxy, true);
+                log.info("Trying to fetch secrets from target env.");
+                const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key`);
+
+                const addSecret = fetchedSecrets.length !== 1;
+                if (addSecret) {
+                    log.warn(`was not able to get unique secret from env (got values(first 4 chars): [${fetchedSecrets.map(it => it.substring(0, 4)).join(', ')}]), generating`);
+                    //const secrets = await generateSecret(true, config, proxy);
+                    //config['serviceSecret'] = secrets.serviceSecret;
+                    //config['serviceId'] = secrets.serviceId;
+                } else {
+                    log.debug("service secret retrieved from running instance.");
+                    config['serviceSecret'] = fetchedSecrets[0];
+                }
+                // dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);
+                dockerCommand = dockerCommandBuilder.dockerUpdate(config, false); // TODO: remove me
             }
-            // dockerCommand = dockerCommandBuilder.dockerUpdate(config, addSecret);
-            dockerCommand = dockerCommandBuilder.dockerUpdate(config, false); // TODO: remove me
         }
         log.info(`docker command is: `, dockerCommand);
         await doConsulInjection(config, proxy);
@@ -149,22 +163,24 @@ const exec = async function () {
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
 
-        log.info("monitoring service after command-execution");
-        const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
-        if (monitorResult === 'failure') {
-            log.error("service unhealthy after deployment, starting rollback!");
-            await rollback(config, proxy);
-        } else
-            log.info(`E2E - Monitoring exited with status: '${monitorResult}'`);
+        if(!taskTemplate['infra-service']) {
+            log.info("monitoring service after command-execution");
+            const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
+            if (monitorResult === 'failure') {
+                log.error("service unhealthy after deployment, starting rollback!");
+                await rollback(config, proxy);
+            } else
+                log.info(`E2E - Monitoring exited with status: '${monitorResult}'`);
 
-        if (bn_testToken) {
-            const e2eTestStatus = await bn_e2eTester.getTestStatus(config, proxy);
-            log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${bn_testToken ? bn_testToken['testNumber'] : ''}'`);
-            if (bn_testToken['testNumber'] !== e2eTestStatus['testNumber'] || !['running', 'queued'].includes(e2eTestStatus['status'])) {
-                log.info(`triggering a new e2e test run!`);
-                await bn_e2eTester.triggerE2ETest(config);    // add rollback on failure?
+            if (bn_testToken) {
+                const e2eTestStatus = await bn_e2eTester.getTestStatus(config, proxy);
+                log.info(`last e2e-test:'${e2eTestStatus['testNumber']}', waiting for e2e-test: '${bn_testToken ? bn_testToken['testNumber'] : ''}'`);
+                if (bn_testToken['testNumber'] !== e2eTestStatus['testNumber'] || !['running', 'queued'].includes(e2eTestStatus['status'])) {
+                    log.info(`triggering a new e2e test run!`);
+                    await bn_e2eTester.triggerE2ETest(config);    // add rollback on failure?
+                }
+                await bn_e2eTester.waitForTest(config);
             }
-            await bn_e2eTester.waitForTest(config);
         }
         if (dependsOnServiceClient()) {
             await setupServiceUser(config, proxy);

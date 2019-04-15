@@ -495,13 +495,14 @@ class EnvProxy {
                             const replicasSplit = split[2].split('/');
                             return {
                                 id: split[0],
-                                name: split[1],
+                                name: split[1].split(':')[0],
                                 instances_up: replicasSplit[0],
                                 instances_target: replicasSplit[1],
                                 image: split[3],
                                 image_name: split[3].split(":")[0],
                                 image_version: split[3].split(":")[1],
-                                ports: split[4].split(comma_splitter)
+                                ports: split[4].split(comma_splitter),
+                                label: split[1]
                             };
                         }
                     }
