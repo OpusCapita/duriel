@@ -107,7 +107,7 @@ const exec = async function () {
         config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
-        if(taskTemplate['infra-service']) {
+        if(taskTemplate['oc-infra-service']) {
             log.info(`infra service --> running create mode`);
             if (!fs.existsSync('./task_template.json')) {
                 log.info(`no task_template found, create mode unsupported`);
@@ -163,7 +163,7 @@ const exec = async function () {
         const commandResponse = await proxy.executeCommand_E(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']} ; ${dockerCommand}`);
         log.debug("command execution got response: ", commandResponse);
 
-        if(!taskTemplate['infra-service']) {
+        if(!taskTemplate['oc-infra-service']) {
             log.info("monitoring service after command-execution");
             const monitorResult = await monitorDockerContainer_E(config, proxy, isCreateMode); // mark actions on ENV or LOCAL, etc.
             if (monitorResult === 'failure') {
