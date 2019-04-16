@@ -96,7 +96,7 @@ const exec = async function () {
         }
 
         log.info("loading service informations"); // docker service inspect
-        const serviceInformation = await proxy.getServiceInspect_E(config['CIRCLE_PROJECT_REPONAME']);
+        const serviceInformation = taskTemplate['oc-infra-service'] ? await proxy.getInfraServiceInspect_E(config['CIRCLE_PROJECT_REPONAME']) : await proxy.getServiceInspect_E(config['CIRCLE_PROJECT_REPONAME']);
         await fileHandler.saveObject2File(serviceInformation, './service_config.json', true);
         log.debug("saved service information into 'service_config.json'");
 
@@ -104,6 +104,10 @@ const exec = async function () {
         const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
 
+        log.info('Service information');
+        log.info(serviceInformation);
+        log.info(`Is create mode`+isCreateMode);
+        process.exit(1);
         config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);

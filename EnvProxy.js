@@ -553,6 +553,19 @@ class EnvProxy {
         }
     }
 
+    async getInfraServiceInspect_E(serviceName) {
+        try {
+            const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect $(docker service ls --filter label="${serviceName}" --format="{{.ID}}") `));
+            if ((serviceInformation && serviceInformation.length === 0) || !serviceInformation) {
+                log.warn("no service information in docker for service: " + serviceName);
+                return;
+            }
+            return serviceInformation;
+        } catch (error) {
+            log.error("error while fetching service information", error);
+        }
+    }
+
     getNodes_E() {
         return this.executeCommand_E("docker node ls --format '{{.ID}};{{.Hostname}};{{.Status}};{{.Availability}};{{.ManagerStatus}}'")
             .then(response => {
