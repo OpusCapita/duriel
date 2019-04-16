@@ -495,7 +495,7 @@ class EnvProxy {
                             const replicasSplit = split[2].split('/');
                             return {
                                 id: split[0],
-                                name: split[1].split(':')[0],
+                                name: split[1].split('---')[0],
                                 instances_up: replicasSplit[0],
                                 instances_target: replicasSplit[1],
                                 image: split[3],
