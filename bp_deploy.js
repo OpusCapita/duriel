@@ -104,14 +104,14 @@ const exec = async function () {
         const isCreateMode = !serviceInformation;
         config['isCreateMode'] = isCreateMode;
 
-        log.info('Service information');
-        log.info(serviceInformation);
-        log.info(`Is create mode`+isCreateMode);
-        process.exit(1);
         config['serviceSecrets'] = await dockerSecretHelper.getSecretsForDockerCommands(config, proxy);
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
         if(taskTemplate['oc-infra-service']) {
+            if(serviceInformation.length > 1){
+                log.warn(`more than one infra-service exists please finish previous upgrade and remove old version before deploying new one!`);
+                process.exit(1);
+            }
             log.info(`infra service --> running create mode`);
             if (!fs.existsSync('./task_template.json')) {
                 log.info(`no task_template found, create mode unsupported`);
