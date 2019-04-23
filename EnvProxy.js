@@ -495,13 +495,14 @@ class EnvProxy {
                             const replicasSplit = split[2].split('/');
                             return {
                                 id: split[0],
-                                name: split[1],
+                                name: split[1].split('---')[0],
                                 instances_up: replicasSplit[0],
                                 instances_target: replicasSplit[1],
                                 image: split[3],
                                 image_name: split[3].split(":")[0],
                                 image_version: split[3].split(":")[1],
-                                ports: split[4].split(comma_splitter)
+                                ports: split[4].split(comma_splitter),
+                                label: split[1]
                             };
                         }
                     }
@@ -542,6 +543,19 @@ class EnvProxy {
     async getServiceInspect_E(serviceName) {
         try {
             const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect ${serviceName}`));
+            if ((serviceInformation && serviceInformation.length === 0) || !serviceInformation) {
+                log.warn("no service information in docker for service: " + serviceName);
+                return;
+            }
+            return serviceInformation;
+        } catch (error) {
+            log.error("error while fetching service information", error);
+        }
+    }
+
+    async getInfraServiceInspect_E(serviceName) {
+        try {
+            const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect $(docker service ls --filter label="${serviceName}" --format="{{.ID}}") `));
             if ((serviceInformation && serviceInformation.length === 0) || !serviceInformation) {
                 log.warn("no service information in docker for service: " + serviceName);
                 return;

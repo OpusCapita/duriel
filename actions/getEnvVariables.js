@@ -78,6 +78,7 @@ module.exports = async function () {
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     config['VERSION'] = await calculateVersion.calculateImageTag(config);
+    config['serviceVersion'] = config['VERSION'].replace(/\./g,'-');
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 
