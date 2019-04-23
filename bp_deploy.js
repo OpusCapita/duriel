@@ -71,7 +71,7 @@ const exec = async function () {
         const taskTemplate = await loadTaskTemplate(config);
         log.debug("...finished task template");
 
-        if(config.fromProcessEnv('ignore_limit')){
+        if(config.fromProcessEnv('ignore_limit') || taskTemplate['oc-infra-service']){
             log.info('limit-cpu and limit-memory are ignored, this flag will be soon removed!');
         } else {
             if(typeof taskTemplate['limit-cpu'] === "undefined"){
