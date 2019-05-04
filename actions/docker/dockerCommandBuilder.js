@@ -215,25 +215,49 @@ const updateMarh = function (param) {
 
 const updateMar = function (param) {
     const delimiter = '==';
+    const delimiterNotEQ = '!=';
     let result = "";
     const mappedKV = {};
+    const mappedKVNotEQ = {};
     param.dv.forEach(entry => {
-            const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter)[1];
-            mappedKV[name] = {dv: value};
+            if(entry.includes(delimiter)){
+                const name = entry.split(delimiter)[0];
+                const value = entry.split(delimiter)[1];
+                mappedKV[name] = {dv: value};
+            } else {
+                if (entry.includes(delimiterNotEQ)){
+                    const name = entry.split(delimiterNotEQ)[0];
+                    const value = entry.split(delimiterNotEQ)[1];
+                    mappedKVNotEQ[name] = {dv: value};
+                }
+            }
         }
     );
     param.cv.forEach(
         entry => {
-            const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter)[1];
-            if (mappedKV[name]) {
-                mappedKV[name].cv = value;
+            if(entry.includes(delimiter)){
+                const name = entry.split(delimiter)[0];
+                const value = entry.split(delimiter)[1];
+                if (mappedKV[name]) {
+                    mappedKV[name].cv = value;
+                } else {
+                    log.debug(`${name} is not needed any more - removing`);
+                    result += ` --${param.name}-rm "${entry}"`;
+                }
             } else {
-                log.debug(`${name} is not needed any more - removing`);
-                result += ` --${param.name}-rm "${entry}"`;
+                if (entry.includes(delimiterNotEQ)){
+                    const name = entry.split(delimiterNotEQ)[0];
+                    const value = entry.split(delimiterNotEQ)[1];
+                    if (mappedKVNotEQ[name]) {
+                        mappedKVNotEQ[name].cv = value;
+                    } else {
+                        log.debug(`${name} is not needed any more - removing`);
+                        result += ` --${param.name}-rm "${entry}"`;
+                    }
+                }
             }
         });
+    result = addKeyValueParam(result, mappedKVNotEQ, delimiterNotEQ, param.name);
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
