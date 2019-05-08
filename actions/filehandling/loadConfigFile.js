@@ -11,6 +11,5 @@ const log = new EpicLogger();
 
 module.exports = function (fileName) {
     const dataFromFile = fileHandler.loadFile2Object(fileName);
-    log.info("dataFromFile: " + JSON.stringify(dataFromFile));
     return getEnvVariables.getBaseConfigObject(dataFromFile);
 };

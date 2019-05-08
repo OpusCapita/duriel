@@ -35,8 +35,6 @@ const exec = async function () {
             return;
         }
 
-        log.info("config: " + JSON.stringify(config));
-
         if (!config['TARGET_ENV']) {
             log.info("no deployment to env needed.");
             process.exit(0);
@@ -72,8 +70,6 @@ const exec = async function () {
         log.info("loading task template...");
         const taskTemplate = await loadTaskTemplate(config);
         log.debug("...finished task template");
-
-        log.info("taskTemplate: " + JSON.stringify(taskTemplate));
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
         config['serviceSecret'] = "";
