@@ -271,6 +271,9 @@ const updateMark = function (param) {
             mappedKV[name] = {dv: value};
         }
     );
+    if(typeof param.cv.forEach == "undefined"){
+        return addKeyValueParam(result, mappedKV, delimiter, param.name);
+    }
     param.cv.forEach(
         entry => {
             const name = entry.split(delimiter)[0];
