@@ -555,6 +555,11 @@ class EnvProxy {
 
     async getInfraServiceInspect_E(serviceName) {
         try {
+            const serviceList = JSON.parse(await this.executeCommand_E(`docker service ls --filter label="${serviceName}" --format="{{.ID}}" `));
+            if ((serviceList && serviceList.length === 0) || !serviceList) {
+                log.warn("no service information in docker for service: " + serviceName);
+                return;
+            }
             const serviceInformation = JSON.parse(await this.executeCommand_E(`docker service inspect $(docker service ls --filter label="${serviceName}" --format="{{.ID}}") `));
             if ((serviceInformation && serviceInformation.length === 0) || !serviceInformation) {
                 log.warn("no service information in docker for service: " + serviceName);
