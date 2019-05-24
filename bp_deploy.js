@@ -122,7 +122,7 @@ const exec = async function () {
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
         if(taskTemplate['oc-infra-service']) {
-            if(serviceInformation.length > 1){
+            if(!isCreateMode && serviceInformation.length > 1){
                 log.warn(`more than one infra-service exists please finish previous upgrade and remove old version before deploying new one!`);
                 process.exit(1);
             }
