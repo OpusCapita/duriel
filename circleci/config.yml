@@ -56,7 +56,7 @@ jobs:
           command: |
              git clone https://github.com/OpusCapita/duriel.git -b master ../buildprocess
              cd ../buildprocess
-             npm install
+             npm install --verbose
              npm test
              mv junit ~/build/junit
              cd ~/build
