@@ -132,17 +132,9 @@ const exec = async function () {
                 process.exit(1);
             } else {
                 log.info("drop/creating the service secret");
-                const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key`);
-
-                const addSecret = fetchedSecrets.length !== 1;
-                if (addSecret) {
-                    const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
-                    config['serviceSecret'] = generatedSecret.serviceSecret;
-                    config['secretId'] = generatedSecret.secretId;
-                } else {
-                    log.debug("service secret retrieved from running instance.");
-                    config['serviceSecret'] = fetchedSecrets[0];
-                }
+                const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
+                config['serviceSecret'] = generatedSecret.serviceSecret;
+                config['secretId'] = generatedSecret.secretId;
                 await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
             }
