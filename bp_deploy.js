@@ -86,6 +86,9 @@ const exec = async function () {
         }
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
+        if(taskTemplate['oc-infra-service']) {
+            config['serviceSecretName'] = `${taskTemplate['name']}-consul-key`;
+        }
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
