@@ -74,10 +74,12 @@ const exec = async function () {
         if(config.fromProcessEnv('ignore_limit') || taskTemplate['oc-infra-service']){
             log.info('limit-cpu and limit-memory are ignored, this flag will be soon removed!');
         } else {
+            /* Remove requirement for limit-cpu
             if(typeof taskTemplate['limit-cpu'] === "undefined"){
                 log.warn(`Required limit-cpu is not set in task template - please set it, have in mind that also other services are running on same node`);
                 process.exit(1);
             }
+            */
     
             if(typeof taskTemplate['limit-memory'] === "undefined"){
                 log.warn(`Required limit-memory is not set in task template - please set it, have in mind that also other services are running on same node`);
