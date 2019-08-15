@@ -9,6 +9,7 @@
   "mode":{"path":"Spec/Mode", "type":"create"},
   "mount":{"path":"Spec/TaskTemplate/ContainerSpec/Mounts", "type":"mart", "keyNames":["Target"]},
   "name":{"path":"Spec/Name", "type":"create"},
+  "label":{"path":"Spec/Labels", "type":"mark"},
   "publish":{"path":"Spec/EndpointSpec/Ports", "type":"mart", "keyNames":["TargetPort", "Protocol"], "fieldMap":{"Target":"TargetPort", "Mode":"PublishMode","Published":"PublishedPort"}, "rmKeyType":"srcKVCommaSeparated"},
   "replicas":{"path":"Spec/Mode/Replicated/Replicas", "type":"repl"},
   "limit-cpu": {"path":"Spec/TaskTemplate/Resources/Limits/NanoCPUs", "mapping": "cpu2nano", "type":"repl"},

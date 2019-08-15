@@ -74,10 +74,12 @@ const exec = async function () {
         if(config.fromProcessEnv('ignore_limit') || taskTemplate['oc-infra-service']){
             log.info('limit-cpu and limit-memory are ignored, this flag will be soon removed!');
         } else {
+            /* Remove requirement for limit-cpu
             if(typeof taskTemplate['limit-cpu'] === "undefined"){
                 log.warn(`Required limit-cpu is not set in task template - please set it, have in mind that also other services are running on same node`);
                 process.exit(1);
             }
+            */
     
             if(typeof taskTemplate['limit-memory'] === "undefined"){
                 log.warn(`Required limit-memory is not set in task template - please set it, have in mind that also other services are running on same node`);
@@ -86,6 +88,9 @@ const exec = async function () {
         }
 
         config['serviceSecretName'] = `${config['serviceName']}-consul-key`;
+        if(taskTemplate['oc-infra-service']) {
+            config['serviceSecretName'] = `${taskTemplate['name']}-consul-key`;
+        }
         config['serviceSecret'] = "";
 
         const proxy = await new EnvProxy().init(config);
@@ -122,7 +127,7 @@ const exec = async function () {
 
         await dockerSecretHelper.createDockerSecrets(config, proxy, 'createdBy=duriel', 'source=task_template', `createdFor=${config['serviceName']}`);
         if(taskTemplate['oc-infra-service']) {
-            if(serviceInformation.length > 1){
+            if(!isCreateMode && serviceInformation.length > 1){
                 log.warn(`more than one infra-service exists please finish previous upgrade and remove old version before deploying new one!`);
                 process.exit(1);
             }
@@ -132,17 +137,9 @@ const exec = async function () {
                 process.exit(1);
             } else {
                 log.info("drop/creating the service secret");
-                const fetchedSecrets = await proxy.readDockerSecretOfService_E(config['serviceName'], `${config['serviceName']}-consul-key`);
-
-                const addSecret = fetchedSecrets.length !== 1;
-                if (addSecret) {
-                    const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
-                    config['serviceSecret'] = generatedSecret.serviceSecret;
-                    config['secretId'] = generatedSecret.secretId;
-                } else {
-                    log.debug("service secret retrieved from running instance.");
-                    config['serviceSecret'] = fetchedSecrets[0];
-                }
+                const generatedSecret = await dockerSecretHelper.replace(proxy, config['serviceSecretName']);
+                config['serviceSecret'] = generatedSecret.serviceSecret;
+                config['secretId'] = generatedSecret.secretId;
                 await handleServiceDB(config, proxy, true); // param true is idiotic, as it is set in old buildprocess as default
                 dockerCommand = dockerCommandBuilder.dockerCreate(config);
             }

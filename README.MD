@@ -24,7 +24,7 @@
 
 ## docker build option
 
-Duriel default build option is normal one (Builder pattern) - Dockerfile doesn't contain stages
+Duriel default build option is a normal one (Builder pattern) - Dockerfile doesn't contain stages
 
 MultiStage build option can be enabled in circleci config "building and testing locally" step with adding additional argument true
 ```bash
@@ -36,9 +36,9 @@ FROM imagex AS production
 FROM imagey AS dev
 # Hint you can use production for imagey and just install additional modules/tools
 ```
-Stage **production** should contain only dependicies that are needed for running, everything else should be purged/removed - *so that we have small image in the end*.
+Stage **production** should contain only dependencies that are needed for running, everything else should be purged/removed - *so that we have a small image in the end*.
 
-Stage **dev** can contain all dependicies and tools that are needed for testing/creating documents etc - this is the image that will be used for all tests.
+Stage **dev** can contain all dependencies and tools that are needed for testing/creating documents etc - this is the image that will be used for all tests.
 
 
 ## pull-request creation
@@ -53,15 +53,15 @@ When deploying successfully to a "hotfix/" or "release/" branch, the build-proce
 
 ## version validation
 
-Before a env-deployment library-dependencies are checked.
+Before an env-deployment library-dependencies are checked.
 Current dependencies of an ENV are placed inside the envLibDependenciesjson-File.
 
 If an environment demands a specific version of a library and the service uses that library,
-the demanded library-version musst be used.
+the demanded library-version must be used.
 
-In addition every service can have 'serviceDependencies' and 'libraryDependencies' inside the task_template.json.
+In addition, every service can have 'serviceDependencies' and 'libraryDependencies' inside the task_template.json.
 
-_**Currently this feature is logging it's results but will not impact the deployment**_
+_**Currently this feature is logging its results but will not impact the deployment**_
 
 ### example: serviceDependencies
 ```javascript
@@ -79,14 +79,14 @@ This will cause a check for the service "auth" on the deployment-env.
 }
 ```
 
-If a service depends on the referenced service, it musst have the given library of the given verion.
+If a service depends on the referenced service, it must have the given library of the given version.
  
 ## task_template.json
 
 The task_template.json is used to set up and configure a service in andariel.
 It can contain on the one hand service-specific configurations (like consul-values or env-variables) or settings regarding the docker-swarm (e.g. cpu-limit, ports)
 
-The configuration can be split into environment specific config. To do this create an entry inside this JSON called "develop", "stage" or "prod"
+The configuration can be split into an environment specific config. To do this create an entry inside this JSON called "develop", "stage" or "prod"
 The data inside this entry will override the "default"
 
 example:
@@ -150,15 +150,15 @@ Inject values into consul
 ### oc-secret-injection
 Inject secrets into the docker-swarm on ENV.
 Values can be flat strings of JS-Objects.
-Objects musst have a "value"-attribute. Optional an "encoding"-attribute can be added (e.g. "base64").
+Objects must have a "value"-attribute. Optional an "encoding"-attribute can be added (e.g. "base64").
 Other "encoding"-types can be used if they are compatible with the Node-Buffer-Class (Buffer.from("", "${encoding}")) 
 
 ### limit-cpu
-number of cores that can be used by one instance of a service.
+a number of cores that can be used by one instance of a service.
 e.g. "0,5" means 50% of one Core of a node can be utilized by the service
 
 ### reserve-cpu
-number of cores that are blocked by one instance of a service.
+a number of cores that are blocked by one instance of a service.
 
 ### limit-memory
 maximum RAM-Usage of a container.

@@ -71,13 +71,16 @@ async function getSecretsForDockerCommands(config, proxy) {
         log.debug("1.1 - secrets from task_template: ", Object.keys(taskTemplateSecrets));
     else
         taskTemplateSecrets = {};
-
+    let serviceName = config['serviceName'];
+    if (taskTemplate['oc-infra-service']){
+        serviceName = taskTemplate["name"];
+    }
     const necessarySecrets = utilHelper.arrayMinus(Object.keys(taskTemplateSecrets), blackList);
     log.info("1.2 - Loading Secrets on Env for service.");
-    const deployedSecrets = await proxy.getDockerSecretsOfService(config['serviceName'])
+    const deployedSecrets = await proxy.getDockerSecretsOfService(serviceName)
         .catch(e => {
-            log.warn(`could not fetch secrets for service '${config['serviceName']}'`);
-            log.severe(`could not fetch secrets for service '${config['serviceName']}'`, e);
+            log.warn(`could not fetch secrets for service '${serviceName}'`);
+            log.severe(`could not fetch secrets for service '${serviceName}'`, e);
             return [];
         })
         .then(secrets => secrets.map(it => it.name))
