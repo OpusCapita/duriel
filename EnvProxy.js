@@ -13,7 +13,7 @@ const log = new EpicLogger();
 
 const helper = require('./actions/helpers/utilHelper');
 
-let default_config = {};
+let default_config = { 'MYSQL_SERVICE': 'mysql'};
 
 const semicolon_splitter = /\s*;\s*/; // split and trim in one regex <3
 const comma_splitter = /\s*,\s*/;
@@ -64,7 +64,7 @@ class EnvProxy {
 
         return initSsh
             .then(() => this.createProxiedTunnel('consul', 'localhost', 8500))
-            .then(() => this.lookupService('mysql'))
+            .then(() => this.lookupService(this.config['MYSQL_SERVICE']))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
             .then(() => this)
             .catch((err) => {

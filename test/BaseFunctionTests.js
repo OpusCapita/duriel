@@ -40,6 +40,18 @@ function run() {
                 assert.equal(password, "none");
             });
         });
+        describe("getDataBaseService", () => {
+            it("has an ENV and a SERVICE", () => {
+                const config = getBaseConfigObject({TARGET_ENV: "develop", SECRET_develop_MYSQL_SERVICE: "ok"});
+                const service = getEnvVariables.getDatabaseService(config);
+                assert.equal(service, "ok");
+            });
+            it("has no ENV and a SERVICE", () => {
+                const config = getBaseConfigObject({SECRET_develop_MYSQL_SERVICE: "ok"});
+                const service = getEnvVariables.getDatabaseService(config);
+                assert.equal(service, "none");
+            });
+        });
         describe("calculate target-envs", () => {
             it("calculates target-envs", () => {
                 assert.equal("develop", calculatEnv.getTargetEnv("develop"));
