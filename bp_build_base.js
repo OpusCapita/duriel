@@ -14,7 +14,7 @@ async function run() {
         log.info("No 'Dockerfile.base' was found - no base image will be build");
     }
 
-    const config = getEnvVariables();
+    const config = await getEnvVariables();
     await buildDockerImage.buildBaseImage(config);
     await dockerHelper.loginLocal(config);
     await dockerHelper.pushImage(config['HUB_REPO'], 'base');

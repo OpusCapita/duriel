@@ -76,6 +76,7 @@ module.exports = async function () {
 
 
     config['MYSQL_PW'] = getDatabasePassword(config);
+    config['MYSQL_SERVICE'] = getDatabaseService(config);
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     config['VERSION'] = await calculateVersion.calculateImageTag(config);
     config['serviceVersion'] = config['VERSION'].replace(/\./g,'-');
@@ -116,6 +117,28 @@ function getDatabasePassword(config) {
 }
 
 module.exports.getDatabasePassword = getDatabasePassword;
+
+/**
+ * Fetches the db-service for the targetEnv
+ * @param config
+ * @returns {string} password
+ */
+function getDatabaseService(config) {
+    if(!config['TARGET_ENV']){
+        return "none";
+    }
+    //TODO: check if Service needs DB;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_SERVICE`;
+    if (config.get(valueKey)) {
+        log.severe(`env_var ${valueKey} set successfully.`);
+        return config.get(valueKey);
+    } else {
+        log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
+        //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+    }
+}
+
+module.exports.getDatabaseService = getDatabaseService;
 
 
 const getBaseConfigObject = function (result = {}) {
