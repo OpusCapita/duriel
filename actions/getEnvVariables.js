@@ -76,7 +76,9 @@ module.exports = async function () {
 
 
     config['MYSQL_PW'] = getDatabasePassword(config);
+    config['MYSQL_PW_AUTH'] = getDatabasePassword(config,'_AUTH');
     config['MYSQL_SERVICE'] = getDatabaseService(config);
+    config['MYSQL_SERVICE_AUTH'] = getDatabaseService(config,'_AUTH');
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     config['VERSION'] = await calculateVersion.calculateImageTag(config);
     config['serviceVersion'] = config['VERSION'].replace(/\./g,'-');
@@ -101,12 +103,12 @@ module.exports.calculateRepoPath = calculateRepoPath;
  * @param config
  * @returns {string} password
  */
-function getDatabasePassword(config) {
+function getDatabasePassword(config, service) {
     if(!config['TARGET_ENV']){
         return "none";
     }
     //TODO: check if Service needs DB;
-    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`+service;
     if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);
@@ -123,12 +125,12 @@ module.exports.getDatabasePassword = getDatabasePassword;
  * @param config
  * @returns {string} password
  */
-function getDatabaseService(config) {
+function getDatabaseService(config, service) {
     if(!config['TARGET_ENV']){
         return "none";
     }
     //TODO: check if Service needs DB;
-    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_SERVICE`;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_SERVICE`+service;
     if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);

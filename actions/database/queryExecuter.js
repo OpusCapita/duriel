@@ -3,20 +3,20 @@ const Logger = require('../../EpicLogger');
 const log = new Logger();
 const mysql = require('mysql2/promise');
 
-module.exports = function (config, proxy, query) {
+module.exports = function (config, proxy, query, server='mysql') {
     return executeQuery({
         host: 'localhost',
-        port: proxy.proxyServers['mysql'].port,
+        port: proxy.proxyServers[server].port,
         user: 'root',
-        password: config['MYSQL_PW']
+        password: config['MYSQL_PW'] //TODO PASSWORD NEEDS TO REFLECT SERVER
     }, query);
 
 };
 
-module.exports.executeMultiLineQuery = function (config, proxy, query) {
+module.exports.executeMultiLineQuery = function (config, proxy, query, server='mysql') {
     return executeQuery({
         host: 'localhost',
-        port: proxy.proxyServers['mysql'].port,
+        port: proxy.proxyServers[server].port,
         user: 'root',
         password: config['MYSQL_PW'],
         multipleStatements: true
