@@ -17,7 +17,7 @@ module.exports = async function (serviceName, attempts = 5, interval = 1000) {
             }
             let containers = await proxy.getContainers_L();
             containers = containers.filter((service) => service.image.includes(serviceName));
-            if (containers.length === 0) {
+            if ((attempt > attempts/2) && (containers.length === 0)) {
                 result.success = false;
                 result.message = `no container found for service ${serviceName}`;
                 throw new Error(JSON.stringify(result));
