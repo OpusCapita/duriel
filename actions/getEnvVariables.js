@@ -76,7 +76,9 @@ module.exports = async function () {
 
 
     config['MYSQL_PW'] = getDatabasePassword(config);
+    config['MYSQL_USER'] = 'root';
     config['MYSQL_PW_AUTH'] = getDatabasePassword(config,'_AUTH');
+    config['MYSQL_USER_AUTH'] = 'root';
     config['MYSQL_SERVICE'] = getDatabaseService(config);
     config['MYSQL_SERVICE_AUTH'] = getDatabaseService(config,'_AUTH');
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];

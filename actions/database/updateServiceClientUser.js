@@ -14,10 +14,15 @@ const db_init_flag = "db-Init";
 module.exports = async function (config, proxy, checkOnly = true) {
     log.info("1 - Setting up serviceClient-user");
     let injectUser = false;
+    let server = 'auth';
 
     if (!config['MYSQL_PW']) {
         log.warn("MySQL functions disabled as no database-password in env-vars.");
         return true;
+    }
+
+    if (!config['MYSQL_PW_AUTH']){
+        server = 'mysql';
     }
 
     if (!config['svcUserName']) {
@@ -36,7 +41,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
     log.info("1.2 - Checking for serviceUser inside the database");
     const query = `SELECT * FROM auth.UserAuth WHERE id = '${config['svcUserName']}'`;
-    const queryResult = await queryExecuter(config, proxy, query);
+    const queryResult = await queryExecuter(config, proxy, query, server);
 
     if (queryResult[0].length === 0) {
         log.info(`1.2 - ${config['svcUserName']} was not found in the database`);
@@ -63,13 +68,13 @@ module.exports = async function (config, proxy, checkOnly = true) {
 
         log.info("2.1 - Deleting old svc-user... ");
         const deleteUserQuery = `DELETE FROM auth.UserAuth WHERE id = '${config['svcUserName']}';`;
-        await queryExecuter(config, proxy, deleteUserQuery);
+        await queryExecuter(config, proxy, deleteUserQuery, server);
         log.debug("2.1 - ... finished deleting");
 
         log.info("2.2 - inserting new svc-user ... ");
         const insertUserQuery = `INSERT INTO auth.UserAuth (id, password, createdBy, createdOn, changedBy, changedOn)
                                  VALUES ('${config['svcUserName']}', md5('${config['svcUserPassword']}'), 'build-automation', NOW(), 'build-automation', NOW());`;
-        await queryExecuter(config, proxy, insertUserQuery);
+        await queryExecuter(config, proxy, insertUserQuery, server);
         log.debug("2.2 - ... finished inserting new user");
 
         log.info("3.0 - Adding service-client credentials to consul");

@@ -7,8 +7,8 @@ module.exports = function (config, proxy, query, server='mysql') {
     return executeQuery({
         host: 'localhost',
         port: proxy.proxyServers[server].port,
-        user: 'root',
-        password: config['MYSQL_PW'] //TODO PASSWORD NEEDS TO REFLECT SERVER
+        user: config['MYSQL_USER'+serverToService(server)],
+        password: config['MYSQL_PW'+serverToService(server)]
     }, query);
 
 };
@@ -17,11 +17,18 @@ module.exports.executeMultiLineQuery = function (config, proxy, query, server='m
     return executeQuery({
         host: 'localhost',
         port: proxy.proxyServers[server].port,
-        user: 'root',
-        password: config['MYSQL_PW'],
+        user: config['MYSQL_USER'+serverToService(server)],
+        password: config['MYSQL_PW'+serverToService(server)],
         multipleStatements: true
     }, query);
 };
+
+function serverToService(server) {
+    if(server = 'mysql'){
+        return '';
+    }
+    return '_'+server.toUpperCase();
+}
 
 function executeQuery(params, query) {
     let result;
