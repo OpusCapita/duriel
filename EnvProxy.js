@@ -66,7 +66,7 @@ class EnvProxy {
             .then(() => this.createProxiedTunnel('consul', 'localhost', 8500))
             .then(() => this.lookupService(this.config['MYSQL_SERVICE']))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
-            .then(() => this.lookupService(this.config['MYSQL_SERVICE_AUTH'])
+            .then(() => this.lookupService(this.config['MYSQL_SERVICE_AUTH']))
             .then(([ip, port]) => this.createProxiedTunnel('mysql_auth', ip, port))
             .then(() => this)
             .catch((err) => {
