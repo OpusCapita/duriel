@@ -44,7 +44,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     log.info("3.1 creating service-database");
     const createDBQuery = `CREATE DATABASE IF NOT EXISTS \`${config['serviceName']}\`;`;
     await queryExecuter(config, proxy, createDBQuery);
-    log.info("3.1 successfully created service-database");
+    log.info("3.1 successfully created service-database in case it doesn't exist");
     //}
 
     log.info("3.2 getting database password");
