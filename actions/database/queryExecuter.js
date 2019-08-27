@@ -6,7 +6,7 @@ const mysql = require('mysql2/promise');
 module.exports = function (config, proxy, query, server='mysql') {
     return executeQuery({
         host: 'localhost',
-        port: proxy.proxyServers[server].port,
+        port: proxy.proxyServers['mysql'+serverToService(server).toLowerCase()].port,
         user: config['MYSQL_USER'+serverToService(server)],
         password: config['MYSQL_PW'+serverToService(server)]
     }, query);
@@ -16,7 +16,7 @@ module.exports = function (config, proxy, query, server='mysql') {
 module.exports.executeMultiLineQuery = function (config, proxy, query, server='mysql') {
     return executeQuery({
         host: 'localhost',
-        port: proxy.proxyServers[server].port,
+        port: proxy.proxyServers['mysql'+serverToService(server).toLowerCase()].port,
         user: config['MYSQL_USER'+serverToService(server)],
         password: config['MYSQL_PW'+serverToService(server)],
         multipleStatements: true
@@ -24,7 +24,7 @@ module.exports.executeMultiLineQuery = function (config, proxy, query, server='m
 };
 
 function serverToService(server) {
-    if(server = 'mysql'){
+    if(server == 'mysql'){
         return '';
     }
     return '_'+server.toUpperCase();
