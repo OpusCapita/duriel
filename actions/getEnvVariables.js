@@ -105,7 +105,7 @@ module.exports.calculateRepoPath = calculateRepoPath;
  * @param config
  * @returns {string} password
  */
-function getDatabasePassword(config, service) {
+function getDatabasePassword(config, service = '') {
     if(!config['TARGET_ENV']){
         return "none";
     }
@@ -127,7 +127,7 @@ module.exports.getDatabasePassword = getDatabasePassword;
  * @param config
  * @returns {string} password
  */
-function getDatabaseService(config, service) {
+function getDatabaseService(config, service = '') {
     if(!config['TARGET_ENV']){
         return "none";
     }
