@@ -45,7 +45,10 @@ const exec = async function handleDeployment() {
             log.debug("... done.");
 
             await runAfterDeploymentTests(config, proxy);
-            await cleanupSystem(proxy, config);
+            
+            if(Math.random() * 1e10 % 10 === 0) {
+                await cleanupSystem(proxy, config);
+            }
 
             switch (config['TARGET_ENV']) {
                 case 'prod':
