@@ -76,9 +76,9 @@ module.exports = async function () {
 
 
     config['MYSQL_PW'] = getDatabasePassword(config);
-    config['MYSQL_USER'] = 'root';
+    config['MYSQL_USER'] = getDatabaseUser(config);
     config['MYSQL_PW_AUTH'] = getDatabasePassword(config,'_AUTH');
-    config['MYSQL_USER_AUTH'] = 'root';
+    config['MYSQL_USER_AUTH'] = getDatabaseUser(config,'_AUTH');
     config['MYSQL_SERVICE'] = getDatabaseService(config);
     config['MYSQL_SERVICE_AUTH'] = getDatabaseService(config,'_AUTH');
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
@@ -123,9 +123,32 @@ function getDatabasePassword(config, service = '') {
 module.exports.getDatabasePassword = getDatabasePassword;
 
 /**
+ * Fetches the db-user for the targetEnv
+ * @param config
+ * @returns {string} user
+ */
+function getDatabaseUser(config, service = '') {
+    if(!config['TARGET_ENV']){
+        return "none";
+    }
+    //TODO: check if User needs DB;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_USER`+service;
+    if (config.get(valueKey)) {
+        log.severe(`env_var ${valueKey} set successfully.`);
+        return config.get(valueKey);
+    } else {
+        return 'root';
+        //log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
+        //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+    }
+}
+
+module.exports.getDatabaseUser = getDatabaseUser;
+
+/**
  * Fetches the db-service for the targetEnv
  * @param config
- * @returns {string} password
+ * @returns {string} service
  */
 function getDatabaseService(config, service = '') {
     if(!config['TARGET_ENV']){
@@ -137,7 +160,7 @@ function getDatabaseService(config, service = '') {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);
     } else {
-        log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
+        //log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
         //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
