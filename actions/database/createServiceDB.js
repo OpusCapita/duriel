@@ -59,18 +59,15 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     try {
         let mysql_service = await proxy.queryConsul('v1/catalog/service/' + config['MYSQL_SERVICE']).then(data => {
             log.debug(config['MYSQL_SERVICE'] + ' looked up: ' + data[0].Address);
-            log.info(data[0]);
             return Promise.resolve([data[0].Address, data[0]['NodeMeta']['external-node']]);
         })
         .catch(error => {
             log.error(`error looking up '${config['MYSQL_SERVICE']}'`, error);
             throw error;
         });
-        log.info(mysql_service);
         if(mysql_service[1]=="true"){
             username_domain="@"+mysql_service[0];
         }
-        log.info(username_domain);
     } catch (error) {
         log.warn("error while getting service-host from consul: ", error);
     }
@@ -106,7 +103,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     if (injectIntoConsul) {
         log.info("3.5 injecting data into consul");
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/password`, db_password));
-        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']));
+        log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/user`, config['serviceName']+username_domain));
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/database`, config['serviceName']));
         log.debug(await proxy.addKeyValueToConsul(`${config['serviceName']}/db-init/populate-test-data`, populate_test_data));
         log.info("3.5 keys injected.")
