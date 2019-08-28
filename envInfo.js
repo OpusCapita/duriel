@@ -25,7 +25,7 @@ module.exports.develop = extend(true, {}, default_config, {
 module.exports.stage = extend(true, {}, default_config, {
     admin_user: 'duriel-stg',
     public_ip: '13.80.133.40',
-    admin_address: '52.136.243.168',
+    admin_address: 'bnp-admin-stage.westeurope.cloudapp.azure.com',
     public_hostname: 'stage.businessnetwork.opuscapita.com'
 });
 
