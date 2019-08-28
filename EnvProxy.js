@@ -57,7 +57,7 @@ class EnvProxy {
                 hostVerifier: (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
-            log.info("connecting to:", ssh_config);
+            //log.info("connecting to:", ssh_config);
             log.debug("connecting to:", ssh_config);
             this.sshconn.connect(ssh_config);
         });
@@ -66,8 +66,8 @@ class EnvProxy {
             .then(() => this.createProxiedTunnel('consul', 'localhost', 8500))
             .then(() => this.lookupService(this.config['MYSQL_SERVICE']))
             .then(([ip, port]) => this.createProxiedTunnel('mysql', ip, port))
-            //.then(() => this.lookupService(this.config['MYSQL_SERVICE_AUTH']))
-            //.then(([ip, port]) => this.createProxiedTunnel('mysql_auth', ip, port))
+            .then(() => this.lookupService(this.config['MYSQL_SERVICE_AUTH']))
+            .then(([ip, port]) => this.createProxiedTunnel('mysql_auth', ip, port))
             .then(() => this)
             .catch((err) => {
                 log.error("init error: ", err);
