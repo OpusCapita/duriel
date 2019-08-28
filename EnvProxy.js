@@ -57,7 +57,7 @@ class EnvProxy {
                 hostVerifier: (hash) => true
                 // debug: (output) => log.severe(output) // this parameter is so useless...
             };
-
+            log.info("connecting to:", ssh_config);
             log.debug("connecting to:", ssh_config);
             this.sshconn.connect(ssh_config);
         });
