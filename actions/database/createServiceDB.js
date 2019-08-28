@@ -55,6 +55,24 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     } catch (error) {
         log.warn("error while getting service-password from consul: ", error);
     }
+    let username_domain = '';
+    try {
+        let mysql_service = await proxy.queryConsul('v1/catalog/service/' + getDatabaseService(config)).then(data => {
+            log.debug(serviceName + ' looked up: ' + data[0].Address);
+            return Promise.resolve([data[0].Address, data[0].NodeMeta.external-node]);
+        })
+        .catch(error => {
+            log.error(`error looking up '${serviceName}'`, error);
+            throw error;
+        });
+        log.info(mysql_service);
+        if(mysql_service[1]=="true"){
+            username_domain="@"+mysql_service[0];
+        }
+        log.info(username_domain);
+    } catch (error) {
+        log.warn("error while getting service-host from consul: ", error);
+    }
     if (!db_password) {
         log.info("3.2 no database-password was stored in consul. creating a new one!");
         db_password = await proxy.executeCommand_L(`openssl rand -base64 32`);
