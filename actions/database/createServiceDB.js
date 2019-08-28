@@ -58,11 +58,11 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     let username_domain = '';
     try {
         let mysql_service = await proxy.queryConsul('v1/catalog/service/' + config['MYSQL_SERVICE']).then(data => {
-            log.debug(serviceName + ' looked up: ' + data[0].Address);
+            log.debug(config['MYSQL_SERVICE'] + ' looked up: ' + data[0].Address);
             return Promise.resolve([data[0].Address, data[0].NodeMeta.external-node]);
         })
         .catch(error => {
-            log.error(`error looking up '${serviceName}'`, error);
+            log.error(`error looking up '${config['MYSQL_SERVICE']}'`, error);
             throw error;
         });
         log.info(mysql_service);
