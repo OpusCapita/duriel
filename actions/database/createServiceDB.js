@@ -57,7 +57,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     }
     let username_domain = '';
     try {
-        let mysql_service = await proxy.queryConsul('v1/catalog/service/' + getDatabaseService(config)).then(data => {
+        let mysql_service = await proxy.queryConsul('v1/catalog/service/' + config['MYSQL_SERVICE']).then(data => {
             log.debug(serviceName + ' looked up: ' + data[0].Address);
             return Promise.resolve([data[0].Address, data[0].NodeMeta.external-node]);
         })
