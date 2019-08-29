@@ -56,7 +56,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         log.warn("error while getting service-password from consul: ", error);
     }
     let username_domain = '';
-    let username_host = '%';
     try {
         let mysql_service = await proxy.queryConsul('v1/catalog/service/' + config['MYSQL_SERVICE']).then(data => {
             log.debug(config['MYSQL_SERVICE'] + ' looked up: ' + data[0].Address);
@@ -67,7 +66,6 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
             throw error;
         });
         if(mysql_service[1]=="true"){
-            username_host=mysql_service[0].split(".")[0];
             username_domain="@"+mysql_service[0].split(".")[0];
         }
     } catch (error) {
@@ -81,8 +79,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
 
     if (!foundServiceUser) {
         log.info("3.3 creating service-database-user");
-        const createUserQuery = `CREATE USER '${config['serviceName']}'@'${username_host}' IDENTIFIED BY '${db_password}';
-                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'${username_host}';
+        const createUserQuery = `CREATE USER '${config['serviceName']}'@'%' IDENTIFIED BY '${db_password}';
+                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';
                                  FLUSH PRIVILEGES;`;
         await queryExecuter.executeMultiLineQuery(config, proxy, createUserQuery);
     }
