@@ -82,7 +82,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     if (!foundServiceUser) {
         log.info("3.3 creating service-database-user");
         const createUserQuery = `CREATE USER '${config['serviceName']}'@'${username_host}' IDENTIFIED BY '${db_password}';
-                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'%';
+                                 GRANT ALL PRIVILEGES ON \`${config['serviceName']}\`.* TO '${config['serviceName']}'@'${username_host}';
                                  FLUSH PRIVILEGES;`;
         await queryExecuter.executeMultiLineQuery(config, proxy, createUserQuery);
     }
