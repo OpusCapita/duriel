@@ -67,8 +67,8 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
             throw error;
         });
         if(mysql_service[1]=="true"){
-            username_host=mysql_service[0];
-            username_domain="@"+mysql_service[0];
+            username_host=mysql_service[0].split(".")[0];
+            username_domain="@"+mysql_service[0].split(".")[0];
         }
     } catch (error) {
         log.warn("error while getting service-host from consul: ", error);
