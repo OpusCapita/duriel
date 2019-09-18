@@ -4,7 +4,7 @@
     "@opuscapita/event-client",
     "@opuscapita/config",
     "@opuscapita/db-init",
-    "ocbesbn-service-client"
+    "@opuscapita/service-client"
   ],
   "package_results": false
 }

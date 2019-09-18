@@ -9,7 +9,7 @@ const fs = require('fs');
 const libraryHelper = require('./helpers/libraryHelper')
 
 
-const serviceClientLibs = ['ocbesbn-service-client', 'ocbesbn-web-init', '@opuscapita/web-init'];
+const serviceClientLibs = ['@opuscapita/service-client', '@opuscapita/web-init', '@opuscapita/web-init'];
 
 /**
  * check for service-client of web-init dependency
