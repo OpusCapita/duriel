@@ -25,7 +25,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
         log.info(`skipping db handling - no setting inside task_template.json`);
         return;
     }
-    //const populate_test_data = db_init_settings['populate-test-data'];
+    const populate_test_data = db_init_settings['populate-test-data'];
     //log.info("Handling Service Database");
     //log.info("1 getting table schemas");
     //const schemaQuery = `SELECT schema_name as schemaName FROM information_schema.schemata WHERE schema_name = '${config['serviceName']}';`;
