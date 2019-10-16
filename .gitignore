@@ -8,3 +8,6 @@ node_modules
 log.txt
 Translations_*.xlsx
 package-lock.json
+
+# IDEs
+.idea
