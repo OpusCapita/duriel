@@ -25,7 +25,7 @@
   "homepage": "https://github.com/OpusCapita/duriel#readme",
   "dependencies": {
     "ascii-table": "0.0.9",
-    "axios": "^0.17.1",
+    "axios": "^0.19.0",
     "babel-plugin-add-module-exports": "^1.0.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-register": "^6.26.0",
