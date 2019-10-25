@@ -147,9 +147,10 @@ example:
 
 ### oc-consul-injection
 Inject values into consul, consul :env will be replaced with develop, stage or prod
+
 | Consul name | CircleCI name | Description | Value |
 |-----------|-----------|-----------|-----------|
-| db-init/service-name | SECRET_:env_MYSQL_SERVICE | Mysql service name to be used for DB connection | mysql or mysql-andariel (check available mysql services in consul).|
+| db-init/service-name | SECRET_:env_MYSQL_SERVICE | Mysql service name to be used for DB connection | mysql or mysql-andariel (check available mysql services in consul). |
 
 
 ### oc-secret-injection
