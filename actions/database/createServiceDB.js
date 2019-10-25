@@ -74,6 +74,7 @@ module.exports = async function (config, proxy, forceUserCreate = false) {
     if (!db_password) {
         log.info("3.2 no database-password was stored in consul. creating a new one!");
         db_password = await proxy.executeCommand_L(`openssl rand -base64 32`);
+        db_password = db_password.replace(/(\r\n|\n|\r)/gm, "");
         injectIntoConsul = true;
     }
 

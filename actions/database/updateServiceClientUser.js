@@ -33,7 +33,8 @@ module.exports = async function (config, proxy, checkOnly = true) {
     config['svcUserPassword'] = await proxy.getKeyValueFromConsul(`${config['serviceName']}/service-client/password`)
         .catch(async e => {
             log.warn("1.1 - could not find service-client password in consul", e);
-            const password = await proxy.executeCommand_L(`openssl rand -base64 32`);
+            const password_raw = await proxy.executeCommand_L(`openssl rand -base64 32`);
+            const password = password_raw.replace(/(\r\n|\n|\r)/gm, "");
             log.severe(`1.1 - generated password: ${password.substring(0, 5)}[...]`);
             injectUser = true;
             return password;
