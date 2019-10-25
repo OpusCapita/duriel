@@ -80,6 +80,18 @@ This will cause a check for the service "auth" on the deployment-env.
 ```
 
 If a service depends on the referenced service, it must have the given library of the given version.
+
+## CircleCI environment variables
+Notice :env will be replaced with develop, stage or prod
+| Name | Description | Default | Required |
+|------|-------------|---------|----------|
+| SECRET_:env_MYSQL | Password for mysql service | null | true - when service needs DB |
+| SECRET_:env_MYSQL_USER | Mysql user that will be used for DB of the service | root | false |
+| SECRET_:env_MYSQL_SERVICE | Mysql service that will be used for DB of the service | mysql | false |
+| SECRET_:env_MYSQL_AUTH | Password for auth DB, if empty it will use default mysql config | value of SECRET_:env_MYSQL | false |
+| SECRET_:env_MYSQL_USER_AUTH | Mysql user that will be used for auth DB | root | false |
+| SECRET_:env_MYSQL_SERVICE_AUTH | Default: mysql, Mysql service that will be used for auth DB | mysql | false |
+
  
 ## task_template.json
 
