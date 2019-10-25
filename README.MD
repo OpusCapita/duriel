@@ -84,7 +84,7 @@ If a service depends on the referenced service, it must have the given library o
 ## CircleCI environment variables
 Notice :env will be replaced with develop, stage or prod
 | Name | Description | Default | Required |
-|------|-------------|---------|----------|
+|-----------|-----------|-----------|-----------|
 | SECRET_:env_MYSQL | Password for mysql service | null | true - when service needs DB |
 | SECRET_:env_MYSQL_USER | Mysql user that will be used for DB of the service | root | false |
 | SECRET_:env_MYSQL_SERVICE | Mysql service that will be used for DB of the service | mysql | false |
