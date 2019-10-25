@@ -82,7 +82,7 @@ This will cause a check for the service "auth" on the deployment-env.
 If a service depends on the referenced service, it must have the given library of the given version.
 
 ## CircleCI environment variables
-Notice :env will be replaced with develop, stage or prod
+Notice :env should be replaced with develop, stage or prod to the env you want to set variable for
 
 | Name | Description | Default | Required |
 |-----------|-----------|-----------|-----------|
@@ -92,6 +92,7 @@ Notice :env will be replaced with develop, stage or prod
 | SECRET_:env_MYSQL_AUTH | Password for auth DB, if empty it will use default mysql config | value of SECRET_:env_MYSQL | false |
 | SECRET_:env_MYSQL_USER_AUTH | Mysql user that will be used for auth DB | root | false |
 | SECRET_:env_MYSQL_SERVICE_AUTH | Default: mysql, Mysql service that will be used for auth DB | mysql | false |
+| SECRET_:env_OIDCCLIENT | Client secret for service-client | null | true - in case using service-client in your nodejs service or oc-service-user-create-override is set to true | 
 
  
 ## task_template.json
@@ -141,6 +142,7 @@ example:
     	    "beta": {"value": "i am not encoded"},
     	    "gamma": {"encoding": "base64", "value": "aSBhbSBlbmNvZGVk"}
     },
+    "oc-service-user-create-override": "true",
     "limit-cpu": "0.2",
     "limit-memory": "300M",
     "reserve-cpu": "0.01",
@@ -171,6 +173,9 @@ Inject secrets into the docker-swarm on ENV.
 Values can be flat strings of JS-Objects.
 Objects must have a "value"-attribute. Optional an "encoding"-attribute can be added (e.g. "base64").
 Other "encoding"-types can be used if they are compatible with the Node-Buffer-Class (Buffer.from("", "${encoding}")) 
+
+### oc-service-user-create-override
+Set to true to force service user creation - In case your app is not nodejs based
 
 ### limit-cpu
 a number of cores that can be used by one instance of a service.
