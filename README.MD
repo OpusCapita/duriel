@@ -121,6 +121,7 @@ example:
     },
     "oc-consul-injection": {
       "redis/password": "${SECRET_:env_REDIS}",
+      "db-init/service-name": "${SECRET_:env_MYSQL_SERVICE}",
     },
     "oc-secret-injection": {
             "alpha": "i am a string",
@@ -145,7 +146,11 @@ example:
 ## task_template.json explanation
 
 ### oc-consul-injection
-Inject values into consul
+Inject values into consul, consul :env will be replaced with develop, stage or prod
+| Consul name | CircleCI name | Description | Value |
+|-----------|-----------|-----------|-----------|
+| db-init/service-name | SECRET_:env_MYSQL_SERVICE | Mysql service name to be used for DB connection | mysql or mysql-andariel (check available mysql services in consul).|
+
 
 ### oc-secret-injection
 Inject secrets into the docker-swarm on ENV.
