@@ -49,7 +49,15 @@ async function applyTranslationsToServices(allTranslations, languages)
     console.log("----------------------");
     Object.keys(allTranslations).forEach((serviceName, index) => console.log(`  ${index + 1}. ${serviceName}`));
 
+    // // Test access to Excel file:
+    // console.log(" bnp - 'src/client/containers' - 'BuyerDashboard.page.title'", allTranslations["bnp"]['src/client/containers']['BuyerDashboard.page.title']);
+
     let index = 1;
+
+    // console.log("Testing translation only for single services!");
+    // testTranslations = ["bnp"];
+    // for (let repositoryName of testTranslations)
+
     for (let repositoryName in allTranslations)
     {
         let repo = repositoryName;
