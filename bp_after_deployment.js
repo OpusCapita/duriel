@@ -24,6 +24,7 @@ const pullRequestRules = [
 const exec = async function handleDeployment() {
     require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Running after deploy script");
+    log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
     const config_file_name = "bp-config.json";
     let config;
 
