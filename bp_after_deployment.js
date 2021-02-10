@@ -40,7 +40,10 @@ const exec = async function handleDeployment() {
     }
 
     try {
-        log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
+        const getEnvVariables = require('./actions/getEnvVariables');
+        const envConfig = await getEnvVariables();
+
+        log.info(`Environment variable found: '${envConfig['RABBITMQ_USER']}' ... `);
     } catch (e) {
         log.error("Error in after_deployment: variable finding failed:", e);
     }
