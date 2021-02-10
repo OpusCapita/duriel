@@ -45,7 +45,20 @@ const exec = async function handleDeployment() {
             log.debug("... done.");
 
             await runAfterDeploymentTests(config, proxy);
-            await cleanupSystem(proxy, config);
+
+            const skip_after_deployment = process.env['skip_after_deployment'] == '1';
+            if (skip_after_deployment){
+                log.info('Skipping after_deployment step requested by skip_after_deployment build variable. Cancelling after_deployment.');
+            }
+            else
+            {
+                log.info('Skipping after_deployment step is not requested by skip_after_deployment build variable. Proceeding with after_deployment.');
+                await runAfterDeploymentTests(config, proxy);
+                
+                if(Math.random() * 1e10 % 10 === 0) {
+                    await cleanupSystem(proxy, config);
+                }   
+            }
 
             switch (config['TARGET_ENV']) {
                 case 'prod':
