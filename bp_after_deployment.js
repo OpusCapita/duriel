@@ -40,7 +40,10 @@ const exec = async function handleDeployment() {
     }
 
     try {
-        log.info(`Environment variable found: '${process.env['RABBITMQ_USER']}' ... `);
+        var skip_after_deployment = process.env['skip_after_deployment'] == 1;
+        if (skip_after_deployment) {
+            log.info(`Environment variable found: '${skip_after_deployment}' ... `);
+        }
     } catch (e) {
         log.error("Error in after_deployment: variable finding failed:", e);
     }
