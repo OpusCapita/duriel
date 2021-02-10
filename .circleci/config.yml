@@ -40,4 +40,6 @@ workflows:
   version: 2
   commit:
     jobs:
-      - build
+      - build:
+          context: andariel
+
