@@ -38,13 +38,14 @@ const exec = async function handleDeployment() {
         log.info("no config file could be loaded - ending step");
         return;
     }
+
+    try {
+        log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
+    } catch (e) {
+        log.error("Error in after_deployment: variable finding failed:", e);
+    }
+    
     if (config['TARGET_ENV']) {
-        try {
-            log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
-        } catch (e) {
-            log.error("Error in after_deployment: variable finding failed:", e);
-        }
-        
         try {
             log.info("connecting to environment...");
             const proxy = await new EnvProxy().init(config);
