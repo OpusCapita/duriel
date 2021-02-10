@@ -24,7 +24,6 @@ const pullRequestRules = [
 const exec = async function handleDeployment() {
     require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Running after deploy script");
-    log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
     const config_file_name = "bp-config.json";
     let config;
 
@@ -40,6 +39,12 @@ const exec = async function handleDeployment() {
         return;
     }
     if (config['TARGET_ENV']) {
+        try {
+            log.info(`Environment variable found: '${config['RABBITMQ_USER']}' ... `);
+        } catch (e) {
+            log.error("Error in after_deployment: variable finding failed:", e);
+        }
+        
         try {
             log.info("connecting to environment...");
             const proxy = await new EnvProxy().init(config);
