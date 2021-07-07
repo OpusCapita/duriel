@@ -55,11 +55,11 @@ async function runIntegrationTests(config, proxy, attempts = 30, interval = 5000
 async function checkAccessibility(config) {
     const testUrl = `${config['public_scheme']}://${config['public_hostname']}:${config['public_port']}/bnp/`;
     log.debug(`testing accessibility of ${testUrl}`);
-    return await request.get(testUrl)
-        .timeout(5000)
-        .retry(5)
-        .then(res => res.body)
-        .catch(error => {
+    return await request.get(testUrl).
+        timeout(5000).
+        retry(5).
+        then(res => res.body).
+        catch(error => {
             if (error.status === 302) {
                 return "successfully found redirect hell";
             }
@@ -87,13 +87,12 @@ async function getConsulData(config, proxy) {
         return;
     }
 
-    const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName'])
-        .catch(e => log.error(`could not get consul data for service ${config['serviceName']}`, e));
-    if (!consulApiResponse)
-        return;
+    const consulApiResponse = await proxy.getConsulHealthCheck(config['serviceName']).
+        catch(e => log.error(`could not get consul data for service ${config['serviceName']}`, e));
+    if (!consulApiResponse) {return;}
 
-    const serviceChecks = helper.flattenArray(consulApiResponse.map(it => it.Checks))
-        .filter(it => it['ServiceName'] === config['serviceName']);
+    const serviceChecks = helper.flattenArray(consulApiResponse.map(it => it.Checks)).
+        filter(it => it['ServiceName'] === config['serviceName']);
 
     const passingChecks = serviceChecks.filter(it => it['Status'] === 'passing');
     const failingChecks = serviceChecks.filter(it => it['Status'] !== 'passing');
@@ -111,5 +110,4 @@ async function getConsulData(config, proxy) {
         },
         serviceName: config['serviceName']
     };
-
 }

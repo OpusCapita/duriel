@@ -61,7 +61,7 @@ async function buildDocs(config, commit = false) {
     log.debug("all directories created!");
 
     // if (hasDocScript) {
-        await proxy.executeCommand_L("npm run doc", "build docs");
+    await proxy.executeCommand_L("npm run doc", "build docs");
     // } else {
     //     // TODO: Execute a default doc creation?
     //     for (const docFunction of fallBackFunctions) {
@@ -89,7 +89,6 @@ async function buildDocs(config, commit = false) {
             await gitHelper.addAll();
             await gitHelper.commit('updated documentation. [ci skip]');
             await gitHelper.push('master');
-
         } else {
             log.info("no files changed!");
         }
@@ -104,7 +103,7 @@ async function buildDocs(config, commit = false) {
 async function createJsDoc(files, outputFile = 'wiki/api-doc/Home.md') {
     log.info("Creating docs based on jsDoc");
     files = files ? files : fileHelper.getFilesInDir(sourceCodeDir, /.+\.js$/);
-    const config = {files};
+    const config = { files };
     const result = jsdoc2md.renderSync(config);
     fileHelper.mkdirp(outputFile);
     fs.writeFileSync(outputFile, result);
@@ -208,7 +207,6 @@ async function loadPackageJson() {
  * Function that simply creates a wiki-dir and executes generic doc-files.
  */
 async function createAllDocFiles() {
-
     wikiDirs.forEach(dir => fileHelper.mkdirp(dir));
 
     new EnvProxy().executeCommand_L("npm install");

@@ -39,18 +39,17 @@ async function run() {
         });
         it("deletes a kv", async () => {
             await proxy.deleteKeyValueFromConsul(entryName);
-            const afterDeletion = await proxy.getKeyValueFromConsul(entryName)
-                .then(it => "didNotThrow")
-                .catch(e => undefined);
+            const afterDeletion = await proxy.getKeyValueFromConsul(entryName).
+                then(it => "didNotThrow").
+                catch(e => undefined);
 
             assert.equal(afterDeletion, undefined);
         });
         it("requests a non-existing value", async () => {
-            const fromConsul = await proxy.getKeyValueFromConsul(entryValue)
-                .catch(e => "ok");
+            const fromConsul = await proxy.getKeyValueFromConsul(entryValue).
+                catch(e => "ok");
 
             assert.equal(fromConsul, "ok");
         })
     })
-
 }

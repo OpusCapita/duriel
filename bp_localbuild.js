@@ -21,7 +21,7 @@ const exec = async () => {
         const config = await getEnvVariables();
         const compose_base = dockerCommandBuilder.dockerComposeBase();
         await dockerHelper.loginLocal(config);
-        try{
+        try {
             await dockerCompose(compose_base, "pull");
         } catch (e) {
             log.warn("docker pull did not exit successfull. is your service new? then everything is fine :)", e);
@@ -30,7 +30,7 @@ const exec = async () => {
         await dockerCompose(compose_base, "up -d");
 
         try {
-            await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 30, 5000);    // 30 attempts with 5 sec intervals
+            await monitorDockerContainer(config['CIRCLE_PROJECT_REPONAME'], 30, 5000); // 30 attempts with 5 sec intervals
         } catch (error) {
             log.error("service not healthy!", error);
             await outputContainerLogs();
@@ -54,22 +54,4 @@ const exec = async () => {
     }
 };
 exec();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

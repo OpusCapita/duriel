@@ -4,7 +4,7 @@ const log = new EpicLogger();
 const EnvProxy = require('../../EnvProxy');
 const dockerHelper = require('../helpers/dockerHelper');
 
-async function buildBaseImage(config){
+async function buildBaseImage(config) {
     const proxy = new EnvProxy();
     await dockerHelper.loginLocal(config);
     log.info("building base image...");
@@ -16,7 +16,7 @@ async function buildImage(config) {
     const proxy = new EnvProxy();
     await dockerHelper.loginLocal(config);
     log.info("building image...");
-    if(config["MULTI_STAGE"]){
+    if (config["MULTI_STAGE"]) {
         await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:latest --target production --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build production");
         await proxy.executeCommand_L(`docker build -t ${config['HUB_REPO']}:dev --target dev --build-arg CI=true ${config['BUILD_ARGS']}.`, "docker build dev");
     } else {

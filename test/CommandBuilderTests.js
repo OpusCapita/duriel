@@ -54,7 +54,7 @@ function run() {
                 const input = {
                     add: ["alpha"],
                     remove: ["beta"],
-                    create: [{name: "gamme", value: "delta"}]
+                    create: [{ name: "gamme", value: "delta" }]
                 };
                 const expected = "--secret-add alpha --secret-rm beta";
                 const actual = dockerSecretHelper.generateUpdateServiceSecretParam(input);
@@ -65,7 +65,7 @@ function run() {
                 const input = {
                     add: ["alpha"],
                     remove: ["beta"],
-                    create: [{name: "gamme", value: "delta"}]
+                    create: [{ name: "gamme", value: "delta" }]
                 };
                 const expected = "--secret alpha";
                 const actual = dockerSecretHelper.generateCreateServiceSecretParam(input);
@@ -78,7 +78,7 @@ function run() {
                     serviceSecrets: {
                         add: ["alpha"],
                         remove: ["beta"],
-                        create: [{name: testingSecretName, value: "delta"}]
+                        create: [{ name: testingSecretName, value: "delta" }]
                     }
                 });
                 await dockerSecretHelper.createDockerSecrets(config, proxy, "createdBy=duriel", "createdFor=unit-testing");
@@ -87,10 +87,9 @@ function run() {
                 assert.equal(!!afterCreation, true);
 
                 await dockerSecretHelper.remove(proxy, testingSecretName);
-                const afterRemoval = await dockerSecretHelper.get(proxy, testingSecretName)
-                    .catch(e => "ok");
+                const afterRemoval = await dockerSecretHelper.get(proxy, testingSecretName).
+                    catch(e => "ok");
                 assert.equal(afterRemoval, 'ok');
-
             });
             it("gets an empty task_template", async () => {
                 fileHelper.saveObject2File({}, "./task_template.json", true);
@@ -110,8 +109,8 @@ function run() {
             it("transforms all valid kinds", () => {
                 const example = {
                     alpha: "i am a string",
-                    beta: {value: "i am not encoded"},
-                    gamma: {encoding: "base64", value: "aSBhbSBlbmNvZGVk"}
+                    beta: { value: "i am not encoded" },
+                    gamma: { encoding: "base64", value: "aSBhbSBlbmNvZGVk" }
                 };
                 const expected = {
                     alpha: "i am a string",

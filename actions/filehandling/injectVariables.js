@@ -19,16 +19,15 @@ const EnvProxy = require('../../EnvProxy');
  * @param config - {BaseConfig} holder of variables for the injection
  * @returns input with injections
  */
-module.exports = function (input, config) {
-    const regex = /\${([^'"}]+)}/; //find'${' + anything but '}"' + find '}'
+module.exports = function(input, config) {
+    const regex = /\${([^'"}]+)}/; // find'${' + anything but '}"' + find '}'
     const targetEnv = config['TARGET_ENV'];
     const envMarker = ":env";
 
     let i = 0;
-    let missingConfigVars = [];
+    const missingConfigVars = [];
     let regexResult = input.match(regex);
     while (regexResult) {
-
         const varName = regexResult[0].substring(2, regexResult[0].length - 1);
         let varOrigin = varName;
 
@@ -54,22 +53,4 @@ module.exports = function (input, config) {
     }
     return input;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

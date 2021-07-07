@@ -12,7 +12,7 @@ const versionHelper = require('./versionHelper');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
-const {ServiceCheckEntry, LibraryCheckEntry, CheckEntryHolder} = require('../classes/VersionValidation');
+const { ServiceCheckEntry, LibraryCheckEntry, CheckEntryHolder } = require('../classes/VersionValidation');
 
 const extend = require('extend');
 const semver = require('semver');
@@ -36,10 +36,8 @@ function getLibraryVersion(library, packageJson) {
     const dependencies = packageJson.dependencies;
     const devDependencies = packageJson.devDependencies;
 
-    if (dependencies && dependencies[library])
-        return dependencies[library];
-    if (devDependencies && devDependencies[library])
-        return devDependencies[library]
+    if (dependencies && dependencies[library]) {return dependencies[library];}
+    if (devDependencies && devDependencies[library]) {return devDependencies[library]}
 }
 
 /**
@@ -50,7 +48,7 @@ function getLibraryVersion(library, packageJson) {
 function fetchServiceVersionDependencies(config, taskTemplate) {
     const fromTaskTemplate = fetchVersionDependencies(config, taskTemplate, serviceDependencyKey);
     log.debug("Service-dependencies from task_template.json: ", fromTaskTemplate);
-    return extend(true, {}, fromTaskTemplate)  // adding auth as default
+    return extend(true, {}, fromTaskTemplate) // adding auth as default
 }
 
 /**
@@ -73,9 +71,8 @@ async function fetchLibrary2ServiceDependencies(proxy) {
         const output = await proxy.executeCommand_L('npm install');
         log.severe(output);
         log.debug("...finished installing packages.");
-        return fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/)
-            .map(file => fileHelper.loadFile2Object(file))
-
+        return fileHelper.getFilesInDir('node_modules', /andariel_dependencies\.json$/).
+            map(file => fileHelper.loadFile2Object(file))
     }
     return []
 }
@@ -91,8 +88,7 @@ function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
 
     let result = {};
 
-    if (taskTemplate && taskTemplate[dependencyKey])
-        result = extend(true, {}, result, taskTemplate[dependencyKey]);
+    if (taskTemplate && taskTemplate[dependencyKey]) {result = extend(true, {}, result, taskTemplate[dependencyKey]);}
 
     if (Object.keys(result).length === 0) {
         log.warn(`task_template has no ${dependencyKey} (?!)`)
@@ -107,8 +103,8 @@ function fetchVersionDependencies(config, taskTemplate, dependencyKey) {
  * @returns {object}
  */
 async function loadServiceVersionsFromEnv(proxy) {
-    return await proxy.getServices_E()
-        .then(services => {
+    return await proxy.getServices_E().
+        then(services => {
             const result = {};
             services.forEach(it => result[it.name] = it.image_version);
             return result;
@@ -158,14 +154,12 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
     const result = new CheckEntryHolder("Library2ServiceDependencies");
 
     const dependencyEntries = fetchLibrary2ServiceDependencies(proxy);
-    if (!dependencyEntries)
-        return;
+    if (!dependencyEntries) {return;}
 
     log.info("found andariel_dependencies.json-files: ", dependencyEntries);
 
     for (const dependencies in dependencyEntries) {
-
-        for (const entry in dependencies.serviceDependencies) {  // entry is name of a lib
+        for (const entry in dependencies.serviceDependencies) { // entry is name of a lib
             const deployedVersion = deployedServices[entry];
             const expectedVersion = dependencies.serviceDependencies[entry];
             let compareResult = versionHelper.compareVersion(deployedVersion, expectedVersion);
@@ -173,7 +167,7 @@ async function checkLibrary2ServiceDependencies(config, proxy, deployedServices)
             if (entry === 'consul') {
                 const consulData = await proxy.lookupService('consul');
                 log.debug("Consul entry for 'consul'", consulData);
-                compareResult = 9001;   // IT IS OVER 9000!!!
+                compareResult = 9001; // IT IS OVER 9000!!!
             }
 
             if (compareResult < 0) {
@@ -208,16 +202,15 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
 
     for (const service in serviceDependencies) {
         log.info(`checking libs of service '${service}'`);
-        const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service)
-            .catch(e => {
+        const libraryDependencies = await loadLibraryDependenciesOfService(config, proxy, service).
+            catch(e => {
                 result.addFailingEntry(new LibraryCheckEntry(undefined, undefined, undefined, service, e.message));
                 return undefined;
             });
 
 
-        if (libraryDependencies && Object.keys(libraryDependencies).length)
+        if (libraryDependencies && Object.keys(libraryDependencies).length) {
             for (const library in libraryDependencies) {
-
                 const expected = libraryDependencies[library];
                 const installed = await getLibraryVersion(library, packageJson);
                 const entry = new LibraryCheckEntry(library, expected, installed, service);
@@ -231,8 +224,7 @@ async function checkLibraryDependencies(config, proxy, serviceDependencies, pack
                     result.addPassingEntry(entry);
                 }
             }
-        else
-            log.info(`service '${service}' has no library dependencies`);
+        } else {log.info(`service '${service}' has no library dependencies`);}
     }
     return result
 }
@@ -250,12 +242,12 @@ async function checkSystem2LibraryDependencies(config, proxy) {
         log.debug("executing npm install");
         await proxy.executeCommand_L("npm install", "npm install");
 
-        await proxy.executeCommand_L("npm ls --json --depth=0 --silent")
-            .catch(e => log.warn("Something did not go well...", e))
-            .then(response => {
+        await proxy.executeCommand_L("npm ls --json --depth=0 --silent").
+            catch(e => log.warn("Something did not go well...", e)).
+            then(response => {
                 const parsed = response && JSON.parse(response);
                 const dependencies = parsed ? parsed.dependencies : { };
-                for(const lib in dependencies){
+                for (const lib in dependencies) {
                     const version = dependencies[lib].version;
                     log.severe(`1.1 - adding lib '${lib}' with version '${version}'`);
                     installedVersions[lib] = version;
@@ -282,7 +274,6 @@ async function checkSystem2LibraryDependencies(config, proxy) {
         const expected = systemDependencies[systemDependency];
         log.debug(`2.1 - Found versions [service: '${versionOfService}', expected: '${expected}']`);
         if (versionOfService) {
-
             let isValid = true;
 
             try {
@@ -297,7 +288,6 @@ async function checkSystem2LibraryDependencies(config, proxy) {
             } else {
                 result.addFailingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "invalid version"))
             }
-
         } else {
             result.addPassingEntry(new LibraryCheckEntry(systemDependency, expected, versionOfService, config['TARGET_ENV'], "not used"))
         }
@@ -313,25 +303,21 @@ async function checkSystem2LibraryDependencies(config, proxy) {
  * @returns {Promise<object>}
  */
 async function loadLibraryDependenciesOfService(config, proxy, serviceName) {
-
     const serviceTasks = await proxy.getTasksOfServices_E(serviceName, true);
     const serviceTask = serviceTasks[0];
 
-    if (!serviceTask)
-        throw new Error(`could not fetch a task for service with name '${serviceName}'`);
+    if (!serviceTask) {throw new Error(`could not fetch a task for service with name '${serviceName}'`);}
 
     const containers = await proxy.getContainersOfService_N(serviceTask.node, serviceName, true);
     const container = containers[0];
 
-    if (!container)
-        throw new Error(`could not get container-information for service '${serviceName}' on node '${serviceTask.node}'`);
+    if (!container) {throw new Error(`could not get container-information for service '${serviceName}' on node '${serviceTask.node}'`);}
 
     const command = `docker exec -t ${container.containerId} cat task_template.json`;
     let taskTemplateContent = '{}';
-    try{
+    try {
         taskTemplateContent = await proxy.executeCommand_N(serviceTask.node, command);
-    }
-    catch(e){
+    } catch (e) {
         log.warn('Error:')
         log.warn(e);
         taskTemplateContent = '{}';

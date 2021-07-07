@@ -16,38 +16,36 @@ module.exports = async function executeCleanup(proxy, config) {
     config['cleanups'] = config['cleanups'] ? config['cleanups'] : {};
     const entries = [];
     for (const node of nodes) {
-        if(node.availability == "Down")
-        {
+        if (node.availability == "Down") {
             log.info(`escaping node for being inactive: '${node.hostname}'`);
-        }
-        else
-        {
-            await proxy.executeCommand_N(node.hostname, "docker system prune -f")
-            .then(response => {
-                const filteredInput = response.split(/\r\n|\r|\n/g).filter(it => it.startsWith("Total reclaimed space:"))[0];
-                if (filteredInput) {
-                    log.info(`1.1 - ${node.hostname}: ${filteredInput}`);
-                }
-                log.debug(`cleaned node '${node.hostname}': `, response);
-                const entry = {
-                    node: node.hostname,
-                    result: response
-                };
-                entries.push(entry);
-            })
-            .catch(error => log.warn(`could not prune node '${node.hostname}'`, error))
+        } else {
+            await proxy.executeCommand_N(node.hostname, "docker system prune -f").
+                then(response => {
+                    const filteredInput = response.split(/\r\n|\r|\n/g).filter(it => it.startsWith("Total reclaimed space:"))[0];
+                    if (filteredInput) {
+                        log.info(`1.1 - ${node.hostname}: ${filteredInput}`);
+                    }
+                    log.debug(`cleaned node '${node.hostname}': `, response);
+                    const entry = {
+                        node: node.hostname,
+                        result: response
+                    };
+                    entries.push(entry);
+                }).
+                catch(error => log.warn(`could not prune node '${node.hostname}'`, error))
         }
     }
     config['cleanups'][env] = entries;
 
     log.info(`1.2 - Deleting removed secrets`);
     const deploymentSecrets = config['serviceSecrets'];
-    if (deploymentSecrets && Array.isArray(deploymentSecrets.remove) && deploymentSecrets.remove.length)
+    if (deploymentSecrets && Array.isArray(deploymentSecrets.remove) && deploymentSecrets.remove.length) {
         for (const entry of deploymentSecrets.remove) {
             log.info(`1.2 - deleting secret '${entry}'`);
-            await proxy.removeDockerSecret(entry)
-                .catch(e => log.warn(`could not delete secret '${entry}'`, e));
+            await proxy.removeDockerSecret(entry).
+                catch(e => log.warn(`could not delete secret '${entry}'`, e));
         }
+    }
 
-    return {success: true};
+    return { success: true };
 };

@@ -18,10 +18,9 @@ const loadTaskTemplate = require('./actions/filehandling/loadTaskTemplate');
 const calculateEnv = require('./actions/calculateEnv');
 
 async function exec() {
-
     const targetEnv = calculateEnv.getTargetEnv(process.env.CIRCLE_BRANCH);
 
-    const config = getBaseConfig({serviceName: process.env.CIRCLE_PROJECT_REPONAME, TARGET_ENV: targetEnv});
+    const config = getBaseConfig({ serviceName: process.env.CIRCLE_PROJECT_REPONAME, TARGET_ENV: targetEnv });
 
     await getDockerHubToken(config);
 
@@ -38,7 +37,7 @@ async function exec() {
 
     const result = {
         version: 2,
-        services: {main}
+        services: { main }
     };
 
     for (const service in serviceDependencies) {
@@ -58,37 +57,35 @@ async function exec() {
 }
 
 async function getDockerHubToken(config) {
-
     const data = {
         username: config.get('DOCKER_PASS'),
         password: config.get('DOCKER_USER')
     }
 
-    return await request.post("https://hub.docker.com/v2/users/login/", data)
-        .set("Content-Type", "application/json")
-        .then(reponse => response.body.token)
-        .then(token => {
-                log.info("token", token);
-                config.dockerToken = token
-            }
-        )
-        .catch(e => log.error(e))
-
+    return await request.post("https://hub.docker.com/v2/users/login/", data).
+        set("Content-Type", "application/json").
+        then(reponse => response.body.token).
+        then(token => {
+            log.info("token", token);
+            config.dockerToken = token
+        }
+        ).
+        catch(e => log.error(e))
 }
 
 async function getMinimalSupportedVersion(imageName, semVerValue) {
-    return await loadImageVersions(imageName)
-        .then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue)))
-        .then(filtered => semver.sort(filtered))
-        .then(sorted => sorted[0]);
+    return await loadImageVersions(imageName).
+        then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue))).
+        then(filtered => semver.sort(filtered)).
+        then(sorted => sorted[0]);
 }
 
 async function loadImageVersions(imageName) {
     log.info(`fetching tags for ${imageName}`);
-    return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`)
-        .set("Authorization", `JWT ${config['dockerToken']}`)
-        .then(response => response.body)
-        .then(tags => tags.map(it => it.name));
+    return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`).
+        set("Authorization", `JWT ${config['dockerToken']}`).
+        then(response => response.body).
+        then(tags => tags.map(it => it.name));
 }
 
 function createMainEntry(config, taskTemplate, dependencies) {
@@ -96,7 +93,7 @@ function createMainEntry(config, taskTemplate, dependencies) {
         image: `opuscapita/${config['serviceName']}`,
         depends_on: Object.keys(dependencies),
         links: ["consul"],
-        labels: {SERVICE_NAME: config['serviceName']},
+        labels: { SERVICE_NAME: config['serviceName'] },
     };
 
     if (taskTemplate.env) {
@@ -108,7 +105,6 @@ function createMainEntry(config, taskTemplate, dependencies) {
         result.enviroments = envEntries;
     }
     return result;
-
 }
 
 async function getServiceBaseConfig(config, serviceName, semVer) {
@@ -136,8 +132,8 @@ async function getServiceBaseConfig(config, serviceName, semVer) {
     return {
         image: `${repository}:${tag}`,
         links: ["consul"],
-        labels: {SERVICE_NAME: serviceName},
-        environments: extend(true, {}, environments, {SERVICE_NAME: serviceName}),
+        labels: { SERVICE_NAME: serviceName },
+        environments: extend(true, {}, environments, { SERVICE_NAME: serviceName }),
         depends_on: taskTemplate.serviceDependencies ? Object.keys(taskTemplate.serviceDependencies) : [],
         command: 'npm run dev'
     };
@@ -177,5 +173,5 @@ function getBaseServices() {
     }
 }
 
-exec()
-    .catch(e => log.error("error while building compose file", e))
+exec().
+    catch(e => log.error("error while building compose file", e))

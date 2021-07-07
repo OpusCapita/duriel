@@ -26,17 +26,16 @@ module.exports = {
     },
     getEnvProxy: async () => {
         const proxyConfig = require('../envInfo').develop;
-        if (process.env.admin_user)
-            proxyConfig.admin_user = process.env.admin_user;
-        return await new EnvProxy().init(proxyConfig)
-            .catch(e => console.error(e))
+        if (process.env.admin_user) {proxyConfig.admin_user = process.env.admin_user;}
+        return await new EnvProxy().init(proxyConfig).
+            catch(e => console.error(e))
     },
     task_template: {
         default: {
             "oc-secret-injection": {
                 alpha: "i am a string",
-                beta: {value: "i am not encoded"},
-                gamma: {encoding: "base64", value: "aSBhbSBlbmNvZGVk"},
+                beta: { value: "i am not encoded" },
+                gamma: { encoding: "base64", value: "aSBhbSBlbmNvZGVk" },
                 mysecret: "i am a secret secret that is secretly not secret!"
             },
             "serviceDependencies": {

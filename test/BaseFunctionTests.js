@@ -30,24 +30,24 @@ function run() {
         });
         describe("getDataBasePassword", () => {
             it("has an ENV and a PW", () => {
-                const config = getBaseConfigObject({TARGET_ENV: "develop", SECRET_develop_MYSQL: "ok"});
+                const config = getBaseConfigObject({ TARGET_ENV: "develop", SECRET_develop_MYSQL: "ok" });
                 const password = getEnvVariables.getDatabasePassword(config);
                 assert.equal(password, "ok");
             });
             it("has no ENV and a PW", () => {
-                const config = getBaseConfigObject({SECRET_develop_MYSQL: "ok"});
+                const config = getBaseConfigObject({ SECRET_develop_MYSQL: "ok" });
                 const password = getEnvVariables.getDatabasePassword(config);
                 assert.equal(password, "none");
             });
         });
         describe("getDataBaseService", () => {
             it("has an ENV and a SERVICE", () => {
-                const config = getBaseConfigObject({TARGET_ENV: "develop", SECRET_develop_MYSQL_SERVICE: "ok"});
+                const config = getBaseConfigObject({ TARGET_ENV: "develop", SECRET_develop_MYSQL_SERVICE: "ok" });
                 const service = getEnvVariables.getDatabaseService(config);
                 assert.equal(service, "ok");
             });
             it("has no ENV and a SERVICE", () => {
-                const config = getBaseConfigObject({SECRET_develop_MYSQL_SERVICE: "ok"});
+                const config = getBaseConfigObject({ SECRET_develop_MYSQL_SERVICE: "ok" });
                 const service = getEnvVariables.getDatabaseService(config);
                 assert.equal(service, "none");
             });
@@ -117,13 +117,13 @@ function run() {
         });
         describe("array grouping", () => {
             const defaultInput = [
-                {a: 'a', b: 'b'},
-                {a: 'c', b: 'b'}
+                { a: 'a', b: 'b' },
+                { a: 'c', b: 'b' }
             ];
             const defaultExpected = {
                 b: [
-                    {a: 'a', b: 'b'},
-                    {a: 'c', b: 'b'}
+                    { a: 'a', b: 'b' },
+                    { a: 'c', b: 'b' }
                 ]
             };
             it("groups by a key", () => {
@@ -142,7 +142,7 @@ function run() {
 
         describe("array intersect", () => {
             const a = [1, 2, 3];
-            const b = [2, 4, {a: 2}];
+            const b = [2, 4, { a: 2 }];
             const c = [1, 3, [4]];
             const d = [1, 3, 6, [4]];
 
@@ -163,7 +163,6 @@ function run() {
             it("intersect with deep equals", () => {
                 const expected = [1, 3, [4]];
                 assert.deepEqual(utilHelper.arrayIntersect(c, d), expected)
-
             })
         });
         describe("logger", () => {
@@ -298,15 +297,15 @@ function run() {
             });
             it("compares objects", () => {
                 assert.equal(
-                    utilHelper.isEqual({a: "2a"}, {a: "2a"}),
+                    utilHelper.isEqual({ a: "2a" }, { a: "2a" }),
                     true
                 );
                 assert.equal(
-                    utilHelper.isEqual({a: "2a"}, {a: "3a"}),
+                    utilHelper.isEqual({ a: "2a" }, { a: "3a" }),
                     false
                 );
                 assert.equal(
-                    utilHelper.isEqual({a: "2a"}, {b: "2a"}),
+                    utilHelper.isEqual({ a: "2a" }, { b: "2a" }),
                     false
                 )
             })

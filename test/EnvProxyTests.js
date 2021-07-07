@@ -18,20 +18,20 @@ async function run() {
         describe("executeCommand_L", () => {
             const proxy = new EnvProxy();
             it("executes successfully", async () => {
-                const result = await proxy.executeCommand_L("ls")
-                    .then(it => "ok")
-                    .catch(e => "not even close");
+                const result = await proxy.executeCommand_L("ls").
+                    then(it => "ok").
+                    catch(e => "not even close");
                 assert.equal(result, "ok");
             });
             it("executesg with error-code", async () => {
-                const result = await proxy.executeCommand_L("throwMeBabyOneMoreTime")
-                    .then(it => "not even close")
-                    .catch(e => "ok");
+                const result = await proxy.executeCommand_L("throwMeBabyOneMoreTime").
+                    then(it => "not even close").
+                    catch(e => "ok");
                 assert.equal(result, "ok");
             });
             it("executes with error-logs", async () => {
-                const result = await proxy.executeCommand_L(">&2 echo \"ok\"")
-                    .catch(e => "not even close");
+                const result = await proxy.executeCommand_L(">&2 echo \"ok\"").
+                    catch(e => "not even close");
                 assert.equal(result.trim(), "ok");
             })
         });
@@ -48,25 +48,24 @@ async function run() {
                 }
             });
             it("executes successfully", async () => {
-                const result = await proxy.executeCommand_E("ls")
-                    .then(it => "ok")
-                    .catch(e => "not even close");
+                const result = await proxy.executeCommand_E("ls").
+                    then(it => "ok").
+                    catch(e => "not even close");
                 assert.equal(result, "ok");
             });
             it("executes with error-code", async () => {
-                const result = await proxy.executeCommand_E("throwMeBabyOneMoreTime")
-                    .then(it => "not even close")
-                    .catch(e => "ok");
+                const result = await proxy.executeCommand_E("throwMeBabyOneMoreTime").
+                    then(it => "not even close").
+                    catch(e => "ok");
                 assert.equal(result, "ok");
             });
             it("executes with error-logs", async () => {
-                const result = await proxy.executeCommand_E(">&2 echo \"ok\"")
-                    .catch(e => "not even close");
+                const result = await proxy.executeCommand_E(">&2 echo \"ok\"").
+                    catch(e => "not even close");
                 assert.equal(result.trim(), "ok");
             })
         });
         describe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
-
             const dockerSecretHelper = require('../actions/helpers/dockerSecretHelper');
             const testingSecret = `testing-secret-${new Date().getTime()}`;
 
@@ -92,8 +91,8 @@ async function run() {
                 assert.equal(!!secret, true);
             });
             it("fetches a non existing secret", async () => {
-                const secret = await dockerSecretHelper.get(proxy, "this-is-non-existing")
-                    .catch(e => "ok");
+                const secret = await dockerSecretHelper.get(proxy, "this-is-non-existing").
+                    catch(e => "ok");
                 assert.equal(secret, "ok");
             });
             it("creates a secret", async () => {
@@ -112,8 +111,8 @@ async function run() {
                 await dockerSecretHelper.remove(proxy, testingSecret);
             });
             it("checks if the secret was deleted", async () => {
-                const secret = await dockerSecretHelper.get(proxy, testingSecret)
-                    .catch(e => "ok");
+                const secret = await dockerSecretHelper.get(proxy, testingSecret).
+                    catch(e => "ok");
                 assert.equal(secret, "ok");
             });
             it("fetches the secrets of a service", async () => {
@@ -124,13 +123,13 @@ async function run() {
             });
             it("fetches the secrets of a unknown service", async () => {
                 const serviceName = "santiagoDelGuzman";
-                const secret = await proxy.getDockerSecretsOfService(serviceName)
-                    .catch(e => "ok");
+                const secret = await proxy.getDockerSecretsOfService(serviceName).
+                    catch(e => "ok");
                 assert.equal(secret, "ok");
             });
             it("fetches the secrects without knowing for which service", async () => {
-                const secret = await proxy.getDockerSecretsOfService()
-                    .catch(e => "ok");
+                const secret = await proxy.getDockerSecretsOfService().
+                    catch(e => "ok");
                 assert.equal(secret, "ok");
             });
         });
@@ -177,13 +176,13 @@ async function run() {
                 assert.equal(Array.isArray(tasks), true);
             });
             it("fetches tasks without serviceName", async () => {
-                const tasks = await proxy.getTasksOfServices_E()
-                    .catch(e => undefined);
+                const tasks = await proxy.getTasksOfServices_E().
+                    catch(e => undefined);
                 assert.equal(tasks, undefined);
             });
             it("fetches tasks with invalid serviceName", async () => {
-                const tasks = await proxy.getTasksOfServices_E("Leonardo_da_Banossi_de_Fiorence")
-                    .catch(e => "ok");
+                const tasks = await proxy.getTasksOfServices_E("Leonardo_da_Banossi_de_Fiorence").
+                    catch(e => "ok");
                 assert.deepEqual(tasks, "ok");
             });
             it("fetches deployed versions", async () => {
@@ -195,13 +194,13 @@ async function run() {
                 })
             });
             it("fetches deployed versions without serviceName", async () => {
-                const deployedVersions = await proxy.getDeployedVersions_E()
-                    .catch(e => "ok");
+                const deployedVersions = await proxy.getDeployedVersions_E().
+                    catch(e => "ok");
                 assert.equal(deployedVersions, "ok");
             });
             it("fetches deployed versions with an invalid serviceName", async () => {
-                const deployedVersions = await proxy.getDeployedVersions_E("Leonardo_da_Banossi_de_Fiorence")
-                    .catch(e => "ok");
+                const deployedVersions = await proxy.getDeployedVersions_E("Leonardo_da_Banossi_de_Fiorence").
+                    catch(e => "ok");
                 assert.deepEqual(deployedVersions, "ok");
             });
             it("fetches the replicacount", async () => {
@@ -209,13 +208,13 @@ async function run() {
                 assert.equal(replicaCount > 0, true)
             });
             it("fetches the replicacount without a serviceName", async () => {
-                const replicaCount = await proxy.getReplicaCount_E()
-                    .catch(e => undefined);
+                const replicaCount = await proxy.getReplicaCount_E().
+                    catch(e => undefined);
                 assert.equal(replicaCount, undefined)
             });
             it("fetches the replicacount with an invalid serviceName", async () => {
-                const replicaCount = await proxy.getReplicaCount_E("Leonardo_da_Banossi_de_Fiorence")
-                    .catch(e => undefined);
+                const replicaCount = await proxy.getReplicaCount_E("Leonardo_da_Banossi_de_Fiorence").
+                    catch(e => undefined);
                 assert.equal(replicaCount, undefined)
             })
         })

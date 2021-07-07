@@ -93,19 +93,21 @@ class CheckEntryHolder {
     constructor(name, passing = [], failing = []) {
         this.name = name;
 
-        if (Array.isArray(passing))
+        if (Array.isArray(passing)) {
             this.passing = passing;
-        else if (passing instanceof BaseCheckEntry)
+        } else if (passing instanceof BaseCheckEntry) {
             this.passing = [passing];
-        else
+        } else {
             throw new Error("passing has wrong type!");
+        }
 
-        if (Array.isArray(failing))
+        if (Array.isArray(failing)) {
             this.failing = failing;
-        else if (failing instanceof BaseCheckEntry)
+        } else if (failing instanceof BaseCheckEntry) {
             this.failing = [failing];
-        else
+        } else {
             throw new Error("failing has wrong type");
+        }
 
         this.addFailingEntry = this.addFailingEntry.bind(this);
         this.addPassingEntry = this.addPassingEntry.bind(this);
@@ -113,15 +115,11 @@ class CheckEntryHolder {
     }
 
     addPassingEntry(entry) {
-        if (entry instanceof BaseCheckEntry)
-            this.passing.push(entry);
-        else throw new Error("WRONG TYPE")
+        if (entry instanceof BaseCheckEntry) {this.passing.push(entry);} else {throw new Error("WRONG TYPE")}
     }
 
     addFailingEntry(entry) {
-        if (entry instanceof BaseCheckEntry)
-            this.failing.push(entry);
-        else throw new Error("WRONG TYPE")
+        if (entry instanceof BaseCheckEntry) {this.failing.push(entry);} else {throw new Error("WRONG TYPE")}
     }
 
     success() {

@@ -16,13 +16,13 @@ const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
  * @param array of arrays
  * @returns flatten array
  */
-const flattenArray = function (array) {
-    return array.reduce(function (flat, toFlatten) {
+const flattenArray = function(array) {
+    return array.reduce(function(flat, toFlatten) {
         return flat.concat(Array.isArray(toFlatten) ? flattenArray(toFlatten) : toFlatten);
     }, []);
 };
 
-const padLeft = function (input, character, length) {
+const padLeft = function(input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
@@ -33,7 +33,7 @@ const padLeft = function (input, character, length) {
     return input;
 };
 
-const padRight = function (input, character, length) {
+const padRight = function(input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
@@ -44,17 +44,14 @@ const padRight = function (input, character, length) {
     return input;
 };
 
-const padBoth = function (input, character, length) {
+const padBoth = function(input, character, length) {
     if (!`${character}` || !length) {
         return "wrong usage! (input, character, length)";
     }
     input = input ? `${input}` : "";
     let left = true;
     while (input.length < length) {
-        if (left)
-            input = character + input;
-        else
-            input = input + character;
+        if (left) {input = character + input;} else {input = input + character;}
         left = !left;
     }
     return input;
@@ -93,8 +90,7 @@ function isEqual(obj1, obj2) {
 
 function deepContains(array, obj) {
     for (const entry of array) {
-        if (isEqual(entry, obj))
-            return true;
+        if (isEqual(entry, obj)) {return true;}
     }
     return false;
 }
@@ -121,8 +117,7 @@ function twoArrayIntersect(array1, array2) {
     const result = [];
     for (const entry1 of array1) {
         for (const entry2 of array2) {
-            if (isEqual(entry1, entry2))
-                result.push(entry1);
+            if (isEqual(entry1, entry2)) {result.push(entry1);}
         }
     }
 
@@ -140,14 +135,11 @@ function twoArrayIntersect(array1, array2) {
  * @returns {number} length of longest string
  */
 function getLongestStringInObject(input) {
-    if (typeof input === 'string')
-        return input.length;
+    if (typeof input === 'string') {return input.length;}
 
-    if (Array.isArray(input))
-        return Math.max(... input.map(it => getLongestStringInObject(it)));
+    if (Array.isArray(input)) {return Math.max(... input.map(it => getLongestStringInObject(it)));}
 
-    if (input !== Object(input))
-        return getLongestStringInObject(`${input}`);
+    if (input !== Object(input)) {return getLongestStringInObject(`${input}`);}
 
     return Math.max(... Object.keys(input).map(it => getLongestStringInObject(input[it])))
 }
@@ -159,13 +151,12 @@ function getLongestStringInObject(input) {
  * @returns {Array<string>}
  */
 function getUniqueArray(array) {
-    if (!array)
-        return [];
+    if (!array) {return [];}
 
     return Object.keys(
-        array.filter(it => it)
-            .map(it => `${it}`)
-            .reduce((l, r) => l[r] = l, {})
+        array.filter(it => it).
+            map(it => `${it}`).
+            reduce((l, r) => l[r] = l, {})
     )
 }
 
@@ -176,24 +167,16 @@ function getUniqueArray(array) {
  * @param  transformFunction {function} (optional)
  */
 function groupBy(input, groupingFunction, transformFunction) {
+    if (!Array.isArray(input)) {throw new Error('input musst be an Array');}
 
-    if (!Array.isArray(input))
-        throw new Error('input musst be an Array');
-
-    if (!groupingFunction)
-        throw new Error('no grouping function passed');
+    if (!groupingFunction) {throw new Error('no grouping function passed');}
 
     const result = {};
     for (let entry of input) {
-
         const currentKey = groupingFunction(entry);
-        if (transformFunction)
-            entry = transformFunction(entry);
+        if (transformFunction) {entry = transformFunction(entry);}
 
-        if (result[currentKey])
-            result[currentKey].push(entry);
-        else
-            result[currentKey] = [entry];
+        if (result[currentKey]) {result[currentKey].push(entry);} else {result[currentKey] = [entry];}
     }
     return result;
 }
@@ -204,7 +187,7 @@ function groupBy(input, groupingFunction, transformFunction) {
  * @param path
  * @returns {*}
  */
-const drillDown = function (dataHolder, path) {
+const drillDown = function(dataHolder, path) {
     const pathEntries = path.split('/');
     if (pathEntries.length === 1) {
         return dataHolder[path];

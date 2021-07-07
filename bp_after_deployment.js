@@ -17,8 +17,8 @@ const versionHandler = require('./actions/helpers/versionHelper');
 const dockerCommandBuilder = require("./actions/docker/dockerCommandBuilder");
 
 const pullRequestRules = [
-    {rule: branch => branch.toLowerCase().startsWith("hotfix/"), base: ['master', 'develop']},
-    {rule: branch => branch.toLowerCase().startsWith("release/"), base: ['master']}
+    { rule: branch => branch.toLowerCase().startsWith("hotfix/"), base: ['master', 'develop'] },
+    { rule: branch => branch.toLowerCase().startsWith("release/"), base: ['master'] }
 ];
 
 const exec = async function handleDeployment() {
@@ -38,7 +38,7 @@ const exec = async function handleDeployment() {
         log.info("no config file could be loaded - ending step");
         return;
     }
-    
+
     if (config['TARGET_ENV']) {
         try {
             log.info("connecting to environment...");
@@ -48,28 +48,26 @@ const exec = async function handleDeployment() {
             await runAfterDeploymentTests(config, proxy);
 
             const skip_after_deployment = process.env['skip_after_deployment'] == '1';
-            if (skip_after_deployment){
+            if (skip_after_deployment) {
                 log.info('Skipping after_deployment step requested by skip_after_deployment build variable. Cancelling after_deployment.');
-            }
-            else
-            {
+            } else {
                 log.info('Skipping after_deployment step is not requested by skip_after_deployment build variable. Proceeding with after_deployment.');
-                
-                if(Math.random() * 1e10 % 10 === 0) {
+
+                if (Math.random() * 1e10 % 10 === 0) {
                     await cleanupSystem(proxy, config);
-                }   
+                }
             }
 
             switch (config['TARGET_ENV']) {
-                case 'prod':
-                    await handleProductionDeployment(config);
-                    break;
-                case 'stage':
-                    await handleStageDeployment(config);
-                    break;
-                case 'develop':
-                    await handleDevelopDeployment(config);
-                    break;
+            case 'prod':
+                await handleProductionDeployment(config);
+                break;
+            case 'stage':
+                await handleStageDeployment(config);
+                break;
+            case 'develop':
+                await handleDevelopDeployment(config);
+                break;
             }
             proxy.close();
         } catch (e) {
@@ -91,21 +89,20 @@ async function runAfterDeploymentTests(config, proxy) {
 
 async function handleDevelopDeployment(config) {
     await dockerHelper.pushImage(config['HUB_REPO'], "dev");
-    await buildDocs.buildDocs(config, true)
-        .catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
+    await buildDocs.buildDocs(config, true).
+        catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
 }
 
 async function handleStageDeployment(config) {
-    await buildDocs.buildDocs(config)
-        .catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
+    await buildDocs.buildDocs(config).
+        catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
     // TODO: open PR in github!
 }
 
 async function handleProductionDeployment(config) {
     await gitHelper.setCredentials(config['GIT_USER'], config['GIT_EMAIL']);
-    await buildDocs.buildDocs(config)
-        .catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
-
+    await buildDocs.buildDocs(config).
+        catch(e => log.warn("ERROR while building docs! When deploying to prod this will lead to a failure!", e));
 }
 
 async function createPullRequests(config) {
@@ -138,7 +135,6 @@ async function createPullRequests(config) {
         } else {
             log.info(`no pull-request will be created for branch '${config['CIRCLE_BRANCH']}'`)
         }
-
     } catch (e) {
         log.error("could not open pull-request. You have to do it manually ¯\\_(ツ)_/¯ ", e);
     }

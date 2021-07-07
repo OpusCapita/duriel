@@ -12,17 +12,15 @@ const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
 const extend = require('extend');
-let defaultData = {
-    "limit-cpu":"0",
-    "reserve-cpu":"0"
+const defaultData = {
+    "limit-cpu": "0",
+    "reserve-cpu": "0"
 };
 
-module.exports = function (config, fileContent, raw) {
+module.exports = function(config, fileContent, raw) {
     const dataFromFile = fileContent || fileHandler.loadFile2Object("./task_template.json");
     const mergedTemplate = extend(true, {}, defaultData, dataFromFile.default, dataFromFile[config['TARGET_ENV']]);
-    if (raw)
-        return mergedTemplate;
-    else {
+    if (raw) {return mergedTemplate;} else {
         const injectionResult = variableInjector(JSON.stringify(mergedTemplate), config);
         return JSON.parse(injectionResult);
     }

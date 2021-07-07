@@ -22,7 +22,7 @@ const helper = require('./helpers/utilHelper');
  *          nextTestNumber: parsedApiResponse.build_num + 1}
  *      }
  */
-const waitForTest = async function (config, attempts = 240, interval = 5000) {
+const waitForTest = async function(config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {
         const currentStatus = await getTestStatus(config);
         const logBase = `${helper.padLeft(attempt, '0', 2)}/${attempts}: status of test #${currentStatus.testNumber} is '${currentStatus.status}'`;
@@ -34,21 +34,20 @@ const waitForTest = async function (config, attempts = 240, interval = 5000) {
             return currentStatus;
         } else {
             log.error(`${logBase}, FAILURE!`, currentStatus);
-            if(config['e2e_skip']) {
+            if (config['e2e_skip']) {
                 log.warn("e2e_skip set! no-one will ever know about this...")
                 return;
             } else {
                 throw new Error(currentStatus);
             }
         }
-
     }
 };
 
-const prepareE2ETests = async function (config, proxy) {
+const prepareE2ETests = async function(config, proxy) {
     log.info(`Preparing E2ETesting for service '${config['serviceName']}'...`);
     const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
-    if (!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret')) {  //TODO: REMOVE ME REMOVE REMOVE ME, GOD PLS REMOVE ME
+    if (!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret')) { // TODO: REMOVE ME REMOVE REMOVE ME, GOD PLS REMOVE ME
         log.info("This service needs no e2e testing");
         return;
     }
@@ -71,15 +70,15 @@ const prepareE2ETests = async function (config, proxy) {
     };
 };
 
-const getTestStatus = async function (config) {
+const getTestStatus = async function(config) {
     if (!config['CIRCLE_TOKEN']) {
         log.error("CIRCLE_TOKEN not set, failing build");
     }
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}&limit=1`;
-    const apiResponse = await request.get(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .then(res => {
+    const apiResponse = await request.get(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        then(res => {
             return new Promise((resolve, reject) => {
                 return resolve(res.body);
             })
@@ -95,34 +94,34 @@ const getTestStatus = async function (config) {
     };
 };
 
-const addSyncToken = async function (config, proxy, tokenName) {
+const addSyncToken = async function(config, proxy, tokenName) {
     log.info(`adding syncToken: '${tokenName}'`);
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar?circle-token=${config['CIRCLE_TOKEN']}`;
-    const data = {name: tokenName, value: ""};
-    return await request.post(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .send(data)
-        .then(res => new Promise(((resolve, reject) => {
+    const data = { name: tokenName, value: "" };
+    return await request.post(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        send(data).
+        then(res => new Promise(((resolve, reject) => {
             log.debug('add syncToken response: ', res.body);
-                return resolve(res);
-            }))
+            return resolve(res);
+        }))
         );
 };
 
-const removeSyncToken = async function (config, proxy, syncToken) {
+const removeSyncToken = async function(config, proxy, syncToken) {
     log.info(`removing syncToken: '${syncToken}' from CircleCi`);
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/envvar/${syncToken}?circle-token=${config['CIRCLE_TOKEN']}`;
-    return await request.delete(url)
-        .set('Content-Type', 'application/json')
-        .then(res => new Promise(((resolve, reject) => {
-                log.debug('deleted syncToken successfully', res.body);
-                return resolve(res);
-            }))
+    return await request.delete(url).
+        set('Content-Type', 'application/json').
+        then(res => new Promise(((resolve, reject) => {
+            log.debug('deleted syncToken successfully', res.body);
+            return resolve(res);
+        }))
         );
 };
 
-const triggerE2ETest = async function (config) {
+const triggerE2ETest = async function(config) {
     const data = {
         "build_parameters": {
             "TRIGGERED_BY": config['CIRCLE_PROJECT_REPONAME'],
@@ -131,16 +130,15 @@ const triggerE2ETest = async function (config) {
         }
     };
     const url = `https://circleci.com/api/v1.1/project/github/OpusCapita/andariel-end2endtests/tree/${config['E2E_TEST_BRANCH']}?circle-token=${config['CIRCLE_TOKEN']}`;
-    return await request.post(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .send(data)
-        .then(res => new Promise(((resolve, reject) => {
-                log.debug("successfully triggert e2e-test", res.body);
-                return resolve(res);
-            }))
+    return await request.post(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        send(data).
+        then(res => new Promise(((resolve, reject) => {
+            log.debug("successfully triggert e2e-test", res.body);
+            return resolve(res);
+        }))
         );
-
 };
 
 module.exports = {

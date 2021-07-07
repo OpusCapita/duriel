@@ -43,8 +43,8 @@ const tagRules = [
     {
         rule: (env) => env === 'prod',
         postFix: undefined,
-        bump: async (config) => bumpProdVersion(config)
-            .catch(e => {
+        bump: async (config) => bumpProdVersion(config).
+            catch(e => {
                 log.warn("could not bump prod version - using 'minor' bumping", e);
                 return bumpVersion(undefined, "minor");
             })
@@ -80,8 +80,8 @@ async function calculateImageTag(config) {
         version.trim(),
         postFix,
         buildNum
-    ]
-        .filter(it => it);
+    ].
+        filter(it => it);
     return tagParts.join("-");
 }
 
@@ -93,7 +93,7 @@ async function calculateImageTag(config) {
  */
 async function bumpProdVersion(config) {
     const version = await gitHelper.getMainVersionTags().then(versions => versions[0]);
-    const commitMerges = await gitHelper.getMerges({commit: config.get('CIRCLE_SHA1')});
+    const commitMerges = await gitHelper.getMerges({ commit: config.get('CIRCLE_SHA1') });
     log.debug(`merges of commit ${config.get('CIRCLE_SHA1')}`, commitMerges);
 
     let bumpLevel = "minor";
@@ -103,7 +103,7 @@ async function bumpProdVersion(config) {
     for (const merge of commitMerges) {
         log.debug("checking merge", merge);
         for (const parent of merge.parents) {
-            const tagsOfParent = await gitHelper.getTags({commit: parent});
+            const tagsOfParent = await gitHelper.getTags({ commit: parent });
             if (tagsOfParent.filter(it => it.includes("-hf")).length) {
                 bumpLevel = "patch";
             }
@@ -133,7 +133,6 @@ async function bumpVersion(version, bumpLevel = "patch") {
         throw new Error(`invalid bumplevel '${bumpLevel}'`);
     }
     return createBumpedVersion(version, bumpLevel);
-
 }
 
 /**
@@ -143,12 +142,9 @@ async function bumpVersion(version, bumpLevel = "patch") {
  * @returns  number
  */
 function compareVersion(a, b) {
-    if (!a && !b)
-        return 0;
-    if (!a)
-        return -5;
-    if (!b)
-        return 5;
+    if (!a && !b) {return 0;}
+    if (!a) {return -5;}
+    if (!b) {return 5;}
 
     const aSplit = splitIntoParts(a);
     const bSplit = splitIntoParts(b);
@@ -163,7 +159,7 @@ function compareVersion(a, b) {
 }
 
 
-/**********************************************************/
+/** ********************************************************/
 /**
  * simple function that bumps the version
  * @param version {object} (e.g. {major: 1, minor: 2, patch: 3}
@@ -206,8 +202,7 @@ function mergeVersionDependencies(preferHigher = true, ...dependencies) {
     const result = {};
     for (const dependency of dependencies) {
         for (const key in dependency) {
-            if (!validateVersion(dependency[key]))
-                throw new Error(`${dependency[key]} is not a valid version`);
+            if (!validateVersion(dependency[key])) {throw new Error(`${dependency[key]} is not a valid version`);}
             if (result[key]) {
                 const versionComparison = compareVersion(result[key], dependency[key]);
                 if (preferHigher && versionComparison <= 0) {

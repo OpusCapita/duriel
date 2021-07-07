@@ -13,7 +13,7 @@ const monitorDockerContainer = require('./docker/monitorDockerContainer_E');
  * @param proxy {EnvProxy}
  * @returns {Promise<void>}
  */
-module.exports = async function (config, proxy) {
+module.exports = async function(config, proxy) {
     if (config.get('skip_service_rollback')) {
         log.warn("rollback is disabled via flag.")
         return;
@@ -55,9 +55,9 @@ module.exports = async function (config, proxy) {
     }
 };
 
-const getServiceId = async function (config, proxy) {
-    const services = await proxy.getServices_E()
-        .then(services => services.filter(service => service.name === config['serviceName']));
+const getServiceId = async function(config, proxy) {
+    const services = await proxy.getServices_E().
+        then(services => services.filter(service => service.name === config['serviceName']));
     if (services && services[0]) {
         return services[0].id;
     }
