@@ -11,7 +11,7 @@ const db_init_flag = "db-Init";
  * @param checkOnly - flag if the service user will be inserted/updated if necessary
  * @returns success<boolean>
  */
-module.exports = async function (config, proxy, checkOnly = true) {
+module.exports = async function(config, proxy, checkOnly = true) {
     log.info("1 - Setting up serviceClient-user");
     let injectUser = false;
     let server = 'auth';
@@ -21,7 +21,7 @@ module.exports = async function (config, proxy, checkOnly = true) {
         return true;
     }
 
-    if (!config['MYSQL_PW_AUTH']){
+    if (!config['MYSQL_PW_AUTH']) {
         server = 'mysql';
     }
 
@@ -30,8 +30,8 @@ module.exports = async function (config, proxy, checkOnly = true) {
     }
 
     log.info("1.1 - Checking for serviceClient-password in consul");
-    config['svcUserPassword'] = await proxy.getKeyValueFromConsul(`${config['serviceName']}/service-client/password`)
-        .catch(async e => {
+    config['svcUserPassword'] = await proxy.getKeyValueFromConsul(`${config['serviceName']}/service-client/password`).
+        catch(async e => {
             log.warn("1.1 - could not find service-client password in consul", e);
             const password_raw = await proxy.executeCommand_L(`openssl rand -base64 32`);
             const password = password_raw.replace(/(\r\n|\n|\r)/gm, "");
@@ -49,8 +49,8 @@ module.exports = async function (config, proxy, checkOnly = true) {
         injectUser = true;
     } else {
         log.debug(`1.2 - found ${queryResult[0].length} users`);
-        let createdByDBInit = queryResult[0]
-            .filter(it => it.createdBy !== db_init_flag);
+        const createdByDBInit = queryResult[0].
+            filter(it => it.createdBy !== db_init_flag);
         log.debug(`createdByDBInit: `, createdByDBInit);
         if (createdByDBInit.length > 0) {
             log.debug(`1.2 - ${config['svcUserName']} exists, but was not created by ${db_init_flag}, not modifying`);

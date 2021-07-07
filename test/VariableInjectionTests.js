@@ -10,7 +10,6 @@ module.exports.run = run;
 
 function run() {
     describe('Variable Injection', () => {
-
         let config;
         before(() => {
             config = getBaseConfigObject(constants.testConfigFields)

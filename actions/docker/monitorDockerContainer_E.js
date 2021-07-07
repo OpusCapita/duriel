@@ -6,7 +6,7 @@ const loadTaskTemplate = require("../filehandling/loadTaskTemplate");
 
 const AsciiTable = require('ascii-table');
 
-module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
+module.exports = async function(config, proxy, isCreateMode, attempts = 60) {
     const interval = 5000;
     const replicaCount = await getReplicaCount(config, proxy);
     log.info("replicaCount:", replicaCount);
@@ -24,14 +24,12 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
         }
 
         if (['success'].includes(serviceHealth.state)) {
-
             if (lastState.state === serviceHealth.state) {
                 log.info(`${logBase} - service up and running'`);
                 return 'success';
             } else {
                 log.info(`${logBase} - state successful for the first time, checking once more...`)
             }
-
         } else if (['unknown', 'updating', 'starting'].includes(serviceHealth.state)) {
             if (serviceHealth.deployedVersions) {
                 const table = renderVersionTable(serviceHealth.deployedVersions);
@@ -39,25 +37,20 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
             }
 
             log.info(`${logBase} - current state: ${serviceHealth.state}, waiting for ${interval / 1000} sec'`);
-
         } else if (['paused'].includes(serviceHealth.state)) {
-
             if (lastState.state === serviceHealth.state) {
                 log.warn(`${logBase} - current state: ${serviceHealth.state}`);
                 return 'paused';
             } else {
                 log.info(`${logBase} - state unsuccessful for the first time, checking once more...`)
             }
-
         } else {
-
             if (lastState.state === serviceHealth.state) {
                 log.error(`${logBase} - current state: ${serviceHealth.state}`);
                 return 'failure';
             } else {
                 log.info(`${logBase} - state unsuccessful for the first time, checking once more...`)
             }
-
         }
         lastState = serviceHealth;
         await helper.snooze(interval);
@@ -65,13 +58,13 @@ module.exports = async function (config, proxy, isCreateMode, attempts = 60) {
     return 'failure';
 };
 
-const checkUpdateStatus = async function (config, proxy) {
-    const check = {state: 'failure'};
+const checkUpdateStatus = async function(config, proxy) {
+    const check = { state: 'failure' };
 
     const inspection = await proxy.getServiceInspect_E(config['serviceName']);
-    await proxy.getDeployedVersions_E(config['serviceName'])
-        .then(it => check.deployedVersions = it)
-        .catch(e => log.warn("could not fetch deployed versions"));
+    await proxy.getDeployedVersions_E(config['serviceName']).
+        then(it => check.deployedVersions = it).
+        catch(e => log.warn("could not fetch deployed versions"));
 
     log.severe("docker inspect: ", inspection);
     let state;
@@ -96,8 +89,8 @@ const checkUpdateStatus = async function (config, proxy) {
     return check;
 };
 
-const checkCreateStatus = async function (config, proxy) {
-    const check = {state: 'unknown'};
+const checkCreateStatus = async function(config, proxy) {
+    const check = { state: 'unknown' };
     const services = await proxy.getServices_E();
     const serviceInfo = services.filter(service => service.name === config['serviceName'])[0];
     log.severe("serviceInfo: ", serviceInfo);
@@ -117,31 +110,27 @@ const checkCreateStatus = async function (config, proxy) {
 
 
 function renderVersionTable(versions) {
-    return Object.keys(versions)
-        .map(key => AsciiTable.factory({
+    return Object.keys(versions).
+        map(key => AsciiTable.factory({
             title: `Deployed Versions (total: ${Object.keys(versions).length})`,
             heading: ["version", "node", "current state"],
             rows: versions[key].map((it) => ([key, it.node, it.currentState]))
-        }).toString())
-        .join("\n")
+        }).toString()).
+        join("\n")
 }
 
 async function getReplicaCount(config, proxy) {
-
     const taskTemplate = loadTaskTemplate(config, undefined, true);
     let replicaCountTaskTemplate;
     try {
-        if (taskTemplate['replicas'])
-            replicaCountTaskTemplate = parseInt(taskTemplate['replicas']);
-        else
-            log.warn("replicaCout not set in task_template");
+        if (taskTemplate['replicas']) {replicaCountTaskTemplate = parseInt(taskTemplate['replicas']);} else {log.warn("replicaCout not set in task_template");}
     } catch (e) {
         log.warn("could not fetch replicaCount from task_template.json", e);
     }
 
-    const replicasOnSystem = await proxy.getReplicaCount_E(config['serviceName'])
-        .then(it => parseInt(it))
-        .catch(e => log.warn("could not fetch replicaCount from ENV", e));
+    const replicasOnSystem = await proxy.getReplicaCount_E(config['serviceName']).
+        then(it => parseInt(it)).
+        catch(e => log.warn("could not fetch replicaCount from ENV", e));
 
     return replicaCountTaskTemplate || replicasOnSystem || 1;
 }

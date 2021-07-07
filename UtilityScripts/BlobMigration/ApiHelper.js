@@ -1,8 +1,8 @@
-var axios = require('axios');
-var extend = require('extend');
-var qs = require('qs');
+const axios = require('axios');
+const extend = require('extend');
+const qs = require('qs');
 
-var defaultConfig = { username: 'ocadmin',
+const defaultConfig = { username: 'ocadmin',
     password: 'test',
     scheme: 'https',
     host: 'develop.businessnetwork.opuscapita.com',
@@ -17,7 +17,6 @@ var defaultConfig = { username: 'ocadmin',
  *
  */
 module.exports = class ApiHelper {
-
     constructor() {
     }
 
@@ -26,26 +25,26 @@ module.exports = class ApiHelper {
 
         this.http = axios.create(extend(true, {}, this.config.http));
 
-        var data = qs.stringify( {'grant_type': 'password',
+        const data = qs.stringify({ 'grant_type': 'password',
             'username': this.config.username,
             'password': this.config.password,
             'scope': 'email phone userInfo roles'
         });
 
-        var tokenUrl = this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/auth/token";
+        const tokenUrl = this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/auth/token";
 
         return this.http.post(tokenUrl,
             data,
-            { auth: { username: this.config.clientId, password: this.config.clientSecret}}
-        ).then( (response) => {
+            { auth: { username: this.config.clientId, password: this.config.clientSecret } }
+        ).then((response) => {
             console.log("received response for " + tokenUrl + ": " + response.status);
             this.tokenInfo = response.data;
-            this.tokenInfo.expires_at = new Date(this.tokenInfo.expires_in *1000 + new Date().getTime()).getTime();
-            //console.log("response: %o", this.tokenInfo);
+            this.tokenInfo.expires_at = new Date(this.tokenInfo.expires_in * 1000 + new Date().getTime()).getTime();
+            // console.log("response: %o", this.tokenInfo);
             console.log(this.config.instanceId + " received access_token " + this.tokenInfo.access_token + "\nvalid until %o", new Date(this.tokenInfo.expires_at));
             return this;
-        })
-            .catch( (err) => {
+        }).
+            catch((err) => {
                 console.log(this.config.instanceId + " Error getting access token: %o", err);
                 throw err;
             });
@@ -59,7 +58,7 @@ module.exports = class ApiHelper {
         if (!this.tokenInfo) {
             return Promise.reject('ApiHelper not initialized! Call init(config) first...');
         }
-        if(new Date().getTime() > this.tokenInfo.expires_at - 5000) {
+        if (new Date().getTime() > this.tokenInfo.expires_at - 5000) {
             console.log(this.config.instanceId + " refreshing token which is valid until %o", new Date(this.tokenInfo.expires_at));
             return this.init({});
         }
@@ -77,9 +76,9 @@ module.exports = class ApiHelper {
      * returns a Promise on the response
      */
     put(uri, data, config) {
-        return this.ensureSession()
-            .then( (authHeader) => {
-                return this.http.put(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, data, extend(true, {}, config, {headers: {Authorization: authHeader}}));
+        return this.ensureSession().
+            then((authHeader) => {
+                return this.http.put(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, data, extend(true, {}, config, { headers: { Authorization: authHeader } }));
             });
     }
 
@@ -90,9 +89,9 @@ module.exports = class ApiHelper {
      * returns a Promise on the response
      */
     get(uri, config) {
-        return this.ensureSession()
-            .then( (authHeader) => {
-                return this.http.get(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, extend(true, {}, config, {headers: {Authorization: authHeader}}));
+        return this.ensureSession().
+            then((authHeader) => {
+                return this.http.get(this.config.scheme + "://" + this.config.host + ":" + this.config.port + "/" + uri, extend(true, {}, config, { headers: { Authorization: authHeader } }));
             });
     }
 }

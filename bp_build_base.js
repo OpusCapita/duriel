@@ -10,7 +10,7 @@ const dockerHelper = require('./actions/helpers/dockerHelper');
 async function run() {
     require('events').EventEmitter.prototype._maxListeners = 100;
     log.info("Starting to build base image.");
-    if(!fs.existsSync('./Dockerfile.base')){
+    if (!fs.existsSync('./Dockerfile.base')) {
         log.info("No 'Dockerfile.base' was found - no base image will be build");
     }
 

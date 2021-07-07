@@ -15,7 +15,7 @@ const bn_e2e_report_file = "home/circleci/repo/reports/report.txt";
 const urlBase = "https://circleci.com/api/v1.1/project/github/OpusCapita/bn-e2e-tests/";
 const runningStatus = ['running', 'queued'];
 
-//const testCases = ["confirmCase", "grCase", "partialRejectionCase"];
+// const testCases = ["confirmCase", "grCase", "partialRejectionCase"];
 const testCases = ["dummyCase"];
 
 /**
@@ -31,54 +31,43 @@ const testCases = ["dummyCase"];
  *          nextTestNumber: parsedApiResponse.build_num + 1}
  *      }
  */
-const waitForTest = async function (config, attempts = 240, interval = 5000) {
+const waitForTest = async function(config, attempts = 240, interval = 5000) {
     for (let attempt = 1; attempt < attempts; attempt++) {
-
         const currentStatus = await getTestStatus(config);
         const logBase = `${helper.padLeft(attempt, '0', 2)}/${attempts}: status of test #${currentStatus.testNumber} is '${currentStatus.status}'`;
 
         if (runningStatus.includes(currentStatus.status)) {
-
             log.info(`${logBase}, waiting ${interval / 1000} seconds...`);
             await helper.snooze(interval);
-
         } else {
-
             await helper.snooze(3000); // give circleci some time to upload
 
-            await downloadTestArtifact(config, currentStatus.testNumber, bn_e2e_report_file)
-                .then(fileContent => log.warn("e2e test report: ", fileContent))
-                .catch(e => log.warn("could not fetch e2e test report: ", e));
+            await downloadTestArtifact(config, currentStatus.testNumber, bn_e2e_report_file).
+                then(fileContent => log.warn("e2e test report: ", fileContent)).
+                catch(e => log.warn("could not fetch e2e test report: ", e));
 
             if (['success', 'fixed'].includes(currentStatus.status)) {
-
                 log.info(`${logBase}. SUCCESS!`);
                 return currentStatus;
-
             } else {
-
                 log.error(`${logBase}, FAILURE!`, currentStatus);
                 if (config['e2e_skip']) {
-
                     log.warn("e2e_skip set! no-one will ever know about this...");
                     return;
-
                 } else {
-
                     throw new Error(currentStatus);
-
                 }
             }
         }
     }
 };
 
-const prepareE2ETests = async function (config, proxy) {
+const prepareE2ETests = async function(config, proxy) {
     log.info(`Preparing E2ETesting for service '${config['serviceName']}'...`);
 
     const includedServices = ['kong', 'auth', 'acl', 'user', 'bnp', 'onboarding', 'supplier', 'email', 'dummy'];
-    if ((!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret'))
-        && !config.fromProcessEnv('force_e2e')) {
+    if ((!includedServices.includes(config['serviceName'].toLowerCase()) || config.fromProcessEnv('chris_little_secret')) &&
+        !config.fromProcessEnv('force_e2e')) {
         log.info("This service needs no e2e testing");
         return;
     }
@@ -93,8 +82,8 @@ const prepareE2ETests = async function (config, proxy) {
     }
     if (runningStatus.includes(testStatus.status)) {
         log.info("Waiting for previous e2e test run");
-        await waitForTest(config)
-            .catch(e => log.warn("Previous deployment e2e-test failed!", e));
+        await waitForTest(config).
+            catch(e => log.warn("Previous deployment e2e-test failed!", e));
         testStatus = await getTestStatus(config);
     }
 
@@ -106,30 +95,30 @@ const prepareE2ETests = async function (config, proxy) {
     };
 };
 
-const getTestStatus = async function (config) {
+const getTestStatus = async function(config) {
     if (!config['CIRCLE_TOKEN']) {
         log.error("CIRCLE_TOKEN not set, failing build");
     }
     const url = `${urlBase}tree/${bn_e2e_branch}?circle-token=${config['CIRCLE_TOKEN']}&limit=5`;
-    return await request.get(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .then(res => res.body)
-        .then(apiResponse => apiResponse.filter(it => it.build_parameters && it.build_parameters.VERSION === config['TARGET_ENV']))
-        .then(builds => builds[0])
-        .then(build => ({
+    return await request.get(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        then(res => res.body).
+        then(apiResponse => apiResponse.filter(it => it.build_parameters && it.build_parameters.VERSION === config['TARGET_ENV'])).
+        then(builds => builds[0]).
+        then(build => ({
             status: build.status,
             testNumber: build.build_num,
             nextTestNumber: build.build_num + 1
-        }))
-        .catch(error => {
+        })).
+        catch(error => {
             log.error("error while fetching testStatus", error);
             return undefined;
         });
 };
 
 
-const triggerE2ETest = async function (config) {
+const triggerE2ETest = async function(config) {
     const data = {
         "build_parameters": {
             "TRIGGERED_BY": config['CIRCLE_PROJECT_REPONAME'],
@@ -140,11 +129,11 @@ const triggerE2ETest = async function (config) {
         }
     };
     const url = `${urlBase}tree/${bn_e2e_branch}?circle-token=${config['CIRCLE_TOKEN']}`;
-    return await request.post(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .send(data)
-        .then(res => {
+    return await request.post(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        send(data).
+        then(res => {
             log.info("successfully triggert e2e-test");
             return res;
         });
@@ -152,23 +141,23 @@ const triggerE2ETest = async function (config) {
 
 async function getTestArtifacts(config, buildNumber) {
     const url = `${urlBase}${buildNumber}/artifacts?circle-token=${config['CIRCLE_TOKEN']}`;
-    return await request
-        .get(url)
-        .set('Accept', 'application/json')
-        .set('Content-Type', 'application/json')
-        .then(response => response.body)
-        .catch(e => {
+    return await request.
+        get(url).
+        set('Accept', 'application/json').
+        set('Content-Type', 'application/json').
+        then(response => response.body).
+        catch(e => {
             log.warn("Could not fetch e2e-artifacts", e);
             return [];
         })
 }
 
 async function downloadTestArtifact(config, buildNumber, filePath) {
-    return await getTestArtifacts(config, buildNumber)
-        .then(artifacts => artifacts.filter(it => it.path === filePath))
-        .then(artifacts => artifacts[0])
-        .then(async artifact => await request.get(`${artifact.url}?circle-token=${config['CIRCLE_TOKEN']}`))
-        .then(async response => response.text)
+    return await getTestArtifacts(config, buildNumber).
+        then(artifacts => artifacts.filter(it => it.path === filePath)).
+        then(artifacts => artifacts[0]).
+        then(async artifact => await request.get(`${artifact.url}?circle-token=${config['CIRCLE_TOKEN']}`)).
+        then(async response => response.text)
 }
 
 module.exports = {

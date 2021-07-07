@@ -15,8 +15,7 @@ const serviceClientLibs = ['@opuscapita/service-client', '@opuscapita/web-init',
  * check for service-client of web-init dependency
  * @returns {boolean}
  */
-module.exports = function () {
-
+module.exports = function() {
     log.info("Checking dependency ti service-client...");
     if (!fs.existsSync('./package.json')) {
         log.warn("could not find package.json");
@@ -29,8 +28,7 @@ module.exports = function () {
         log.debug(`checking for '${lib}'`);
         const libDependency = libraryHelper.getLibraryVersion(lib);
         dependsOnServiceClient |= !!libDependency;
-        if(libDependency)
-            log.debug(`service is dependent to ${lib}:${libDependency}`);
+        if (libDependency) {log.debug(`service is dependent to ${lib}:${libDependency}`);}
     }
 
     log.info(`service is ${dependsOnServiceClient ? "" : "not"} dependent on service-client`);

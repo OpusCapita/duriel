@@ -20,10 +20,10 @@ async function exec() {
     }
     const targetEnvs = process.argv.slice(3);
     log.info("fetching services: ", config)
-    let fetchedData = {};
+    const fetchedData = {};
     for (const targetEnv of targetEnvs) {
-        const data = await fetchLibVersions(targetEnv)
-            .catch(error => log.error("error during lib-fetching: ", error));
+        const data = await fetchLibVersions(targetEnv).
+            catch(error => log.error("error during lib-fetching: ", error));
         if (data) {
             fetchedData[targetEnv] = data;
         }
@@ -34,7 +34,7 @@ async function exec() {
     for (const env in fetchedData) {
         const filePath = `${dir}/${env}.csv`;
         log.info(` Saving information for '${env}' into file '${filePath}'... `);
-        let content = `service;${config.libraries.join(";")}\n${fetchedData[env].sort().join('\n')}`;
+        const content = `service;${config.libraries.join(";")}\n${fetchedData[env].sort().join('\n')}`;
         fs.writeFileSync(`./${filePath}`, content);
         log.info(`Successfully exported library-infos into file: ${filePath}`);
     }
@@ -45,7 +45,6 @@ async function exec() {
         utilProxy.executeCommand_L(`tar -czf ${dir}.tar ${dir}/`);
         log.info(`finished packaging. file: '${dir}.tar'`)
     }
-
 }
 
 async function fetchLibVersions(targetEnv) {
@@ -61,7 +60,7 @@ async function fetchLibVersions(targetEnv) {
     for (const node of nodes) {
         log.info(`Fetching data from node: ${node.hostname}`);
         const containers = await
-            proxy.getContainers_N(node.hostname, true);
+        proxy.getContainers_N(node.hostname, true);
         for (const container of containers) {
             log.info(`\tfetching container ${container.containerId}`);
             const command = `docker exec -t ${container.containerId} cat package.json`;

@@ -26,7 +26,7 @@ const byteSuffixMapping = {
 const cpuMappingValidation = /[+-]?([0-9]*[.])?[0-9]+/;
 const nanoFactor = 1000000000;
 
-const buildDockerCreate = function (config) {
+const buildDockerCreate = function(config) {
     log.info("Building docker create command");
     const taskTemplate = loadTaskTemplate(config);
     const wantedParams = Object.keys(taskTemplate);
@@ -38,11 +38,11 @@ const buildDockerCreate = function (config) {
         additionalSecrets = dockerSecretHelper.generateCreateServiceSecretParam(serviceSecrets)
     }
 
-    const base_cmd = [`docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`, additionalSecrets]
-        .filter(it => it).join(" ");
+    const base_cmd = [`docker service create -d --with-registry-auth --secret='${config['serviceSecretName']}'`, additionalSecrets].
+        filter(it => it).join(" ");
     const addedFields = [];
 
-    for (let param of wantedParams) {
+    for (const param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
@@ -53,32 +53,32 @@ const buildDockerCreate = function (config) {
                 fieldDefinition: fieldDefinition
             };
             switch (type) {
-                case 'mart':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'publish':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'mark':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'mar':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'marh':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'repl':
-                    addedFields.push(getMultipleOptionsFromString(collectedData));
-                    break;
-                case 'frepl':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'create':
-                    addedFields.push(getMultipleOptionsFromString(collectedData));
-                    break;
-                default:
-                    log.warn(`'${param}' --> type '${type}' is not supported`);
+            case 'mart':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'publish':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'mark':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'mar':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'marh':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'repl':
+                addedFields.push(getMultipleOptionsFromString(collectedData));
+                break;
+            case 'frepl':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'create':
+                addedFields.push(getMultipleOptionsFromString(collectedData));
+                break;
+            default:
+                log.warn(`'${param}' --> type '${type}' is not supported`);
             }
         }
     }
@@ -90,13 +90,13 @@ const buildDockerCreate = function (config) {
     ].filter(it => it).join(" ");
 };
 
-const buildDockerUpdate = function (config, addSecret = false) {
+const buildDockerUpdate = function(config, addSecret = false) {
     if (!fs.existsSync('./task_template.json')) {
         log.info("no task_template_mapped found. using simple update mode (only updating to new image");
         return `docker service update --force --image ${config['HUB_REPO']}:${config['VERSION']} ${config['CIRCLE_PROJECT_REPONAME']}`;
     }
     const taskTemplate = loadTaskTemplate(config);
-    const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0];  // json is an array --> use first entry.
+    const serviceConfig = JSON.parse(fs.readFileSync('./service_config.json'))[0]; // json is an array --> use first entry.
     const wantedParams = Object.keys(taskTemplate);
 
     const serviceSecrets = config['serviceSecrets'];
@@ -111,8 +111,8 @@ const buildDockerUpdate = function (config, addSecret = false) {
         serviceSecretPart = `--secret-add '${config['serviceSecretName']}'`
     }
     const base_cmd = ['docker service update -d', serviceSecretPart, additionalSecrets, '--with-registry-auth'].join(" ");
-    let addedFields = [];
-    for (let param of wantedParams) {
+    const addedFields = [];
+    for (const param of wantedParams) {
         const fieldDefinition = fieldDefs[`${param}`];
         if (fieldDefinition) {
             const type = fieldDefinition['type'];
@@ -127,32 +127,32 @@ const buildDockerUpdate = function (config, addSecret = false) {
             };
             log.debug(`handling param '${param}'...`);
             switch (type) {
-                case 'repl':
-                    addedFields.push(updateRepl(collectedData));
-                    break;
-                case 'frepl':
-                    addedFields.push(getMultipleOptionsFromArray(collectedData));
-                    break;
-                case 'mart':
-                    addedFields.push(updateMart(collectedData));
-                    break;
-                case 'mark':
-                    addedFields.push(updateMark(collectedData));
-                    break;
-                case 'mar':
-                    addedFields.push(updateMar(collectedData));
-                    break;
-                case 'marh':
-                    addedFields.push(updateMarh(collectedData));
-                    break;
-                case 'update':
-                    log.debug("ignoring update-type, skipping.");
-                    break;
-                case 'create':
-                    log.debug("ignoring create-type, skipping.");
-                    break;
-                default:
-                    log.debug(`'${param}' --> type '${type}' is not supported`);
+            case 'repl':
+                addedFields.push(updateRepl(collectedData));
+                break;
+            case 'frepl':
+                addedFields.push(getMultipleOptionsFromArray(collectedData));
+                break;
+            case 'mart':
+                addedFields.push(updateMart(collectedData));
+                break;
+            case 'mark':
+                addedFields.push(updateMark(collectedData));
+                break;
+            case 'mar':
+                addedFields.push(updateMar(collectedData));
+                break;
+            case 'marh':
+                addedFields.push(updateMarh(collectedData));
+                break;
+            case 'update':
+                log.debug("ignoring update-type, skipping.");
+                break;
+            case 'create':
+                log.debug("ignoring create-type, skipping.");
+                break;
+            default:
+                log.debug(`'${param}' --> type '${type}' is not supported`);
             }
         }
     }
@@ -172,8 +172,8 @@ const buildDockerUpdate = function (config, addSecret = false) {
  * @param name - param-name (env, publish, host, etc. )
  * @returns result + mappedKV.map(toCommandParam)
  */
-const addKeyValueParam = function (result, mappedKV, delimiter, name) {
-    for (let key in mappedKV) {
+const addKeyValueParam = function(result, mappedKV, delimiter, name) {
+    for (const key in mappedKV) {
         const entry = mappedKV[key];
         if (!entry.cv || entry.dv != entry.cv) {
             log.debug(`${key} is new or did change its value`);
@@ -186,7 +186,7 @@ const addKeyValueParam = function (result, mappedKV, delimiter, name) {
     return result;
 };
 
-const updateMarh = function (param) {
+const updateMarh = function(param) {
     const delimiter = ':';
     let result = "";
     const mappedKV = {};
@@ -195,7 +195,7 @@ const updateMarh = function (param) {
             const split = entry.split(delimiter);
             const name = split[0];
             const value = split[1];
-            mappedKV[name] = {dv: value};
+            mappedKV[name] = { dv: value };
         }
     );
     param.cv.forEach(
@@ -213,29 +213,29 @@ const updateMarh = function (param) {
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
-const updateMar = function (param) {
+const updateMar = function(param) {
     const delimiter = '==';
     const delimiterNotEQ = '!=';
     let result = "";
     const mappedKV = {};
     const mappedKVNotEQ = {};
     param.dv.forEach(entry => {
-            if(entry.includes(delimiter)){
-                const name = entry.split(delimiter)[0];
-                const value = entry.split(delimiter)[1];
-                mappedKV[name] = {dv: value};
-            } else {
-                if (entry.includes(delimiterNotEQ)){
-                    const name = entry.split(delimiterNotEQ)[0];
-                    const value = entry.split(delimiterNotEQ)[1];
-                    mappedKVNotEQ[name] = {dv: value};
-                }
+        if (entry.includes(delimiter)) {
+            const name = entry.split(delimiter)[0];
+            const value = entry.split(delimiter)[1];
+            mappedKV[name] = { dv: value };
+        } else {
+            if (entry.includes(delimiterNotEQ)) {
+                const name = entry.split(delimiterNotEQ)[0];
+                const value = entry.split(delimiterNotEQ)[1];
+                mappedKVNotEQ[name] = { dv: value };
             }
         }
+    }
     );
     param.cv.forEach(
         entry => {
-            if(entry.includes(delimiter)){
+            if (entry.includes(delimiter)) {
                 const name = entry.split(delimiter)[0];
                 const value = entry.split(delimiter)[1];
                 if (mappedKV[name]) {
@@ -245,7 +245,7 @@ const updateMar = function (param) {
                     result += ` --${param.name}-rm "${entry}"`;
                 }
             } else {
-                if (entry.includes(delimiterNotEQ)){
+                if (entry.includes(delimiterNotEQ)) {
                     const name = entry.split(delimiterNotEQ)[0];
                     const value = entry.split(delimiterNotEQ)[1];
                     if (mappedKVNotEQ[name]) {
@@ -261,17 +261,17 @@ const updateMar = function (param) {
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
-const updateMark = function (param) {
+const updateMark = function(param) {
     const delimiter = '=';
     let result = "";
     const mappedKV = {};
     param.dv.forEach(entry => {
-            const name = entry.split(delimiter)[0];
-            const value = entry.split(delimiter).slice(1).join(delimiter);
-            mappedKV[name] = {dv: value};
-        }
+        const name = entry.split(delimiter)[0];
+        const value = entry.split(delimiter).slice(1).join(delimiter);
+        mappedKV[name] = { dv: value };
+    }
     );
-    if(typeof param.cv.forEach == "undefined"){
+    if (typeof param.cv.forEach === "undefined") {
         return addKeyValueParam(result, mappedKV, delimiter, param.name);
     }
     param.cv.forEach(
@@ -288,7 +288,7 @@ const updateMark = function (param) {
     return addKeyValueParam(result, mappedKV, delimiter, param.name);
 };
 
-const updateMart = function (param) {
+const updateMart = function(param) {
     const fieldMap = param['fieldDefinition']['fieldMap'];
     // create map to translate name from task_template to field_defs
     const isCommaSeperatedList = param['fieldDefinition']['rmKeyType'] === 'srcKVCommaSeparated';
@@ -296,7 +296,7 @@ const updateMart = function (param) {
     const tt2fdMap = {};
     const fd2ttMap = {};
     if (fieldMap) {
-        for (let key of Object.keys(fieldMap)) {
+        for (const key of Object.keys(fieldMap)) {
             const tt_value = key.toLowerCase();
             const fd_value = fieldMap[key];
             tt2fdMap[tt_value] = fd_value;
@@ -307,11 +307,11 @@ const updateMart = function (param) {
     log.info("translating currentValue");
     const translatedCV = param.cv.map(it => {
         const result = {};
-        for (let key of Object.keys(it)) {
+        for (const key of Object.keys(it)) {
             log.debug("cv-entry: ", key);
             const translatedKey = fd2ttMap[key];
             if (translatedKey) {
-                result[translatedKey] = `${it[key]}`;   // Forcing it to be a String.
+                result[translatedKey] = `${it[key]}`; // Forcing it to be a String.
             } else {
                 log.warn("no mapping for field " + key);
                 result[key.toLowerCase()] = `${it[key]}`;
@@ -322,11 +322,11 @@ const updateMart = function (param) {
 
     log.info("translating desiredValue");
     const translatedDV = [];
-    for (let currentDV of param.dv) {
+    for (const currentDV of param.dv) {
         log.debug("handlinv dv: ", currentDV);
         const entry = {};
         const splitByField = currentDV.split(',');
-        for (let field of splitByField) {
+        for (const field of splitByField) {
             log.severe("field of dv: ", field);
             const splitByKV = field.split("=");
             entry[splitByKV[0].toLowerCase()] = splitByKV[1];
@@ -345,27 +345,27 @@ const updateMart = function (param) {
     log.severe("ignoring: ", util.arrayIntersect(translatedDV, translatedCV));
 
     let command = "";
-    for (let dv of pairsForAdding) {
+    for (const dv of pairsForAdding) {
         command += ` --${param.name}-add ${Object.keys(dv).sort().map(it => `${it}=${dv[it]}`).join(',')}`;
     }
 
-    for (let cv of pairsForRemoving) {
+    for (const cv of pairsForRemoving) {
         command += ` --${param.name}-rm ${Object.keys(cv).sort().map(it => `${it}=${cv[it]}`).join(',')}`;
     }
 
     return command;
 };
 
-const getMultipleOptionsFromArray = function (collectedData) {
+const getMultipleOptionsFromArray = function(collectedData) {
     log.severe(`getMultipleOptionsFromArray: `, collectedData);
     let result = "";
-    for (let opt of collectedData.dv) {
+    for (const opt of collectedData.dv) {
         result += `--${collectedData.name} ${opt} `
     }
     return result;
 };
 
-const updateRepl = function (collectedData) {
+const updateRepl = function(collectedData) {
     if (collectedData.fieldDefinition.mapping) {
         if (collectedData.fieldDefinition.mapping === "custom2bytes") {
             if (!new RegExp(byteMappingValidation).test(collectedData.dv)) {
@@ -392,7 +392,7 @@ const updateRepl = function (collectedData) {
     return getMultipleOptionsFromString(collectedData);
 };
 
-const getMultipleOptionsFromString = function (collectedData) {
+const getMultipleOptionsFromString = function(collectedData) {
     log.severe(`getMultipleOptionsFromString: `, collectedData);
     if (collectedData.dv) {
         return `--${collectedData.name} ${collectedData.dv}`;
@@ -401,7 +401,7 @@ const getMultipleOptionsFromString = function (collectedData) {
     }
 };
 
-const buildDockerCompose = function () {
+const buildDockerCompose = function() {
     log.info("building compose command:...");
     let command = "docker-compose -f docker-compose.yml";
     if (fs.existsSync("./docker-compose.ci.yml")) {

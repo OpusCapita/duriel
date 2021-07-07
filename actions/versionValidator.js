@@ -15,7 +15,6 @@ const AsciiTable = require('ascii-table');
 const extend = require('extend');
 
 async function checkVersionDependencies(config, proxy) {
-
     const validationResult = await validateVersionDependencies(config, proxy);
     const output = renderVersionValidationResult(validationResult);
 
@@ -56,7 +55,7 @@ async function validateVersionDependencies(config, proxy) {
 }
 
 function renderVersionValidationResult(validations) {
-    let entries = [];
+    const entries = [];
 
     for (const validation of validations.validations) {
         if (validation.passing.length) {
@@ -79,10 +78,9 @@ function renderVersionValidationResult(validations) {
             entries.push(table.toString());
         }
     }
-    const result = nunjucks.render(`${__dirname}/templates/ValidationSummary.njk`, {entries});
-    //log.info("", result);
+    const result = nunjucks.render(`${__dirname}/templates/ValidationSummary.njk`, { entries });
+    // log.info("", result);
     return result;
-
 }
 
 /**

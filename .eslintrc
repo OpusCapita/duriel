@@ -1,0 +1,16 @@
+{
+  "extends": "opuscapita",
+  "env": {
+    "jasmine": true,
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 8
+  },
+  "rules": {
+    "indent": ["error", 4],
+    "max-len": ["error", { "code":160 }]
+  }
+}

@@ -38,9 +38,9 @@ function run() {
             const fromFile = loadConfigFile(dummyConfigPath);
 
             // deepEquals not working...
-            const entries = Object.keys(enhancedSimple)
-                .filter(key => typeof enhancedSimple[key] !== 'function')
-                .concat(Object.keys(fromFile).filter(key => typeof enhancedSimple[key] !== 'function'))
+            const entries = Object.keys(enhancedSimple).
+                filter(key => typeof enhancedSimple[key] !== 'function').
+                concat(Object.keys(fromFile).filter(key => typeof enhancedSimple[key] !== 'function'))
 
             entries.forEach(entry => {
                 assert.equal(enhancedSimple[entry], fromFile[entry])
@@ -75,7 +75,6 @@ function run() {
                 const files = fileHelper.getFilesInDir(require("path").join(__filename));
                 assert.equal(Array.isArray(files), true);
                 assert.equal(files.includes(__filename), true);
-
             });
         });
         describe("loads a task_template", () => {
@@ -121,7 +120,6 @@ function run() {
                     Error,
                     ""
                 )
-
             });
             it("get no content", () => {
                 const config = getBaseConfigObject({});
@@ -140,28 +138,28 @@ function run() {
                     SECRET_develop_RABBITMQPASS: "rabbit_pass"
                 });
                 const taskTemplate = {
-                    "default":{
-                        "name":"${serviceName}",
-                        "log-driver":"gelf",
-                        "log-opt":["gelf-address=udp://${logstash_ip}:12201", "tag=\"${serviceName}\""],
-                        "constraint":["engine.labels.nodetype==worker"],
-                        "publish":["mode=host,target=3008,published=3008,protocol=tcp"],
-                        "host":["consul:172.17.0.1"],
-                        "env":[
+                    "default": {
+                        "name": "${serviceName}",
+                        "log-driver": "gelf",
+                        "log-opt": ["gelf-address=udp://${logstash_ip}:12201", "tag=\"${serviceName}\""],
+                        "constraint": ["engine.labels.nodetype==worker"],
+                        "publish": ["mode=host,target=3008,published=3008,protocol=tcp"],
+                        "host": ["consul:172.17.0.1"],
+                        "env": [
                             "SERVICE_NAME=${serviceName}",
                             "SERVICE_3008_CHECK_HTTP=/api/health/check",
                             "SERVICE_3008_CHECK_INTERVAL=15s",
                             "SERVICE_3008_CHECK_TIMEOUT=3s",
                             "NODE_ENV=production"
                         ],
-                        "oc-db-init":{"populate-test-data":"true"},
-                        "oc-consul-injection":{
+                        "oc-db-init": { "populate-test-data": "true" },
+                        "oc-consul-injection": {
                             "redis/password": "${SECRET_:env_REDIS}",
                         }
                     }
                 };
                 const template = loadTaskTemplate(config, taskTemplate);
-                assert.deepEqual(template['log-opt'],[`gelf-address=udp://${config.get('logstash_ip')}:12201`, `tag=\"${config.get('serviceName')}\"`]);
+                assert.deepEqual(template['log-opt'], [`gelf-address=udp://${config.get('logstash_ip')}:12201`, `tag=\"${config.get('serviceName')}\"`]);
                 assert.equal(template['name'], config.get('serviceName'));
                 assert.equal(template['oc-consul-injection']['redis/password'], config.get('SECRET_develop_REDIS'));
             });

@@ -9,7 +9,7 @@ const getEnvVariables = require('../getEnvVariables');
 const EpicLogger = require('../../EpicLogger');
 const log = new EpicLogger();
 
-module.exports = function (fileName) {
+module.exports = function(fileName) {
     const dataFromFile = fileHandler.loadFile2Object(fileName);
     return getEnvVariables.getBaseConfigObject(dataFromFile);
 };

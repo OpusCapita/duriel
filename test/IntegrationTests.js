@@ -30,7 +30,7 @@ async function run() {
         it("run an integrationTest", async () => {
             const config = getBaseConfig(
                 extend(true, {},
-                    {serviceName: "servicenow-integration"},
+                    { serviceName: "servicenow-integration" },
                     devEnvInfo));
             await IntegrationTestHelper.runIntegrationTests(config, proxy)
         })
@@ -50,7 +50,7 @@ async function run() {
         });
         it("valid service name", async () => {
             const serviceName = "logstash";
-            const config = {serviceName};
+            const config = { serviceName };
             const consulData = await IntegrationTestHelper.getConsulData(config, proxy);
 
             assert.equal(Array.isArray(consulData.nodes.passing), true)
@@ -58,7 +58,7 @@ async function run() {
 
         it("invalid service name", async () => {
             const serviceName = "kevin";
-            const config = {serviceName};
+            const config = { serviceName };
             const consulData = await IntegrationTestHelper.getConsulData(config, proxy);
             assert.equal(Array.isArray(consulData.nodes.passing), true)
         });
@@ -71,8 +71,8 @@ async function run() {
     });
     describe("check accessibility", () => {
         const devConfig = getBaseConfig(envInfo.develop);
-        const mockConfig = getBaseConfig({public_scheme: "http", public_hostname: 'guukle.com', public_port: '1337'});
-        const googleConfig = getBaseConfig({public_scheme: "http", public_hostname: 'google.com', public_port: '80'});
+        const mockConfig = getBaseConfig({ public_scheme: "http", public_hostname: 'guukle.com', public_port: '1337' });
+        const googleConfig = getBaseConfig({ public_scheme: "http", public_hostname: 'google.com', public_port: '80' });
 
 
         it("checks the dev system", async () => {
@@ -80,37 +80,16 @@ async function run() {
         });
 
         it("checks a pseudo system", async () => {
-            const response = await IntegrationTestHelper.checkAccessibility(mockConfig)
-                .catch(e => "ok");
+            const response = await IntegrationTestHelper.checkAccessibility(mockConfig).
+                catch(e => "ok");
             assert.equal(response, "ok");
         });
 
         it("checks google", async () => {
-            const response = await IntegrationTestHelper.checkAccessibility(googleConfig)
-                .catch(e => "ok");
+            const response = await IntegrationTestHelper.checkAccessibility(googleConfig).
+                catch(e => "ok");
             assert.equal(response, "ok");
         })
-
     })
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

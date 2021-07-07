@@ -12,7 +12,6 @@ const pathJs = require('path');
 
 async function downloadURL2File(url, targetFile) {
     return new Promise((resolve, reject) => {
-
         const file = fs.createWriteStream(targetFile);
         const req = https.request(url, (res) => {
             log.debug('statusCode:', res.statusCode);
@@ -36,9 +35,9 @@ async function downloadURL2File(url, targetFile) {
 }
 
 function loadFileFromPrivateGit(url, config) {
-    return request.get(url)
-        .set('Authorization', `token ${config['GIT_TOKEN']}`)
-        .then(res => res.text);
+    return request.get(url).
+        set('Authorization', `token ${config['GIT_TOKEN']}`).
+        then(res => res.text);
 }
 
 function saveObject2File(object, path, forceOverride = false) {
@@ -68,11 +67,9 @@ function getFilesInDir(path, regex) {
     const fileFilter = new RegExp(regex);
     let result = [];
 
-    if (!fs.existsSync(path))
-        throw new Error(`path '${path}' does not exist.`)
+    if (!fs.existsSync(path)) {throw new Error(`path '${path}' does not exist.`)}
 
-    if (fs.statSync(path).isFile())
-        return [path];
+    if (fs.statSync(path).isFile()) {return [path];}
 
     const current = fs.readdirSync(path);
     current.forEach(file => {
@@ -81,8 +78,7 @@ function getFilesInDir(path, regex) {
         if (stat.isDirectory()) {
             result = result.concat(getFilesInDir(entry));
         } else {
-            if (fileFilter.test(entry))
-                result.push(entry);
+            if (fileFilter.test(entry)) {result.push(entry);}
         }
     });
     return result.filter(it => fileFilter.test(it));
@@ -98,10 +94,7 @@ function mkdirp(path) {
 
     for (const subPath of subPaths) {
         current = `${current}${subPath}`;
-        if (!fs.existsSync(current))
-            fs.mkdirSync(current);
-        else if (fs.lstatSync(current).isFile())
-            break; //throw new Error(`path '${current}' is a File.`);
+        if (!fs.existsSync(current)) {fs.mkdirSync(current);} else if (fs.lstatSync(current).isFile()) {break;} // throw new Error(`path '${current}' is a File.`);
 
         current += pathJs.sep;
     }

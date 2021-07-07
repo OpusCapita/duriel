@@ -13,12 +13,12 @@ const EnvProxy = require('../EnvProxy');
  * @param lines
  * @returns {Promise<void>}
  */
-module.exports = async function (serviceName = "_main", lines = 250) {
+module.exports = async function(serviceName = "_main", lines = 250) {
     const proxy = new EnvProxy();
-    const containers = await proxy.getContainers_L()
-        .filter(service => service.name.includes(serviceName));
-    for (let service of containers) {
-        let logs = await proxy.executeCommand_L(`docker logs ${service.name} --tail ${lines}`);
+    const containers = await proxy.getContainers_L().
+        filter(service => service.name.includes(serviceName));
+    for (const service of containers) {
+        const logs = await proxy.executeCommand_L(`docker logs ${service.name} --tail ${lines}`);
         log.info(logs);
     }
 };

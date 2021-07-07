@@ -12,13 +12,13 @@ const BUILD_ENV_VARS = ['DOCKER_BUILD_ARGS'];
  * initials function that gatheres and calculates all variables needed for the buildprocess
  * @returns {*}
  */
-module.exports = async function () {
+module.exports = async function() {
     const config = getBaseConfigObject();
     if (process.argv.length < 3) {
         log.error(`too few parameters ${ process.argv}`);
         process.exit(1);
     } else {
-        config["HUB_REPO"] = process.argv[2];  // params start at 2 because 0 = node, 1 = js-script
+        config["HUB_REPO"] = process.argv[2]; // params start at 2 because 0 = node, 1 = js-script
         if (process.argv.length < 4) {
             config["MULTI_STAGE"] = false;
         } else {
@@ -27,7 +27,7 @@ module.exports = async function () {
     }
 
     let all_required_vars_set = true;
-    for (let env_var of REQUIRED_ENV_VARS) {
+    for (const env_var of REQUIRED_ENV_VARS) {
         if (!process.env[env_var]) {
             log.error(`env_var '${env_var}' not set but necessary for the buildprocess!`);
             all_required_vars_set = false;
@@ -41,7 +41,7 @@ module.exports = async function () {
         throw new Error("env vars are missing! exiting!");
     }
 
-    for (let env_var of ADDITIONAL_ENV_VARS) {
+    for (const env_var of ADDITIONAL_ENV_VARS) {
         if (process.env[env_var]) {
             config[`${env_var}`] = process.env[env_var];
             log.severe(`env_var ${env_var} set successfully.`);
@@ -50,13 +50,13 @@ module.exports = async function () {
         }
     }
     config['BUILD_ARGS'] = '';
-    for (let env_var of BUILD_ENV_VARS) {
+    for (const env_var of BUILD_ENV_VARS) {
         if (process.env[env_var]) {
             const build_args = process.env[env_var].split(',');
-            for (let build_var of build_args) {
+            for (const build_var of build_args) {
                 if (process.env[build_var]) {
                     config[`${build_var}`] = process.env[build_var];
-                    config['BUILD_ARGS'] += '--build-arg '+build_var+'='+process.env[build_var]+' ';
+                    config['BUILD_ARGS'] += '--build-arg ' + build_var + '=' + process.env[build_var] + ' ';
                     log.severe(`build_var ${build_var} set successfully.`);
                 } else {
                     log.debug(`skipping build_var ${build_var} - no value set`);
@@ -77,13 +77,13 @@ module.exports = async function () {
 
     config['MYSQL_PW'] = getDatabasePassword(config);
     config['MYSQL_USER'] = getDatabaseUser(config);
-    config['MYSQL_PW_AUTH'] = getDatabasePassword(config,'_AUTH');
-    config['MYSQL_USER_AUTH'] = getDatabaseUser(config,'_AUTH');
+    config['MYSQL_PW_AUTH'] = getDatabasePassword(config, '_AUTH');
+    config['MYSQL_USER_AUTH'] = getDatabaseUser(config, '_AUTH');
     config['MYSQL_SERVICE'] = getDatabaseService(config);
-    config['MYSQL_SERVICE_AUTH'] = getDatabaseService(config,'_AUTH');
+    config['MYSQL_SERVICE_AUTH'] = getDatabaseService(config, '_AUTH');
     config['serviceName'] = config['CIRCLE_PROJECT_REPONAME'];
     config['VERSION'] = await calculateVersion.calculateImageTag(config);
-    config['serviceVersion'] = config['VERSION'].replace(/\./g,'-');
+    config['serviceVersion'] = config['VERSION'].replace(/\./g, '-');
     config['E2E_TEST_BRANCH'] = getE2EBranch(config['CIRCLE_BRANCH']);
     log.debug("done.");
 
@@ -106,17 +106,17 @@ module.exports.calculateRepoPath = calculateRepoPath;
  * @returns {string} password
  */
 function getDatabasePassword(config, service = '') {
-    if(!config['TARGET_ENV']){
+    if (!config['TARGET_ENV']) {
         return "none";
     }
-    //TODO: check if Service needs DB;
-    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL`+service;
+    // TODO: check if Service needs DB;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL` + service;
     if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);
     } else {
         log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
-        //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+        // throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
 
@@ -128,18 +128,18 @@ module.exports.getDatabasePassword = getDatabasePassword;
  * @returns {string} user
  */
 function getDatabaseUser(config, service = '') {
-    if(!config['TARGET_ENV']){
+    if (!config['TARGET_ENV']) {
         return "none";
     }
-    //TODO: check if User needs DB;
-    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_USER`+service;
+    // TODO: check if User needs DB;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_USER` + service;
     if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);
     } else {
         return 'root';
-        //log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
-        //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+        // log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
+        // throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
 
@@ -151,24 +151,24 @@ module.exports.getDatabaseUser = getDatabaseUser;
  * @returns {string} service
  */
 function getDatabaseService(config, service = '') {
-    if(!config['TARGET_ENV']){
+    if (!config['TARGET_ENV']) {
         return "none";
     }
-    //TODO: check if Service needs DB;
-    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_SERVICE`+service;
+    // TODO: check if Service needs DB;
+    const valueKey = `SECRET_${config['TARGET_ENV']}_MYSQL_SERVICE` + service;
     if (config.get(valueKey)) {
         log.severe(`env_var ${valueKey} set successfully.`);
         return config.get(valueKey);
     } else {
-        //log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
-        //throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
+        // log.warn(`'${valueKey}' not found in env-vars. this will disable database-functions of the deployment.`);
+        // throw new Error(`Database password was not set for env '${config['TARGET_ENV']}' (env-var: ${valueKey})`);
     }
 }
 
 module.exports.getDatabaseService = getDatabaseService;
 
 
-const getBaseConfigObject = function (result = {}) {
+const getBaseConfigObject = function(result = {}) {
     return new BaseConfig(result);
 };
 
@@ -178,7 +178,7 @@ const getBaseConfigObject = function (result = {}) {
  */
 class BaseConfig {
     constructor(params) {
-        for (let param in params) {
+        for (const param in params) {
             this[param] = params[param];
         }
         this.get = this.get.bind(this);
@@ -205,7 +205,6 @@ class BaseConfig {
             return result.trim();
         }
     }
-
 }
 
 module.exports.getBaseConfigObject = getBaseConfigObject;
@@ -215,8 +214,4 @@ function getE2EBranch(circleBranch) {
 }
 
 module.exports.getE2EBranch = getE2EBranch;
-
-
-
-
 

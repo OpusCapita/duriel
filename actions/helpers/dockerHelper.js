@@ -17,7 +17,7 @@ async function tagImage(image, src_tag, target_tag) {
 }
 
 async function pushImage(image, push_tag) {
-    if(push_tag) {
+    if (push_tag) {
         const proxy = new EnvProxy();
         log.info(`pushing tag '${push_tag}' to dockerhub...`);
         await proxy.executeCommand_L(`docker push ${image}:${push_tag}`);
@@ -38,16 +38,16 @@ async function tagAndPushImage(image, src, target, push) {
  * @param proxy - envProxy instance to execute command in ENV
  * @returns nothing
  */
-async function onEnv (config, proxy){
+async function onEnv(config, proxy) {
     log.debug(`logging into docker with user ${config['DOCKER_USER']}`);
     let createdProxy = false;
-    if(!proxy){
+    if (!proxy) {
         log.warn(`no proxy param - trying to init a proxy`);
         proxy = await new EnvProxy().init(config);
         createdProxy = true;
     }
     console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`).catch(err => log.warn("could not login in docker")));
-    if(createdProxy){
+    if (createdProxy) {
         proxy.close();
     }
 }
@@ -57,7 +57,7 @@ async function onEnv (config, proxy){
  * @param config - {BaseConfig} used fields: {'DOCKER_USER' : '', 'DOCKER_PASS' : ''}
  * @returns {Promise<void>}
  */
-async function local(config){
+async function local(config) {
     log.debug(`logging into docker with user ${config['DOCKER_USER']}`);
     const proxy = new EnvProxy();
     console.debug(await proxy.executeCommand_L(`docker login -u ${config['DOCKER_USER']} -p ${config['DOCKER_PASS']}`).catch(err => log.warn("could not login in docker", err)));

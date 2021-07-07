@@ -31,7 +31,7 @@ async function addFiles(files) {
     if (!Array.isArray(files)) {
         files = [files]
     }
-    for (let file of files) {
+    for (const file of files) {
         await executeCommand(`git add ${file}`);
     }
 }
@@ -76,7 +76,7 @@ async function executeCommand(command) {
 
 async function checkForChanges() {
     try {
-        let changedFiles = await executeCommand("git ls-files -m");
+        const changedFiles = await executeCommand("git ls-files -m");
         log.debug("files that changed in git-repository", changedFiles);
         return changedFiles.replace(/(\r\n\t|\n|\r\t)/gm, "").replace(" ", "");
     } catch (err) {
@@ -106,19 +106,15 @@ async function setCredentials(user, mail) {
 async function getTags(filter) {
     let command = "git tag --list";
     if (filter) {
-        if (filter.commit)
-            command = `${command} --points-at ${filter.commit}`;
-        else if (filter.merged) {
+        if (filter.commit) {command = `${command} --points-at ${filter.commit}`;} else if (filter.merged) {
             command = `${command} --merged ${filter.merged}`
         }
     }
-    return await executeCommand(command)
-        .then(tags => tags.split('\n')
-            .filter(tag => {
-                if (!tag)
-                    return false;
-                if (filter && filter.pattern && !new RegExp(filter.pattern, "gm").test(tag))
-                    return false;
+    return await executeCommand(command).
+        then(tags => tags.split('\n').
+            filter(tag => {
+                if (!tag) {return false;}
+                if (filter && filter.pattern && !new RegExp(filter.pattern, "gm").test(tag)) {return false;}
 
                 return true
             })
@@ -126,13 +122,10 @@ async function getTags(filter) {
 }
 
 async function getMainVersionTags() {
-    return await getTags({pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/})
-        .then(tags => tags.sort(compareVersion))
-        .then(tags => {
-            if (!tags.length)
-                return ['0.0.0'];
-            else
-                return tags;
+    return await getTags({ pattern: /(^[0-9]+\.)([0-9]+\.)([0-9]+)$/ }).
+        then(tags => tags.sort(compareVersion)).
+        then(tags => {
+            if (!tags.length) {return ['0.0.0'];} else {return tags;}
         })
 }
 
@@ -145,18 +138,16 @@ async function getMerges(filter) {
     function createUsedFilter(filter) {
         const result = {};
         if (filter) {
-            if (filter.commit)
-                result.commit = filter.commit.trim();
-            if (filter.message)
-                result.message = filter.message.trim();
+            if (filter.commit) {result.commit = filter.commit.trim();}
+            if (filter.message) {result.message = filter.message.trim();}
         }
         return result;
     }
 
-    return await executeCommand(`git log --merges --all --pretty="%H% ;##; %P% ;##; %an% ;##; %ae% ;##; %ad% ;##; %s% ;##; %e% ;##; %T"`)
-        .then(data => {
-            return data.split("\n")
-                .map(row => {
+    return await executeCommand(`git log --merges --all --pretty="%H% ;##; %P% ;##; %an% ;##; %ae% ;##; %ad% ;##; %s% ;##; %e% ;##; %T"`).
+        then(data => {
+            return data.split("\n").
+                map(row => {
                     const cols = row.split(";##;").filter(it => it);
                     if (cols.length === 8) {
                         return {
@@ -173,8 +164,7 @@ async function getMerges(filter) {
                         }
                     }
                 }).filter(it => {
-                    if (!it)
-                        return it;
+                    if (!it) {return it;}
                     if (filter) {
                         const usedFilter = createUsedFilter(filter);
                         for (const filterino in usedFilter) {
@@ -202,11 +192,11 @@ async function getMerges(filter) {
  */
 async function getStatus(filter) {
     const status = await executeCommand('git status --porcelain');
-    return status.split('\n')
-        .map(row => row.split(/[ ]+/).filter(col => col)) // splitting into cols
-        .filter(it => it.length)    // removing empty rows
-        .map(it => ({status: it[0], file: it[1]})) // parsing into objects
-        .filter(it => !filter || filter.includes(it.status)) // filtering
+    return status.split('\n').
+        map(row => row.split(/[ ]+/).filter(col => col)). // splitting into cols
+        filter(it => it.length). // removing empty rows
+        map(it => ({ status: it[0], file: it[1] })). // parsing into objects
+        filter(it => !filter || filter.includes(it.status)) // filtering
 }
 
 /**
@@ -216,12 +206,9 @@ async function getStatus(filter) {
  * @returns  number
  */
 function compareVersion(a, b) {
-    if (!a && !b)
-        return 0;
-    if (!a)
-        return 1;
-    if (!b)
-        return -1;
+    if (!a && !b) {return 0;}
+    if (!a) {return 1;}
+    if (!b) {return -1;}
 
     const aSplit = a.split(".");
     const bSplit = b.split(".");

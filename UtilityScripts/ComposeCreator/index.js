@@ -18,11 +18,9 @@ const getBaseConfig = require('../../actions/getEnvVariables').getBaseConfigObje
 const loadTaskTemplate = require('../../actions/filehandling/loadTaskTemplate');
 
 async function exec() {
+    if (process.argv.length < 4) {throw new Error("usage: <serviceName> <target_env>");}
 
-    if (process.argv.length < 4)
-        throw new Error("usage: <serviceName> <target_env>");
-
-    const config = getBaseConfig({serviceName: process.argv[2], TARGET_ENV: process.argv[3]});
+    const config = getBaseConfig({ serviceName: process.argv[2], TARGET_ENV: process.argv[3] });
 
     const taskTemplate = loadTaskTemplate(config);
     log.info("tt", taskTemplate)
@@ -30,10 +28,10 @@ async function exec() {
     log.info("s2s", s2sDependencies);
 
     const proxy = await new EnvProxy().init(envInfo.develop);
-    //const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy);
-    //log.info("l2s", l2sDependencies);
+    // const l2sDependencies = await libraryHelper.fetchLibrary2ServiceDependencies(proxy);
+    // log.info("l2s", l2sDependencies);
 
-    //const serviceDependencies = extend(true, {}, s2sDependencies, ...l2sDependencies.map(it => it.serviceDependencies));
+    // const serviceDependencies = extend(true, {}, s2sDependencies, ...l2sDependencies.map(it => it.serviceDependencies));
     const serviceDependencies = extend(true, {}, s2sDependencies);
 
     log.info("serviceDependencies", serviceDependencies);
@@ -42,7 +40,7 @@ async function exec() {
 
     const result = {
         version: 2,
-        services: {main}
+        services: { main }
     };
 
     for (const service in serviceDependencies) {
@@ -60,17 +58,17 @@ async function exec() {
 }
 
 async function getMinimalSupportedVersion(imageName, semVerValue) {
-    return await loadImageVersions(imageName)
-        .then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue)))
-        .then(filtered => semver.sort(filtered))
-        .then(sorted => sorted[0]);
+    return await loadImageVersions(imageName).
+        then(versions => versions.filter(it => semver.valid(it) && semver.satisfies(it, semVerValue))).
+        then(filtered => semver.sort(filtered)).
+        then(sorted => sorted[0]);
 }
 
 async function loadImageVersions(imageName) {
     log.info(`fetching tags for ${imageName}`)
-    return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`)
-        .then(response => response.body)
-        .then(tags => tags.map(it => it.name));
+    return await request.get(`https://registry.hub.docker.com/v1/repositories/${imageName}/tags`).
+        then(response => response.body).
+        then(tags => tags.map(it => it.name));
 }
 
 function createMainEntry(config, taskTemplate, dependencies) {
@@ -78,7 +76,7 @@ function createMainEntry(config, taskTemplate, dependencies) {
         image: `opuscapita/${config['serviceName']}`,
         depends_on: Object.keys(dependencies),
         links: ["consul"],
-        labels: {SERVICE_NAME: config['serviceName']},
+        labels: { SERVICE_NAME: config['serviceName'] },
     };
 
     if (taskTemplate.env) {
@@ -90,7 +88,6 @@ function createMainEntry(config, taskTemplate, dependencies) {
         result.enviroments = envEntries;
     }
     return result;
-
 }
 
 async function getServiceBaseConfig(serviceName, semVer) {
@@ -119,8 +116,8 @@ async function getServiceBaseConfig(serviceName, semVer) {
     return {
         image: `${repository}:${tag}`,
         links: ["consul"],
-        labels: {SERVICE_NAME: serviceName},
-        environments: extend(true, {}, environments, {SERVICE_NAME: serviceName})
+        labels: { SERVICE_NAME: serviceName },
+        environments: extend(true, {}, environments, { SERVICE_NAME: serviceName })
     };
 }
 
