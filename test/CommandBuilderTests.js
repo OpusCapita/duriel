@@ -14,7 +14,7 @@ module.exports.run = run;
 
 function run() {
     describe("Docker Command Building", () => {
-        describe("fetch secrets for creation / removal", () => {
+        xdescribe("fetch secrets for creation / removal", () => {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();

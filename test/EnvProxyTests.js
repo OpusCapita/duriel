@@ -35,7 +35,7 @@ async function run() {
                 assert.equal(result.trim(), "ok");
             })
         });
-        describe("executeCommand_E", () => {
+        xdescribe("executeCommand_E", () => {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
@@ -65,7 +65,7 @@ async function run() {
                 assert.equal(result.trim(), "ok");
             })
         });
-        describe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
+        xdescribe("insertDockerSecret_E | getDockerSecrets | getDockerSecretsOfService | removeDockerSecret | generadeDockerSecret", () => {
             const dockerSecretHelper = require('../actions/helpers/dockerSecretHelper');
             const testingSecret = `testing-secret-${new Date().getTime()}`;
 
@@ -133,7 +133,7 @@ async function run() {
                 assert.equal(secret, "ok");
             });
         });
-        describe("getDockerInspect_E", () => {
+        xdescribe("getDockerInspect_E", () => {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
@@ -158,7 +158,7 @@ async function run() {
                 assert.equal(serviceConfig, undefined)
             });
         });
-        describe("getTasksOfServices_E | getDeployedVersions_E | getReplicaCount_E", () => {
+        xdescribe("getTasksOfServices_E | getDeployedVersions_E | getReplicaCount_E", () => {
             const serviceName = "andariel-monitoring";
             let proxy;
             before(async () => {

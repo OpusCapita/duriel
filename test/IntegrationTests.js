@@ -14,7 +14,7 @@ const constants = require('./TestConstants');
 module.exports.run = run;
 
 async function run() {
-    describe("checks the healthcheck-data-fetching", () => {
+    xdescribe("checks the healthcheck-data-fetching", () => {
         let proxy;
         before(async () => {
             proxy = await constants.getEnvProxy();
@@ -35,7 +35,7 @@ async function run() {
             await IntegrationTestHelper.runIntegrationTests(config, proxy)
         })
     });
-    describe("checks the healthcheck-data-fetching", () => {
+    xdescribe("checks the healthcheck-data-fetching", () => {
         let proxy;
         before(async () => {
             proxy = await constants.getEnvProxy();
@@ -69,7 +69,7 @@ async function run() {
             assert.equal(consulData, undefined)
         })
     });
-    describe("check accessibility", () => {
+    xdescribe("check accessibility", () => {
         const devConfig = getBaseConfig(envInfo.develop);
         const mockConfig = getBaseConfig({ public_scheme: "http", public_hostname: 'guukle.com', public_port: '1337' });
         const googleConfig = getBaseConfig({ public_scheme: "http", public_hostname: 'google.com', public_port: '80' });

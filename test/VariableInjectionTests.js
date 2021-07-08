@@ -5,7 +5,6 @@ const getBaseConfigObject = require("../actions/getEnvVariables").getBaseConfigO
 
 const fs = require('fs');
 const constants = require('./TestConstants');
-const fileHelper = require('../actions/filehandling/fileHandler')
 module.exports.run = run;
 
 function run() {

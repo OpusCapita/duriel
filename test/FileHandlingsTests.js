@@ -94,14 +94,14 @@ function run() {
             const expected_del_pocko = {
                 kevin: 3
             };
-            it("loads for an env", () => {
+            xit("loads for an env", () => {
                 const config = getBaseConfigObject({
                     TARGET_ENV: "develop"
                 });
                 const taskTemplate_develop = loadTaskTemplate(config, content);
                 assert.deepEqual(expected_develop, taskTemplate_develop);
             });
-            it("loads without an env", () => {
+            xit("loads without an env", () => {
                 const config = getBaseConfigObject({});
                 const taskTemplate_del_pocko = loadTaskTemplate(config, content);
                 assert.deepEqual(expected_del_pocko, taskTemplate_del_pocko);
@@ -164,7 +164,7 @@ function run() {
                 assert.equal(template['oc-consul-injection']['redis/password'], config.get('SECRET_develop_REDIS'));
             });
         });
-        describe("mkdirp", () => {
+        xdescribe("mkdirp", () => {
             const timeStamp = new Date().getTime() + "";
             const path = require("path").resolve("./", timeStamp, "tmp");
 

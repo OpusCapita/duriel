@@ -26,10 +26,8 @@ class EpicLogger {
 
     static getEnvLogLevel(config) {
         let result;
-        if (config)
-            result = config.andariel_loglevel;
-        if (!result)
-            result = process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";
+        if (config) {result = config.andariel_loglevel;}
+        if (!result) {result = process.env['andariel_loglevel'] ? process.env['andariel_loglevel'] : "info";}
         return result;
     }
 
@@ -48,18 +46,18 @@ class EpicLogger {
 
     static getLevelColor(level) {
         switch (level) {
-            case "severe":
-                return EpicLogger.getColors().CYAN;
-            case "debug":
-                return EpicLogger.getColors().GREEN;
-            case "info":
-                return EpicLogger.getColors().WHITE;
-            case "warn":
-                return EpicLogger.getColors().YELLOW;
-            case "error":
-                return EpicLogger.getColors().RED;
-            default:
-                return EpicLogger.getColors().MAGENTA;
+        case "severe":
+            return EpicLogger.getColors().CYAN;
+        case "debug":
+            return EpicLogger.getColors().GREEN;
+        case "info":
+            return EpicLogger.getColors().WHITE;
+        case "warn":
+            return EpicLogger.getColors().YELLOW;
+        case "error":
+            return EpicLogger.getColors().RED;
+        default:
+            return EpicLogger.getColors().MAGENTA;
         }
     }
 
@@ -67,14 +65,13 @@ class EpicLogger {
         if (EpicLogger.getLogLevels().indexOf(level) >= 0 && EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
             return;
         }
-        const prefix = `${EpicLogger.getLevelColor(level)}${level} - ${new Date().toISOString()} -`;
+        const prefix = `${EpicLogger.getLevelColor(level)}${level} - ${new Date().toISOString()} - Duriel - `;
         const postfix = `${EpicLogger.getColors().RESET}`;
         let logValue = "";
         if (obj) {
-            for (const attachment of obj)
-                logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;
+            for (const attachment of obj) {logValue += `\n${EpicLogger.convert2ReadableString(attachment)}`;}
         }
-        console.log(`${prefix} ${logValue.trim()} ${postfix}`);
+        console.log(`${prefix}${logValue.trim()}${postfix}`);
     }
 
     static convert2ReadableString(message) {

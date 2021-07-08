@@ -28,7 +28,7 @@ module.exports.run = run;
 
 async function run() {
     describe("Dependency Tests", () => {
-        describe("libraryHelper", () => {
+        xdescribe("libraryHelper", () => {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
@@ -215,7 +215,7 @@ async function run() {
                 })
             })
         });
-        describe("Library loading", async () => {
+        xdescribe("Library loading", async () => {
             let proxy;
             before(async () => {
                 proxy = await constants.getEnvProxy();
