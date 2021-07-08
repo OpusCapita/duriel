@@ -67,7 +67,7 @@ class EpicLogger {
         if (EpicLogger.getLogLevels().indexOf(level) >= 0 && EpicLogger.getLogLevels().indexOf(level) < EpicLogger.getLogLevels().indexOf(this.logLevel)) {
             return;
         }
-        const prefix = `${EpicLogger.getLevelColor(level)}${level} - ${EpicLogger.formatDate2String(new Date())} -`;
+        const prefix = `${EpicLogger.getLevelColor(level)}${level} - ${new Date().toISOString()} -`;
         const postfix = `${EpicLogger.getColors().RESET}`;
         let logValue = "";
         if (obj) {
@@ -95,10 +95,6 @@ class EpicLogger {
             }
         }
         return logValue;
-    }
-
-    static formatDate2String(date) {
-        return `${this.padLeft(date.getDate(), '0', 2)}.${this.padLeft(date.getMonth() + 1, '0', 2)}.${date.getFullYear()} ${this.padLeft(date.getHours(), '0', 2)}:${this.padLeft(date.getMinutes(), '0', 2)}:${this.padLeft(date.getSeconds(), '0', 2)}`
     }
 
     static padLeft(s, c, l) {
